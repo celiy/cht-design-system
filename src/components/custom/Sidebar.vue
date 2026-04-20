@@ -43,7 +43,8 @@
                 </div>
 
                 <div 
-                    v-for="link in links"
+                    v-for="(link, idx) in resolvedNav"
+                    :key="idx"
                     class="w-full"
                 >
                     <div
@@ -137,10 +138,58 @@
 import { defineComponent, type PropType } from "vue";
 import Button from "../Button.vue";
 
-export default defineComponent({
-    name: 'Sidebar',
+/** Fallback quando `navItems` não é passado (storybook / uso isolado). */
+const DEFAULT_NAV_LINKS = [
+    {
+        type: "section" as const,
+        label: "Dashboard"
+    },
+    {
+        type: "link" as const,
+        label: "Dev design",
+        link: "/devDesign"
+    },
+    {
+        type: "link" as const,
+        label: "Dev form",
+        link: "/devForm"
+    },
 
-    emits: ['click'],
+    {
+        type: "section" as const,
+        label: "Groups section"
+    },
+    {
+        type: "group" as const,
+        label: "Group example",
+        open: false,
+        links: [
+            {
+                label: "Teste",
+                link: "/test"
+            },
+            {
+                label: "New",
+                link: "/new"
+            }
+        ]
+    },
+
+    {
+        type: "section" as const,
+        label: "End section"
+    },
+    {
+        type: "link" as const,
+        label: "Example",
+        link: "/exit"
+    }
+];
+
+export default defineComponent({
+    name: "Sidebar",
+
+    emits: ["click"],
 
     components: {
         Button
@@ -156,62 +205,36 @@ export default defineComponent({
         sidebarWidth: {
             type: Number,
             default: 250
+        },
+
+        /**
+         * Navegação da sidebar. Se vazio ou omitido, usa `DEFAULT_NAV_LINKS`.
+         * O `cht-base` passa itens por contexto (dev vs cliente).
+         */
+        navItems: {
+            type: Array as PropType<unknown[]>,
+            required: false
         }
     },
+
     data() {
         return {
             open: true,
-            isMobile: false,
-            links: [
-                {
-                    type: 'section',
-                    label: 'Dashboard'
-                },
-                {
-                    type: 'link',
-                    label: 'Dev',
-                    link: '/dev'
-                },
-                {
-                    type: 'link',
-                    label: 'Form',
-                    link: '/dev/form'
-                },
-
-                {
-                    type: 'section',
-                    label: 'Groups section'
-                },
-                {
-                    type: 'group',
-                    label: 'Group example',
-                    open: false,
-                    links: [
-                        {
-                            label: 'Teste',
-                            link: '/test'
-                        },
-                        {
-                            label: 'New',
-                            link: '/new'
-                        }
-                    ]
-                },
-
-                {
-                    type: 'section',
-                    label: 'End section'
-                },
-                {
-                    type: 'link',
-                    label: 'Example',
-                    link: '/exit'
-                },
-            ]
+            isMobile: false
         };
     },
 
     computed: {
+        resolvedNav(): typeof DEFAULT_NAV_LINKS {
+            const items = this.navItems;
+
+            if (items && Array.isArray(items) && items.length > 0) {
+                return items as unknown as typeof DEFAULT_NAV_LINKS;
+            }
+
+            return DEFAULT_NAV_LINKS;
+        },
+
         sidebarStyle(): { width?: string } {
             if (!this.open) {
                 return { width: '0px' };
