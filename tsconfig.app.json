@@ -5,7 +5,7 @@
     "types": ["vite/client"],
 
     "paths": {
-      "@shared/*": ["../shared/src/*"]
+      "@shared/*": ["../cht-shared/src/*"]
     },
     "strict": true,
     "noUnusedLocals": true,
