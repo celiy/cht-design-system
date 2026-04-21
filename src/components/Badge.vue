@@ -60,9 +60,13 @@ export default defineComponent({
     methods: {
         handleClick() {
             if (this.link && this.external) {
-                window.open(this.link, '_blank').focus();
+                const newWindow = window.open(this.link, "_blank");
+
+                if (newWindow) {
+                    newWindow.focus();
+                }
             } else if (this.link && !this.external) {
-                this.$router.push(this.link);
+                (this as any).$router?.push(this.link);
             }
 
             this.$emit("click");

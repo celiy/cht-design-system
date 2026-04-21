@@ -63,6 +63,7 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
+import type { ButtonVariants } from "@shared/constants/ButtonTypes";
 
 export default defineComponent({
     name: 'Button',
@@ -104,7 +105,7 @@ export default defineComponent({
         },
 
         variant: {
-            type: String as PropType<"primary" | "default" | "secondary" | "success" | "warning" | "destructive" | "outline" | "transparent" | "bordered" | "transparent-destructive">,
+            type: String as PropType<ButtonVariants>,
             default: "default",
             required: false
         },

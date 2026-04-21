@@ -30,7 +30,7 @@ Example on how to use this component:
             }"
         >
             <button 
-                v-for="(tab, index) in tabCount" 
+                v-for="(_, index) in tabCount" 
                 :key="index" 
 
                 class="p-3 bg-transparent text-sm leading-1 my-1 rounded-lg hover:text-foreground transition-all border"

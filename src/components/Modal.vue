@@ -95,7 +95,6 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Button from "./Button.vue";
-import getHighestZIndex from "@shared/frontend/highestZInex";
 
 export default defineComponent({
     name: 'Modal',
@@ -194,12 +193,6 @@ export default defineComponent({
                 this.close();
             }
         },
-    },
-    
-    computed: {
-        highestZIndex() {
-            return getHighestZIndex();
-        }
     }
 });
 </script>
