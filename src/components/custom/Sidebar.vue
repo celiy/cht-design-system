@@ -22,12 +22,14 @@
 
         <nav 
             :class="[
-                'fixed top-0 left-0 z-50 h-screen bg-sidebar overflow-x-hidden overflow-y-auto transition-[width] duration-300 ease-out box-border border-r border-sidebar-border',
+                'fixed top-0 left-0 z-50 h-screen bg-sidebar overflow-x-hidden overflow-y-auto transition-transform duration-300 ease-out box-border border-r border-sidebar-border shadow-lg',
                 open && isMobile ? 'w-[85%] max-w-[320px]' : ''
             ]"
             :style="sidebarStyle"
         >
-            <div class="flex flex-col pt-4 px-2 select-none">
+            <div
+                class="flex flex-col pt-4 px-2 select-none box-border"
+            >
                 <div
                     class="w-full bg-transparent hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-semibold"
                 >
@@ -235,16 +237,19 @@ export default defineComponent({
             return DEFAULT_NAV_LINKS;
         },
 
-        sidebarStyle(): { width?: string } {
-            if (!this.open) {
-                return { width: '0px' };
-            }
-            
+        sidebarStyle(): Record<string, string> {
             if (this.isMobile) {
-                return {};
+                return {
+                    transform: this.open ? 'translateX(0)' : 'translateX(-100%)'
+                };
             }
 
-            return { width: this.sidebarWidth + 'px' };
+            const w = `${this.sidebarWidth}px`;
+
+            return {
+                width: w,
+                transform: this.open ? 'translateX(0)' : 'translateX(calc(-100% - 1px))'
+            };
         },
 
         mainContentStyle(): { marginLeft: string } {

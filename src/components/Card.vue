@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-card border border-border rounded-lg w-full">
+    <div class="bg-card border border-border rounded-lg w-full shadow-md">
         <template v-if="$slots.header">
             <div class="grid grid-cols-2">
                 <div>

@@ -214,7 +214,7 @@
                     'opacity-0': !isVisible
                 }"
             >
-                <div class="bg-popover border p-2 rounded-lg select-none">
+                <div class="bg-popover border p-2 rounded-lg select-none shadow-sm">
                     {{ localValue }}
                 </div>
             </div>

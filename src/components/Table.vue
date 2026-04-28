@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full overflow-x-auto rounded-lg border-border border p-2 h-fit">
+    <div class="w-full overflow-x-auto rounded-lg border-border border p-2 h-fit shadow-md">
         <div 
             v-if="selectCols" 
             class="flex items-center w-full mb-2"

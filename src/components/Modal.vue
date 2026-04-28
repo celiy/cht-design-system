@@ -24,7 +24,7 @@
             }"
         >
             <div
-                class="relative bg-card p-0 border"
+                class="relative bg-card p-0 border shadow-2xl"
                 ref="modalRef"
 
                 :class="{

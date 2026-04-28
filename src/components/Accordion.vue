@@ -1,5 +1,9 @@
 <template>
-    <div ref="rootRef" class="relative inline-block w-full">
+    <div 
+        ref="rootRef" 
+        class="relative inline-block w-full"
+        :class="variant === 'default' ? 'shadow-md' : ''"
+    >
         <div
             class="w-full flex"
             :class="positionAbove ? 'flex-col-reverse' : 'flex-col'"
