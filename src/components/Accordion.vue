@@ -200,7 +200,7 @@ export default defineComponent({
             const target = event.target as Node;
             const targetEl = event.target instanceof Element ? event.target : (event.target as Node).parentElement;
 
-            /* Teleported Dropdown panels are not inside rootRef */
+            // Teleported Dropdown panels are not inside rootRef
             if (targetEl?.closest?.("[data-dropdown-floating-panel]")) {
                 return;
             }

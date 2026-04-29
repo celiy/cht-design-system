@@ -82,7 +82,7 @@ input {
                 />
 
                 <div
-                    v-else-if="showPasswordToggle"
+                    v-else
                     class="flex min-w-0 items-center gap-2"
                     :class="[
                         fit ? 'w-fit' : 'w-full',
@@ -108,10 +108,13 @@ input {
                         @input="onInput($event)"
                     />
 
-                    <div class="flex shrink-0 self-center">
+                    <div 
+                        v-if="showPasswordToggle"
+                        class="flex shrink-0 self-center"
+                    >
                         <button
                             type="button"
-                            class="text-muted-foreground hover:text-foreground p-1 rounded-md transition-colors"
+                            class="text-muted-foreground hover:text-foreground rounded-md transition-colors"
                             :aria-label="passwordRevealed ? 'Ocultar senha' : 'Mostrar senha'"
                             :disabled="disabled"
                             @click="togglePasswordVisibility"
@@ -122,39 +125,14 @@ input {
                             />
                         </button>
                     </div>
-                </div>
 
-                <div
-                    v-else-if="showCopyButton"
-                    class="flex min-w-0 items-center gap-2"
-                    :class="[
-                        fit ? 'w-fit' : 'w-full',
-                        inputClass
-                    ]"
-                >
-                    <input
-                        class="focus:outline-none focus:ring-0 min-w-0 flex-1 bg-transparent"
-                        v-maska="mask"
-
-                        :class="inputClass"
-                        :id="inputId"
-                        :value="localValue"
-                        :type="htmlInputType"
-                        :name="id"
-                        :autocomplete="inputAutocomplete"
-                        :placeholder="placeholder"
-                        :disabled="disabled"
-                        :readonly="isReadonlyMode"
-
-                        @focus="onFocus"
-                        @blur="onBlur"
-                        @input="onInput($event)"
-                    />
-
-                    <div class="flex shrink-0 self-center">
+                    <div 
+                        v-if="showCopyButton"
+                        class="flex shrink-0 self-center"
+                    >
                         <button
                             type="button"
-                            class="text-muted-foreground hover:text-foreground p-1 rounded-md transition-colors"
+                            class="text-muted-foreground hover:text-foreground rounded-md transition-colors"
                             aria-label="Copiar conteúdo"
                             :disabled="disabled"
                             @click="copyValueToClipboard"
@@ -163,30 +141,6 @@ input {
                         </button>
                     </div>
                 </div>
-
-                <input
-                    v-else
-
-                    class="focus:outline-none focus:ring-0 bg-transparent"
-                    :class="[
-                        fit ? 'w-fit' : 'w-full',
-                        inputClass
-                    ]"
-                    v-maska="mask"
-
-                    :id="inputId"
-                    :value="localValue"
-                    :type="htmlInputType"
-                    :name="id"
-                    :autocomplete="inputAutocomplete"
-                    :placeholder="placeholder"
-                    :disabled="disabled"
-                    :readonly="isReadonlyMode"
-
-                    @focus="onFocus"
-                    @blur="onBlur"
-                    @input="onInput($event)"
-                />
             </div>
         </div>
 
