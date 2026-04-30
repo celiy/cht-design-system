@@ -241,6 +241,14 @@ export default defineComponent({
         },
 
         /**
+         * Optional minimum panel width in pixels.
+         */
+        minWidthPx: {
+            type: Number,
+            required: false
+        },
+
+        /**
          * Extra classes applied to the floating panel container.
          */
         panelClass: {
@@ -361,7 +369,8 @@ export default defineComponent({
             const spaceBelow = window.innerHeight - rect.bottom;
             const spaceAbove = rect.top;
             const anchorWidth = rect.width;
-            const maxLeft = Math.max(viewportPadding, window.innerWidth - anchorWidth - viewportPadding);
+            const minWidth = Math.max(anchorWidth, this.minWidthPx ?? 0);
+            const maxLeft = Math.max(viewportPadding, window.innerWidth - minWidth - viewportPadding);
             const clampedLeft = Math.min(Math.max(rect.left, viewportPadding), maxLeft);
 
             this.positionAbove = spaceAbove >= spaceBelow && spaceBelow < estimatedPanelHeight;
@@ -369,7 +378,7 @@ export default defineComponent({
             this.panelStyle = {
                 position: "fixed",
                 left: `${clampedLeft}px`,
-                width: `${anchorWidth}px`,
+                width: `${minWidth}px`,
                 maxWidth: `calc(100vw - ${viewportPadding * 2}px)`,
                 ...(this.positionAbove
                     ? { bottom: `${window.innerHeight - rect.top + gap}px` }

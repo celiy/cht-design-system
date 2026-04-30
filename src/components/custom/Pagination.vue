@@ -21,6 +21,7 @@
             v-if="pagesHiddenBeforeOptions.length > 0"
             class="w-fit!"
             header="..."
+            panelClass="w-fit! p-1"
 
             closeOnContentClick
         >
@@ -61,6 +62,7 @@
             v-if="pagesHiddenAfterOptions.length > 0"
             class="w-fit!"
             header="..."
+            panelClass="w-fit! p-1"
 
             closeOnContentClick
         >

@@ -10,6 +10,7 @@
         :buttonVariant="buttonVariant"
         :hideDropdownArrow="hideDropdownArrow"
         :maxHeightPx="maxHeightPx"
+        :panelClass="panelClass"
 
         @open="onPanelOpen"
     >
@@ -134,6 +135,12 @@ export default defineComponent({
         maxHeightPx: {
             type: Number,
             default: 280
+        },
+
+        panelClass: {
+            type: String,
+            default: "",
+            required: false
         }
     },
 

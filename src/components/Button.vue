@@ -1,6 +1,6 @@
 <template>
     <button
-        class="transition-all w-fit cursor-pointer font-medium select-none hover:brightness-125"
+        class="transition-all w-fit cursor-pointer font-medium select-none hover:brightness-125 shadow-sm"
         :class="[
             {
                 'bg-primary/95 text-primary-foreground': variant === 'primary',
@@ -10,7 +10,7 @@
                 'bg-warning/95 text-warning-foreground': variant === 'warning',
                 'bg-secondary text-secondary-foreground border': variant === 'secondary',
                 'bg-input/30 hover:bg-input/50 text-foreground/90 border': variant === 'default',
-                'bg-transparent text-secondary-foreground hover:bg-accent border border-transparent!': variant === 'transparent',
+                'bg-transparent text-secondary-foreground hover:bg-accent border border-transparent! shadow-none!': variant === 'transparent',
                 'bg-transparent text-secondary-foreground hover:bg-accent border': variant === 'bordered',
                 'bg-transparent text-foreground hover:bg-accent border border-border': variant === 'outline',
 

@@ -10,6 +10,7 @@
                 <Select
                     header="Colunas"
                     class="w-fit!"
+                    panelClass="w-fit!"
 
                     id="table-select-cols"
                     useMemo

@@ -113,7 +113,7 @@
             class="flex-1 w-full min-h-screen box-border transition-[margin-left] duration-300 ease-out flex flex-col"
             :style="mainContentStyle"
         >
-            <div class="sticky top-0 z-10 shrink-0 bg-background mb-6">
+            <div class="sticky top-0 z-10 shrink-0 bg-background mb-6 shadow-lg">
                 <div 
                     class="px-2 pt-2 w-full flex"
                     :class="{'justify-end': isMobile}"

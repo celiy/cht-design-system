@@ -9,8 +9,9 @@
         :openOnHover="openOnHover"
         :closeOnContentClick="closeOnContentClick"
         :maxHeightPx="maxHeightPx"
+        :minWidthPx="minWidthPx"
 
-        panelClass="text-popover-foreground p-2"
+        :panelClass="panelClass"
     >
         <template
             v-if="$slots.button"
@@ -86,6 +87,21 @@ export default defineComponent({
         maxHeightPx: {
             type: Number,
             default: 280
+        },
+
+        /**
+         * Optional minimum width for the floating panel in pixels.
+         * Final panel width is max(trigger width, minWidthPx).
+         */
+        minWidthPx: {
+            type: Number,
+            required: false
+        },
+
+        panelClass: {
+            type: String,
+            default: "text-popover-foreground p-2",
+            required: false
         }
     },
 
