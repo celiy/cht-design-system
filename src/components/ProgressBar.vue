@@ -152,6 +152,37 @@
     }
   }
 }
+
+.progress-circular__spin {
+  animation: progress-circular-rotate 2.5s linear infinite;
+}
+
+.progress-circular__indeterminate-arc {
+  animation: progress-circular-dash 2.5s ease-in-out infinite;
+}
+
+@keyframes progress-circular-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes progress-circular-dash {
+  0% {
+    stroke-dasharray: 1px var(--progress-circ, 200px);
+    stroke-dashoffset: 0;
+  }
+
+  50% {
+    stroke-dasharray: calc(var(--progress-circ, 200px) * 0.72) var(--progress-circ, 200px);
+    stroke-dashoffset: calc(var(--progress-circ, 200px) * -0.22);
+  }
+
+  100% {
+    stroke-dasharray: 1px var(--progress-circ, 200px);
+    stroke-dashoffset: calc(var(--progress-circ, 200px) * -1);
+  }
+}
 </style>
 
 <template>
@@ -166,6 +197,7 @@
         </label>
 
         <div
+            v-if="variant === 'bar'"
             class="relative"
             :class="{
                 'flex w-full justify-center': direction === 'vertical'
@@ -220,6 +252,58 @@
             </div>
         </div>
 
+        <div
+            v-if="variant === 'circular'"
+            class="relative"
+        >
+            <svg 
+                fill="none" 
+                class="inset-0" 
+                
+                v-bind="circularProgressAtributes"
+            >
+                <circle 
+                    v-bind="circleAtributes"
+                    stroke="var(--color-muted)" 
+                    stroke-width="4" 
+                    fill="none" 
+                    class="text-gray-200">
+                </circle>
+
+                <circle
+                    v-if="!isCircularLoading"
+                    v-bind="circleAtributes"
+                    stroke="var(--color-primary)"
+                    stroke-width="4"
+                    fill="none"
+                    stroke-linecap="round"
+                    :stroke-dasharray="circularProgressArc.strokeDasharray"
+                    :stroke-dashoffset="circularProgressArc.strokeDashoffset"
+                    :transform="circularProgressArc.transform"
+                    class="transition-all duration-500 ease-out"
+                />
+
+                <g
+                    v-else
+                    :transform="circularSpinnerStageTransform"
+                >
+                    <g class="progress-circular__spin">
+                        <circle
+                            cx="0"
+                            cy="0"
+                            :r="circleAtributes.r"
+                            stroke="var(--color-primary)"
+                            stroke-width="4"
+                            fill="none"
+                            stroke-linecap="round"
+                            class="progress-circular__indeterminate-arc"
+                            :style="circularSpinnerArcStyle"
+                        />
+                    </g>
+                </g>
+            </svg>
+        </div>
+
         <span 
             v-if="helperText"
 
@@ -239,6 +323,18 @@ export default defineComponent({
     emits: ["update:value", "update:modelValue"],
 
     props: {
+        variant: {
+            type: String as PropType<"circular" | "bar">,
+            default: "bar",
+            required: false
+        },
+
+        size: {
+            type: String as PropType<"small" | "medium" | "large">,
+            default: "medium",
+            required: false
+        },
+
         direction: {
             type: String as PropType<"horizontal" | "vertical">,
             default: "horizontal",
@@ -321,6 +417,12 @@ export default defineComponent({
         showProgress: {
             type: Boolean,
             required: false
+        },
+
+        loading: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
 
@@ -421,6 +523,73 @@ export default defineComponent({
             }
 
             return style;
+        },
+
+        circularProgressAtributes(): {
+            width: number;
+            height: number;
+            viewBox: string;
+        } {
+            switch (this.size) {
+                case "small":
+                    return { width: 32, height: 32, viewBox: "0 0 32 32" };
+                case "large":
+                    return { width: 128, height: 128, viewBox: "0 0 128 128" };
+                default:
+                    return { width: 64, height: 64, viewBox: "0 0 64 64" };
+            }
+        },
+
+        circleAtributes(): {
+            cx: number;
+            cy: number;
+            r: number;
+        } {
+            switch (this.size) {
+                case "small":
+                    return { cx: 16, cy: 16, r: 14 };
+                case "large":
+                    return { cx: 64, cy: 64, r: 62 };
+                case "medium":
+                default:
+                    return { cx: 32, cy: 32, r: 30 };
+            }
+        },
+
+        circularProgressArc(): {
+            strokeDasharray: number;
+            strokeDashoffset: number;
+            transform: string;
+        } {
+            const { cx, cy, r } = this.circleAtributes;
+            const circumference = 2 * Math.PI * r;
+            const fraction = Math.min(Math.max(this.progressPercent / 100, 0), 1);
+
+            return {
+                strokeDasharray: circumference,
+                strokeDashoffset: circumference * (1 - fraction),
+                transform: `rotate(-90 ${cx} ${cy})`
+            };
+        },
+
+        circularCircumference(): number {
+            return 2 * Math.PI * this.circleAtributes.r;
+        },
+
+        isCircularLoading(): boolean {
+            return this.variant === "circular" && Boolean(this.loading);
+        },
+
+        circularSpinnerStageTransform(): string {
+            const { cx, cy } = this.circleAtributes;
+
+            return `translate(${cx} ${cy})`;
+        },
+
+        circularSpinnerArcStyle(): Record<string, string> {
+            return {
+                "--progress-circ": `${this.circularCircumference}px`
+            };
         }
     }
 });

@@ -4,7 +4,7 @@
             {{ header }}
         </template>
 
-        <template #header-right-side>
+        <template #headerRightSide>
             <div v-if="variant === 'wave'" class="flex w-full justify-end">
                 <Select
                     class="lg:max-w-1/2"

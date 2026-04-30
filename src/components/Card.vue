@@ -1,11 +1,15 @@
 <template>
     <div class="bg-card border border-border rounded-lg w-full shadow-md">
         <template v-if="$slots.header">
-            <div class="grid grid-cols-2">
+            <div 
+                class="grid"
+                :class="$slots.headerRightSide ? 'grid-cols-2' : ''"
+            >
                 <div>
                     <div class="pt-4 px-4 text-card-foreground text-lg font-semibold">
                         <slot name="header" />
                     </div>
+
                     <template v-if="$slots.description">
                         <div class="px-4 text-muted-foreground leading-5">
                             <slot name="description" />
@@ -13,8 +17,11 @@
                     </template>
                 </div>
             
-                <div class="pt-4 px-4">
-                    <slot name="header-right-side"/>
+                <div 
+                    v-if="$slots.headerRightSide"
+                    class="pt-4 px-4"
+                >
+                    <slot name="headerRightSide"/>
                 </div>
             </div>
         </template>
