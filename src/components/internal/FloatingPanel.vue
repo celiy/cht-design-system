@@ -51,10 +51,7 @@
 
         class="relative inline-block w-full"
     >
-        <div
-            ref="triggerRef"
-            class="w-full"
-        >
+        <div class="w-full">
             <div
                 class="w-full gap-2"
 
@@ -70,42 +67,53 @@
                     {{ label }}
                 </label>
 
-                <Button
-                    v-if="!$slots.button"
+                <!--
+                    Anchor used to size and position the floating panel.
+                    Wraps only the actual control (default Button or #button slot),
+                    so label/helperText do not inflate the measured width.
+                -->
+                <div
+                    ref="panelAnchorRef"
 
-                    v-bind="buttonAtributes"
                     class="w-full"
-                    :hoverEffect="false"
-
-                    @click="toggleOpenClose"
                 >
-                    <div class="flex items-center justify-between w-full gap-2">
-                        <div class="flex-1 min-w-0 text-left">
-                            <slot
-                                name="triggerLabel"
-                                :isOpen="isOpen"
-                            >
-                                <span>{{ header }}</span>
-                            </slot>
+                    <Button
+                        v-if="!$slots.button"
+
+                        v-bind="buttonAtributes"
+                        class="w-full"
+                        :hoverEffect="false"
+
+                        @click="toggleOpenClose"
+                    >
+                        <div class="flex items-center justify-between w-full gap-2">
+                            <div class="flex-1 min-w-0 text-left">
+                                <slot
+                                    name="triggerLabel"
+                                    :isOpen="isOpen"
+                                >
+                                    <span>{{ header }}</span>
+                                </slot>
+                            </div>
+
+                            <i
+                                v-if="!hideDropdownArrow"
+
+                                class="fa-solid transition-all fa-chevron-down ml-2 text-xs"
+                                :class="{ 'rotate-180' : isOpen }"
+                            />
                         </div>
+                    </Button>
 
-                        <i
-                            v-if="!hideDropdownArrow"
+                    <slot
+                        name="button"
 
-                            class="fa-solid transition-all fa-chevron-down ml-2 text-xs"
-                            :class="{ 'rotate-180' : isOpen }"
-                        />
-                    </div>
-                </Button>
-
-                <slot
-                    name="button"
-
-                    :isOpen="isOpen"
-                    :toggle="toggleOpenClose"
-                    :open="open"
-                    :close="close"
-                />
+                        :isOpen="isOpen"
+                        :toggle="toggleOpenClose"
+                        :open="open"
+                        :close="close"
+                    />
+                </div>
 
                 <span
                     v-if="helperText"
@@ -125,7 +133,7 @@
 
                     data-dropdown-floating-panel
 
-                    class="absolute left-0 w-max min-w-32 border border-border rounded-lg bg-popover shadow-md z-50 overflow-y-auto"
+                    class="absolute left-0 border border-border rounded-lg bg-popover shadow-md z-50 overflow-y-auto"
                     :class="[
                         panelClass,
                         positionAbove ? 'bottom-full mb-1 dropdown-origin-bottom' : 'top-full mt-1 dropdown-origin-top'
@@ -310,23 +318,21 @@ export default defineComponent({
             }
         },
 
-        getTriggerElement(): HTMLElement | null {
-            const triggerRef = this.$refs.triggerRef as HTMLElement | { $el?: HTMLElement } | undefined;
+        /**
+         * DOM box used to size and place the floating panel — only the control
+         * that opens it (excludes label and helperText).
+         */
+        getPanelAnchorElement(): HTMLElement | null {
+            const anchor = this.$refs.panelAnchorRef as HTMLElement | undefined;
 
-            if (!triggerRef) {
-                return null;
-            }
-
-            return (triggerRef as { $el?: HTMLElement }).$el != null
-                ? (triggerRef as { $el: HTMLElement }).$el
-                : (triggerRef as HTMLElement);
+            return anchor ?? null;
         },
 
         /**
          * Pre-calculates placement before opening so the transition plays from the correct origin.
          */
         syncPlacementForPanel() {
-            const trigger = this.getTriggerElement();
+            const trigger = this.getPanelAnchorElement();
 
             if (!trigger || typeof trigger.getBoundingClientRect !== "function") {
                 return;
@@ -341,7 +347,7 @@ export default defineComponent({
         },
 
         updatePosition() {
-            const trigger = this.getTriggerElement();
+            const trigger = this.getPanelAnchorElement();
             const panel = this.$refs.panelRef as HTMLElement | undefined;
 
             if (!trigger || typeof trigger.getBoundingClientRect !== "function" || !this.isOpen) {
@@ -354,9 +360,8 @@ export default defineComponent({
             const estimatedPanelHeight = panel?.offsetHeight ?? Math.min(this.maxHeightPx + 24, 304);
             const spaceBelow = window.innerHeight - rect.bottom;
             const spaceAbove = rect.top;
-            const minPanelWidth = Math.max(rect.width, 128);
-            const panelWidth = Math.max(panel?.offsetWidth ?? minPanelWidth, minPanelWidth);
-            const maxLeft = Math.max(viewportPadding, window.innerWidth - panelWidth - viewportPadding);
+            const anchorWidth = rect.width;
+            const maxLeft = Math.max(viewportPadding, window.innerWidth - anchorWidth - viewportPadding);
             const clampedLeft = Math.min(Math.max(rect.left, viewportPadding), maxLeft);
 
             this.positionAbove = spaceAbove >= spaceBelow && spaceBelow < estimatedPanelHeight;
@@ -364,7 +369,7 @@ export default defineComponent({
             this.panelStyle = {
                 position: "fixed",
                 left: `${clampedLeft}px`,
-                minWidth: `${rect.width}px`,
+                width: `${anchorWidth}px`,
                 maxWidth: `calc(100vw - ${viewportPadding * 2}px)`,
                 ...(this.positionAbove
                     ? { bottom: `${window.innerHeight - rect.top + gap}px` }
