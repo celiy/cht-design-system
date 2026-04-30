@@ -87,7 +87,7 @@
 
                     ref="modalRef"
 
-                    class="relative bg-card p-0 border shadow-2xl pointer-events-auto box-border"
+                    class="relative bg-card p-0 shadow-2xl pointer-events-auto box-border"
                     :class="[
                         panelSurfaceClass,
                         variant === 'drawer' ? 'flex flex-col min-h-0' : ''
@@ -150,9 +150,9 @@
                     <div
                         v-if="$slots.footer"
 
-                        class="bg-muted/50 text-foreground p-4 border-t border-border shrink-0"
+                        class="bg-muted/50 text-foreground p-4 border-t shrink-0 rounded-b-lg"
                         :class="{
-                        'mt-auto': variant === 'drawer'
+                            'mt-auto': variant === 'drawer'
                         }"
                     >
                         <slot name="footer" />
@@ -183,6 +183,12 @@ export default defineComponent({
         variant: {
             type: String as PropType<"modal" | "drawer">,
             default: "modal",
+            required: false
+        },
+
+        color: {
+            type: String as PropType<"destructive" | "success" | "warning" | "primary">,
+            default: "secondary",
             required: false
         },
 
@@ -254,35 +260,27 @@ export default defineComponent({
 
         panelSurfaceClass(): Record<string, boolean> {
             const c: Record<string, boolean> = {
-                "lg:w-[30%] md:w-[50%] sm:w-[70%] w-[90%]":
-                    this.size === "small" && this.variant === "modal",
-                "lg:w-[50%] md:w-[70%] sm:w-[80%] w-[92%]":
-                    this.size === "medium" && this.variant === "modal",
-                "lg:w-[60%] md:w-[80%] sm:w-[85%] w-[94%]":
-                    this.size === "large" && this.variant === "modal",
+                "lg:w-[35%] md:w-[50%] sm:w-[70%] w-[90%]": this.size === "small" && this.variant === "modal",
+                "lg:w-[50%] md:w-[70%] sm:w-[80%] w-[94%]": this.size === "medium" && this.variant === "modal",
+                "lg:w-[70%] md:w-[80%] sm:w-[86%] w-[98%]": this.size === "large" && this.variant === "modal",
                 "rounded-lg border": this.variant === "modal",
 
-                "lg:w-[30%] md:w-[50%] sm:w-[80%] w-[90%]":
-                    this.variant === "drawer" && this.side !== "bottom" && this.size === "small",
-                "lg:w-[30%] md:w-[55%] sm:w-[85%] w-[90%]":
-                    this.variant === "drawer" && this.side !== "bottom" && this.size === "medium",
-                "lg:w-[30%] md:w-[60%] sm:w-[85%] w-[90%]":
-                    this.variant === "drawer" && this.side !== "bottom" && this.size === "large",
+                "border-warning/50! border-2!": this.color === "warning",
+                "border-destructive/50! border-2!": this.color === "destructive",
+                "border-success/50! border-2!": this.color === "success",
 
-                "h-full self-stretch max-h-full":
-                    this.variant === "drawer" && (this.side === "left" || this.side === "right"),
+                "lg:w-[30%] md:w-[50%] sm:w-[80%] w-[90%]": this.variant === "drawer" && this.side !== "bottom" && this.size === "small",
+                "lg:w-[30%] md:w-[55%] sm:w-[85%] w-[90%]": this.variant === "drawer" && this.side !== "bottom" && this.size === "medium",
+                "lg:w-[30%] md:w-[60%] sm:w-[85%] w-[90%]": this.variant === "drawer" && this.side !== "bottom" && this.size === "large",
 
-                "w-full self-stretch max-h-[42vh] sm:max-h-[50vh] md:max-h-[58vh]":
-                    this.variant === "drawer" && this.side === "bottom" && this.size === "small",
-                "w-full self-stretch max-h-[58vh] sm:max-h-[68vh] md:max-h-[72vh]":
-                    this.variant === "drawer" && this.side === "bottom" && this.size === "medium",
-                "w-full self-stretch max-h-[78vh] sm:max-h-[85vh] md:max-h-[88vh]":
-                    this.variant === "drawer" && this.side === "bottom" && this.size === "large",
+                "h-full self-stretch max-h-full": this.variant === "drawer" && (this.side === "left" || this.side === "right"),
 
-                "rounded-r-lg border-r":
-                    this.variant === "drawer" && this.side === "left",
-                "rounded-l-lg border-l":
-                    this.variant === "drawer" && this.side === "right",
+                "w-full self-stretch max-h-[42vh] sm:max-h-[50vh] md:max-h-[58vh]": this.variant === "drawer" && this.side === "bottom" && this.size === "small",
+                "w-full self-stretch max-h-[58vh] sm:max-h-[68vh] md:max-h-[72vh]": this.variant === "drawer" && this.side === "bottom" && this.size === "medium",
+                "w-full self-stretch max-h-[78vh] sm:max-h-[85vh] md:max-h-[88vh]": this.variant === "drawer" && this.side === "bottom" && this.size === "large",
+
+                "rounded-r-lg border-r": this.variant === "drawer" && this.side === "left",
+                "rounded-l-lg border-l":this.variant === "drawer" && this.side === "right",
                 "rounded-t-lg border-t border-x": this.variant === "drawer" && this.side === "bottom"
             };
 
