@@ -4,17 +4,12 @@
         class="relative inline-block w-full"
         :class="variant === 'default' ? 'shadow-md' : ''"
     >
-        <div
-            class="w-full flex"
-            :class="positionAbove ? 'flex-col-reverse' : 'flex-col'"
-        >
+        <div class="w-full flex flex-col">
             <div
-                ref="triggerRef"
                 class="cursor-pointer select-none"
                 :class="{
                     'rounded-lg': !contentFlush,
-                    'rounded-t-lg border-b-0': contentFlush && !positionAbove,
-                    'rounded-b-lg border-t-0': contentFlush && positionAbove,
+                    'rounded-t-lg border-b-0': contentFlush,
 
                     'bg-card border': variant === 'default',
                     'border-b rounded-b-none! rounded-none!': variant === 'bordered'
@@ -59,8 +54,8 @@
                         ref="contentPanelRef"
                         class="shadow-lg p-3 text-foreground leading-5"
                         :class="{
-                            'rounded-b-lg border-t-0': !positionAbove,
-                            'rounded-t-lg border-b-0': positionAbove,
+                            'rounded-b-lg border-t-0': contentFlush,
+                            'rounded-lg': !contentFlush,
 
                             'bg-card border': variant === 'default',
                             'border-b rounded-b-none! rounded-none!': variant === 'bordered'
@@ -102,8 +97,6 @@ export default defineComponent({
     data() {
         return {
             isOpen: false,
-            positionAbove: false,
-            maxHeightPx: 280,
             contentFlush: false,
             inside: false,
             isPinned: false
@@ -113,13 +106,8 @@ export default defineComponent({
     watch: {
         isOpen(open) {
             if (open) {
-                this.$nextTick(() => this.updateContentPlacement());
-                window.addEventListener("scroll", this.updateContentPlacement, true);
-                window.addEventListener("resize", this.updateContentPlacement);
                 document.addEventListener("click", this.handleClickOutside);
             } else {
-                window.removeEventListener("scroll", this.updateContentPlacement, true);
-                window.removeEventListener("resize", this.updateContentPlacement);
                 document.removeEventListener("click", this.handleClickOutside);
             }
         }
@@ -127,48 +115,11 @@ export default defineComponent({
 
     beforeUnmount() {
         document.removeEventListener("click", this.handleClickOutside);
-        window.removeEventListener("scroll", this.updateContentPlacement, true);
-        window.removeEventListener("resize", this.updateContentPlacement);
     },
 
     methods: {
         pin() {
             this.isPinned = !this.isPinned;
-        },
-
-        getTriggerElement(): HTMLElement | null {
-            const triggerRef = this.$refs.triggerRef as HTMLElement | { $el?: HTMLElement } | undefined;
-
-            if (!triggerRef) {
-                return null;
-            }
-
-            return (triggerRef as { $el?: HTMLElement }).$el != null
-                ? (triggerRef as { $el: HTMLElement }).$el
-                : (triggerRef as HTMLElement);
-        },
-
-        applyContentPositionFromTrigger() {
-            const trigger = this.getTriggerElement();
-
-            if (!trigger || typeof trigger.getBoundingClientRect !== "function") {
-                return;
-            }
-
-            const rect = trigger.getBoundingClientRect();
-            const estimatedPanelHeight = Math.min(this.maxHeightPx + 24, 304);
-            const spaceBelow = window.innerHeight - rect.bottom;
-            const spaceAbove = rect.top;
-
-            this.positionAbove = spaceAbove >= spaceBelow && spaceBelow < estimatedPanelHeight;
-        },
-
-        updateContentPlacement() {
-            if (!this.isOpen) {
-                return;
-            }
-
-            this.applyContentPositionFromTrigger();
         },
 
         onContentGridTransitionEnd(e: TransitionEvent) {
@@ -183,10 +134,8 @@ export default defineComponent({
 
         toggleOpenClose() {
             if (!this.isOpen) {
-                this.applyContentPositionFromTrigger();
                 this.contentFlush = true;
                 this.isOpen = true;
-                this.$nextTick(() => this.updateContentPlacement());
 
                 return;
             }
@@ -225,10 +174,8 @@ export default defineComponent({
         },
 
         open() {
-            this.applyContentPositionFromTrigger();
             this.contentFlush = true;
             this.isOpen = true;
-            this.$nextTick(() => this.updateContentPlacement());
         },
 
         close() {

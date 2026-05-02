@@ -279,9 +279,9 @@ export default defineComponent({
                 "w-full self-stretch max-h-[58vh] sm:max-h-[68vh] md:max-h-[72vh]": this.variant === "drawer" && this.side === "bottom" && this.size === "medium",
                 "w-full self-stretch max-h-[78vh] sm:max-h-[85vh] md:max-h-[88vh]": this.variant === "drawer" && this.side === "bottom" && this.size === "large",
 
-                "rounded-r-lg border-r": this.variant === "drawer" && this.side === "left",
-                "rounded-l-lg border-l":this.variant === "drawer" && this.side === "right",
-                "rounded-t-lg border-t border-x": this.variant === "drawer" && this.side === "bottom"
+                "border rounded-r-lg border-r": this.variant === "drawer" && this.side === "left",
+                "border rounded-l-lg border-l":this.variant === "drawer" && this.side === "right",
+                "border rounded-t-lg border-t border-x": this.variant === "drawer" && this.side === "bottom"
             };
 
             return c;

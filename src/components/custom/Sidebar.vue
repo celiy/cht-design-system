@@ -13,7 +13,7 @@
     <div class="flex w-full min-h-screen">
         <Transition name="fade">
             <div
-                v-if="open && isMobile"
+                v-if="open && $project.device.isMobile"
                 class="fixed inset-0 bg-black/50 z-40 md:hidden"
                 aria-hidden="true"
                 @click="closeNav"
@@ -23,7 +23,7 @@
         <nav 
             :class="[
                 'fixed top-0 left-0 z-50 h-screen bg-sidebar overflow-x-hidden overflow-y-auto transition-transform duration-300 ease-out box-border border-r border-sidebar-border shadow-lg',
-                open && isMobile ? 'w-[85%] max-w-[320px]' : ''
+                open && $project.device.isMobile ? 'w-[85%] max-w-[320px]' : ''
             ]"
             :style="sidebarStyle"
         >
@@ -31,15 +31,15 @@
                 class="flex flex-col pt-4 px-2 select-none box-border"
             >
                 <div
-                    class="w-full bg-transparent hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-semibold"
+                    class="w-full bg-transparent hover:bg-sidebar-accent transition-all px-4 pb-2 pt-3 rounded-lg text-sidebar-primary-foreground text-sm font-semibold"
                 >
                     <h5>
-                        Titulo
+                        {{ title }}
                     </h5>
 
                     <div class="text-xs">
                         <p class="text-muted-foreground! font-semibold!">
-                            Descrição do titulo
+                            {{ description }}
                         </p>
                     </div>
                 </div>
@@ -116,7 +116,7 @@
             <div class="sticky top-0 z-10 shrink-0 bg-background mb-6 shadow-lg">
                 <div 
                     class="px-2 pt-2 w-full flex"
-                    :class="{'justify-end': isMobile}"
+                    :class="{'justify-end': $project.device.isMobile}"
                 >
                     <Button 
                         variant="transparent" 
@@ -129,7 +129,7 @@
                 <div class="separator mt-2" />
             </div>
 
-            <div class="container flex-1">
+            <div>
                 <slot />
             </div>
         </div>
@@ -139,54 +139,6 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Button from "../Button.vue";
-
-/** Fallback quando `navItems` não é passado (storybook / uso isolado). */
-const DEFAULT_NAV_LINKS = [
-    {
-        type: "section" as const,
-        label: "Dashboard"
-    },
-    {
-        type: "link" as const,
-        label: "Dev design",
-        link: "/devDesign"
-    },
-    {
-        type: "link" as const,
-        label: "Dev form",
-        link: "/devForm"
-    },
-
-    {
-        type: "section" as const,
-        label: "Groups section"
-    },
-    {
-        type: "group" as const,
-        label: "Group example",
-        open: false,
-        links: [
-            {
-                label: "Teste",
-                link: "/test"
-            },
-            {
-                label: "New",
-                link: "/new"
-            }
-        ]
-    },
-
-    {
-        type: "section" as const,
-        label: "End section"
-    },
-    {
-        type: "link" as const,
-        label: "Example",
-        link: "/exit"
-    }
-];
 
 export default defineComponent({
     name: "Sidebar",
@@ -198,9 +150,13 @@ export default defineComponent({
     },
 
     props: {
-        proptype: {
-            type: String as PropType<"normal" | "not-normal">,
-            default: "normal",
+        title: {
+            type: String,
+            required: false
+        },
+
+        description: {
+            type: String,
             required: false
         },
 
@@ -209,36 +165,30 @@ export default defineComponent({
             default: 250
         },
 
-        /**
-         * Navegação da sidebar. Se vazio ou omitido, usa `DEFAULT_NAV_LINKS`.
-         * O `cht-base` passa itens por contexto (dev vs cliente).
-         */
         navItems: {
-            type: Array as PropType<unknown[]>,
+            type: Array as PropType<any[]>,
             required: false
+       
         }
     },
 
     data() {
         return {
-            open: true,
-            isMobile: false
+            open: true
         };
     },
 
     computed: {
-        resolvedNav(): typeof DEFAULT_NAV_LINKS {
+        resolvedNav() {
             const items = this.navItems;
 
             if (items && Array.isArray(items) && items.length > 0) {
-                return items as unknown as typeof DEFAULT_NAV_LINKS;
+                return items;
             }
-
-            return DEFAULT_NAV_LINKS;
         },
 
         sidebarStyle(): Record<string, string> {
-            if (this.isMobile) {
+            if (this.$project.device.isMobile) {
                 return {
                     transform: this.open ? 'translateX(0)' : 'translateX(-100%)'
                 };
@@ -253,20 +203,12 @@ export default defineComponent({
         },
 
         mainContentStyle(): { marginLeft: string } {
-            if (this.isMobile || !this.open) {
+            if (this.$project.device.isMobile || !this.open) {
                 return { marginLeft: '0px' };
             }
 
             return { marginLeft: this.sidebarWidth + 'px' };
         }
-    },
-
-    mounted() {
-        this.isMobile = window.matchMedia('(max-width: 767px)').matches;
-
-        window.matchMedia('(max-width: 767px)').addEventListener('change', (e) => {
-            this.isMobile = e.matches;
-        });
     },
 
     methods: {

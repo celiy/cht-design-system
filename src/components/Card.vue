@@ -1,5 +1,11 @@
 <template>
-    <div class="bg-card border border-border rounded-lg w-full shadow-md">
+    <div 
+        class="border border-border rounded-lg w-full shadow-md"
+        :class="{
+            'bg-card': variant === 'default',
+            'bg-transparent': variant === 'transparent'
+        }"
+    >
         <template v-if="$slots.header">
             <div 
                 class="grid"
@@ -48,9 +54,17 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, type PropType } from "vue";
 
 export default defineComponent({
     name: 'Card',
+
+    props: {
+        variant: {
+            type: String as PropType<"default" | "transparent">,
+            default: "default",
+            required: false
+        }
+    }
 });
 </script>
