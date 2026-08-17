@@ -36,6 +36,12 @@
                 @select="selectOption"
             />
         </template>
+
+        <template #helperText>
+            <p class="text-muted-foreground! text-sm px-3 pb-2">
+                {{ inHelperText }}
+            </p>
+        </template>
     </FloatingPanel>
 </template>
 
@@ -67,6 +73,11 @@ export default defineComponent({
         },
 
         label: {
+            type: String,
+            required: false
+        },
+
+        inHelperText: {
             type: String,
             required: false
         },

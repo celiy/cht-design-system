@@ -73,7 +73,7 @@
                 class="absolute inset-0 bg-black/50"
                 aria-hidden="true"
 
-                @click="close"
+                @click="onOverlayDismiss"
             />
         </Transition>
 
@@ -118,7 +118,7 @@
                         <Button
                             variant="transparent"
 
-                            @click="close"
+                            @click="onCloseButtonClick"
                         >
                             <i class="fa-solid fa-x text-xs" />
                         </Button>
@@ -160,12 +160,22 @@
                 </div>
             </Transition>
         </div>
+
+        <Keybind
+            key-name="Escape"
+            :ignore-when-typing="false"
+            :enabled="modalOpen"
+
+            @trigger="onEscape"
+        />
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Button from "./Button.vue";
+import Keybind from "./internal/Keybind.vue";
+import { isTopModalLayer, popModalLayer, pushModalLayer } from "@shared/frontend/keybinds";
 
 const DRAWER_MOVE_LISTENER_OPTS: AddEventListenerOptions = { passive: false, capture: true };
 const DRAWER_UP_LISTENER_OPTS: AddEventListenerOptions = { capture: true };
@@ -176,7 +186,8 @@ export default defineComponent({
     emits: ["update:value"],
 
     components: {
-        Button
+        Button,
+        Keybind
     },
 
     props: {
@@ -214,6 +225,7 @@ export default defineComponent({
     data() {
         return {
             modalOpen: false,
+            modalLayerId: Symbol("modal"),
 
             drawerPointerDown: false,
             drawerDragCommitted: false,
@@ -226,6 +238,10 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Calculates the shell align class.
+         * @returns {string} The shell align class.
+         */
         shellAlignClass(): string {
             if (this.variant === "modal") {
                 return "items-center justify-center p-4";
@@ -242,6 +258,10 @@ export default defineComponent({
             return "items-stretch justify-start";
         },
 
+        /**
+         * Calculates the panel transition name.
+         * @returns {string} The panel transition name.
+         */
         panelTransitionName(): string {
             if (this.variant === "modal") {
                 return "fade-modal";
@@ -258,6 +278,10 @@ export default defineComponent({
             return "drawer-slide-left";
         },
 
+        /**
+         * Calculates the panel surface class.
+         * @returns {Record<string, boolean>} The panel surface class.
+         */
         panelSurfaceClass(): Record<string, boolean> {
             const c: Record<string, boolean> = {
                 "lg:w-[35%] md:w-[50%] sm:w-[70%] w-[90%]": this.size === "small" && this.variant === "modal",
@@ -287,6 +311,10 @@ export default defineComponent({
             return c;
         },
 
+        /**
+         * Calculates the drawer drag style.
+         * @returns {Record<string, string>} The drawer drag style.
+         */
         drawerDragStyle(): Record<string, string> {
             if (this.variant !== "drawer" || !this.drawerDragCommitted) {
                 return {};
@@ -308,6 +336,7 @@ export default defineComponent({
             handler(newVal: boolean) {
                 if (newVal) {
                     this.resetDrawerDrag();
+                    pushModalLayer(this.modalLayerId);
 
                     this.$nextTick(() => {
                         setTimeout(() => {
@@ -320,6 +349,7 @@ export default defineComponent({
                     document.removeEventListener("click", this.handleClickOutside);
                     this.resetDrawerDrag();
                     this.teardownDrawerPointerListeners();
+                    popModalLayer(this.modalLayerId);
                 }
 
                 this.$emit("update:value", newVal);
@@ -340,21 +370,76 @@ export default defineComponent({
     beforeUnmount() {
         document.removeEventListener("click", this.handleClickOutside);
         this.teardownDrawerPointerListeners();
+        popModalLayer(this.modalLayerId);
     },
 
     methods: {
+        /**
+         * Opens the modal.
+         */
         open() {
             this.modalOpen = true;
         },
 
+        /**
+         * Closes the modal.
+         */
         close() {
             this.modalOpen = false;
         },
 
+        /**
+         * Closes only when this instance is the topmost open modal.
+         *
+         * @param event Click or pointer event from backdrop / outside
+         */
+        onOverlayDismiss(event: Event) {
+            if (!isTopModalLayer(this.modalLayerId)) {
+                return;
+            }
+
+            event.stopImmediatePropagation();
+            this.close();
+        },
+
+        /**
+         * Closes from the header X without letting the same click
+         * count as an outside-click on the modal underneath.
+         *
+         * @param event Native click from the close button
+         */
+        onCloseButtonClick(event: MouseEvent) {
+            if (!isTopModalLayer(this.modalLayerId)) {
+                return;
+            }
+
+            event.stopImmediatePropagation();
+            this.close();
+        },
+
+        /**
+         * Handles the escape key.
+         * @param {KeyboardEvent} event The keyboard event.
+         */
+        onEscape(event: KeyboardEvent) {
+            if (!isTopModalLayer(this.modalLayerId)) {
+                return;
+            }
+
+            event.stopImmediatePropagation();
+            this.close();
+        },
+
+        /**
+         * Toggles the open/close state of the modal.
+         */
         toggleOpenClose() {
             this.modalOpen = !this.modalOpen;
         },
 
+        /**
+         * Resets the drawer drag.
+         */
         resetDrawerDrag() {
             this.drawerPointerDown = false;
             this.drawerDragCommitted = false;
@@ -363,12 +448,19 @@ export default defineComponent({
             this.drawerCapturedPointerId = null;
         },
 
+        /**
+         * Tears down the drawer pointer listeners.
+         */
         teardownDrawerPointerListeners() {
             window.removeEventListener("pointermove", this.onDrawerPointerMove, DRAWER_MOVE_LISTENER_OPTS);
             window.removeEventListener("pointerup", this.onDrawerPointerUp, DRAWER_UP_LISTENER_OPTS);
             window.removeEventListener("pointercancel", this.onDrawerPointerUp, DRAWER_UP_LISTENER_OPTS);
         },
 
+        /**
+         * Calculates the drawer close threshold.
+         * @returns {number} The drawer close threshold.
+         */
         drawerCloseThreshold(): number {
             if (this.side === "bottom") {
                 return Math.max(56, window.innerHeight * 0.12);
@@ -377,6 +469,10 @@ export default defineComponent({
             return Math.max(56, window.innerWidth * 0.12);
         },
 
+        /**
+         * Handles the drawer pointer down event.
+         * @param {PointerEvent} event The pointer event.
+         */
         onDrawerPointerDown(event: PointerEvent) {
             if (this.variant !== "drawer" || !this.modalOpen) {
                 return;
@@ -414,6 +510,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the drawer pointer move event.
+         * @param {PointerEvent} event The pointer event.
+         */
         onDrawerPointerMove(event: PointerEvent) {
             if (!this.drawerPointerDown || this.variant !== "drawer") {
                 return;
@@ -458,6 +558,9 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the drawer pointer up event.
+         */
         onDrawerPointerUp() {
             if (!this.drawerPointerDown) {
                 return;
@@ -505,10 +608,21 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the click outside event.
+         *
+         * @param event The mouse event
+         */
         handleClickOutside(event: MouseEvent) {
-            const modal = this.$refs.modalRef as HTMLElement | undefined;
+            if (!isTopModalLayer(this.modalLayerId)) {
+                return;
+            }
 
-            if (modal && !modal.contains(event.target as Node)) {
+            const modal = this.$refs.modalRef as HTMLElement | undefined;
+            const target = event.target as Node;
+
+            if (modal && !modal.contains(target)) {
+                event.stopImmediatePropagation();
                 this.close();
             }
         }

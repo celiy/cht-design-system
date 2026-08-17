@@ -38,6 +38,8 @@
             'border-input bg-input/10': !disabled && variant === 'card' && !isChecked,
             'bg-transparent border-border/50': disabled && variant === 'card'
         }"
+
+        @click="onClick"
     >
         <div class="flex">
             <input
@@ -55,7 +57,7 @@
             <div>
                 <label
                     :for="id"
-                    class="text-foreground font-medium text-sm ml-2 cursor-pointer"
+                    class="text-foreground font-medium text-sm ml-2 cursor-pointer select-none"
                     :class="{
                         'text-muted-foreground': disabled
                     }"
@@ -141,6 +143,23 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Handles the click event.
+         * @param {Event} event The click event.
+         */
+        onClick(event: Event) {
+            if (this.variant === 'card') {
+                event.stopPropagation();
+            }
+
+            this.$emit("click", event);
+            this.$emit("update:modelValue", this.optionValue);
+        },
+
+        /**
+         * Handles the change event.
+         * @param {Event} event The change event.
+         */
         onChange(event: Event) {
             if (this.disabled) {
                 return;

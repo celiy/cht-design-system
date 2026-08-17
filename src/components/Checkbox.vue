@@ -38,6 +38,8 @@
             'border-input/50 bg-input/20': !disabled && variant === 'card' && !localChecked,
             'bg-transparent border-input/30': disabled && variant === 'card'
         }"
+
+        @click="onClick"
     >
         <div class="flex">
             <input
@@ -71,7 +73,7 @@
                 <label 
                     :for="id"
 
-                    class="text-foreground font-medium text-sm"
+                    class="text-foreground font-medium text-sm select-none"
                     :class="{
                         'ml-2': checkboxStyle !== 'switch',
                         'ml-3': checkboxStyle === 'switch',
@@ -193,6 +195,29 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Handles the click event.
+         * @param {Event} event The click event.
+         */
+        onClick(event: Event) {
+            if (this.variant === 'card') {
+                event.stopPropagation();
+            }
+
+            // Toggle the checked state only if not disabled
+            if (!this.disabled) {
+                this.localChecked = !this.localChecked;
+                this.$emit("update:value", this.localChecked);
+            }
+
+            this.$emit("click", event);
+        },
+   
+
+        /**
+         * Handles the change event.
+         * @param {Event} event The change event.
+         */
         onChange(event: Event) {
             if (this.disabled) {
                 return;

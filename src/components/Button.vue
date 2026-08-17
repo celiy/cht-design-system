@@ -130,8 +130,8 @@ export default defineComponent({
     },
 
     methods: {
-        handleClick() {
-            this.$emit("click");
+        handleClick(event: MouseEvent) {
+            this.$emit("click", event);
         },
 
         handleMouseDown() {

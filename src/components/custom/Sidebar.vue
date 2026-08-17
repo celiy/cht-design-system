@@ -22,7 +22,7 @@
 
         <nav 
             :class="[
-                'fixed top-0 left-0 z-50 h-screen bg-sidebar overflow-x-hidden overflow-y-auto transition-transform duration-300 ease-out box-border border-r border-sidebar-border shadow-lg',
+                'fixed top-0 left-0 z-50 h-screen bg-sidebar overflow-x-hidden overflow-y-auto transition-transform duration-300 ease-out box-border border-r border-sidebar-border shadow-lg pb-6',
                 open && $project.device.isMobile ? 'w-[85%] max-w-[320px]' : ''
             ]"
             :style="sidebarStyle"
@@ -60,7 +60,8 @@
                     <div
                         v-if="link.type === 'link'"
         
-                        class="w-full bg-transparent hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium cursor-pointer"
+                        class="w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium cursor-pointer"
+                        :class="[isActive(link.link) ? 'bg-sidebar-accent/50' : 'bg-transparent']"
 
                         @click="link.link && navigateTo(link.link)"
                     >
@@ -96,8 +97,9 @@
                                     v-for="sublink in link.links"
                                     :key="sublink.label"
 
-                                    class="w-full bg-transparent hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium cursor-pointer"
-                                    
+                                    class="w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium cursor-pointer"
+                                    :class="[isActive(sublink.link) ? 'bg-sidebar-accent/50' : 'bg-transparent']"
+
                                     @click="navigateTo(sublink.link)"
                                 >
                                     {{ sublink.label }}
@@ -120,10 +122,17 @@
                 >
                     <Button 
                         variant="transparent" 
+                        v-tooltip="'Ctrl + S abrir/fechar'"
                         @click="toggleOpenClose"
                     >
                         <i class="fa-solid fa-bars" />
                     </Button>
+            
+                    <Keybind
+                        key-name="s"
+
+                        @trigger="toggleOpenClose"
+                    />
                 </div>
 
                 <div class="separator mt-2" />
@@ -139,6 +148,7 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Button from "../Button.vue";
+import Keybind from "../internal/Keybind.vue";
 
 export default defineComponent({
     name: "Sidebar",
@@ -146,7 +156,8 @@ export default defineComponent({
     emits: ["click"],
 
     components: {
-        Button
+        Button,
+        Keybind
     },
 
     props: {
@@ -179,6 +190,10 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Resolves the navigation items.
+         * @returns {any[]} The resolved navigation items.
+         */
         resolvedNav() {
             const items = this.navItems;
 
@@ -187,6 +202,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Calculates the sidebar style.
+         * @returns {Record<string, string>} The sidebar style.
+         */
         sidebarStyle(): Record<string, string> {
             if (this.$project.device.isMobile) {
                 return {
@@ -202,6 +221,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Calculates the main content style.
+         * @returns {{ marginLeft: string }} The main content style.
+         */
         mainContentStyle(): { marginLeft: string } {
             if (this.$project.device.isMobile || !this.open) {
                 return { marginLeft: '0px' };
@@ -212,20 +235,42 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Toggles the open/close state of the sidebar.
+         */
         toggleOpenClose() {
             this.open = !this.open;
         },
 
+        /**
+         * Opens the sidebar.
+         */
         openNav() {
             this.open = true;
         },
 
+        /**
+         * Closes the sidebar.
+         */
         closeNav() {
             this.open = false;
         },
 
-        navigateTo(link: string) {
+        /**
+         * Navigates to a link.
+         * @param {string | null} link The link to navigate to.
+         */
+        navigateTo(link: string | null) {
             (this as any).$router?.push(link);
+        },
+
+        /**
+         * Checks if a link is active.
+         * @param {string | null} link The link to check.
+         * @returns {boolean} True if the link is active, false otherwise.
+         */
+        isActive(link: string | null) {
+            return (this as any).$route.path === link;
         }
     }
 });

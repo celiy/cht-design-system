@@ -29,6 +29,7 @@
         <div
             v-for="item of visibleOptions"
             :key="item.value ?? item.label"
+            v-tooltip="optionTooltip(item)"
 
             class="block text-popover-foreground select-none rounded-lg bg-popover text-sm"
             :class="{
@@ -73,6 +74,7 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Input from "../Input.vue";
+import tooltip from "@shared/frontend/tooltip";
 
 export type OptionItem = {
     separator?: boolean;
@@ -80,6 +82,7 @@ export type OptionItem = {
     label?: string;
     value?: string;
     selected?: boolean;
+    tooltip?: string;
 };
 
 export type SearchConfig = {
@@ -94,6 +97,10 @@ export default defineComponent({
 
     components: {
         Input
+    },
+
+    directives: {
+        tooltip
     },
 
     props: {
@@ -165,6 +172,17 @@ export default defineComponent({
             }
 
             this.$emit("select", item.value);
+        },
+
+        optionTooltip(item: OptionItem) {
+            if (!item.tooltip) {
+                return "";
+            }
+
+            return {
+                content: item.tooltip,
+                placement: "right" as const
+            };
         }
     },
 

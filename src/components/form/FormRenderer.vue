@@ -28,7 +28,7 @@
                             :label="field.label"
                             :placeholder="field.placeholder"
                             :helperText="field.helperText"
-                            :error="field.error"
+                            :error="fieldError(field)"
                             :required="field.required"
                             :disabled="field.disabled"
                             :readonly="field.readonly"
@@ -87,6 +87,15 @@
                                 @update:value="updateValue(field.id, $event)"
                             />
                         </div>
+
+                        <p
+                            v-if="!isInputType(field.type) && fieldError(field)"
+
+                            class="text-destructive/90 mt-2 block bg-destructive/10 p-1 px-1.5 rounded-lg border-destructive/20 border font-light leading-5 text-sm"
+                        >
+                            <i class="fa-solid fa-warning mr-2" />
+                            {{ fieldError(field) }}
+                        </p>
                     </div>
                 </template>
             </div>
@@ -155,6 +164,7 @@ export default defineComponent({
     data() {
         return {
             formValues: {} as Record<string, any>,
+            fieldErrors: {} as Record<string, string>,
             activeSectionColumns: 1
         }
     },
@@ -216,56 +226,75 @@ export default defineComponent({
 
         updateValue(fieldId: string, value: any) {
             this.formValues[fieldId] = value;
+
+            if (this.fieldErrors[fieldId]) {
+                const nextErrors = { ...this.fieldErrors };
+                delete nextErrors[fieldId];
+                this.fieldErrors = nextErrors;
+            }
+        },
+
+        fieldError(field: FormFieldType): string {
+            return this.fieldErrors[field.id] || field.error || "";
+        },
+
+        isEmptyValue(field: FormFieldType, value: any): boolean {
+            if (field.type === "checkbox") {
+                return !value;
+            }
+
+            if (field.type === "radio" || field.type === "select") {
+                return value === "" || value === undefined || value === null;
+            }
+
+            if (typeof value === "string") {
+                return value.trim() === "";
+            }
+
+            return value === "" || value === undefined || value === null;
+        },
+
+        requiredErrorMessage(field: FormFieldType): string {
+            if (field.type === "radio" || field.type === "select") {
+                return `Selecione uma opção em "${field.label}".`;
+            }
+
+            return `"${field.label}" é obrigatório.`;
         },
 
         onSubmit(event: Event) {
             event.preventDefault();
 
-            const errors: string[] = [];
+            const nextErrors: Record<string, string> = {};
+            const emptyFields: string[] = [];
 
             for (const field of this.allFields) {
-                if (!this.isFieldVisible(field)) continue;
+                if (!this.isFieldVisible(field)) {
+                    continue;
+                }
 
                 const value = this.formValues[field.id];
 
-                if (field.required) {
-                    if (field.type === 'checkbox' && !value) {
-                        errors.push(`"${field.label}" é obrigatório.`);
-
-                        continue;
-                    }
-
-                    if (field.type === 'radio' && !value) {
-                        errors.push(`Selecione uma opção em "${field.label}".`);
-
-                        continue;
-                    }
-
-                    if (field.type === 'select' && !value) {
-                        errors.push(`Selecione uma opção em "${field.label}".`);
-
-                        continue;
-                    }
-
-                    if (value === '' || value === undefined || value === null) {
-                        errors.push(`"${field.label}" é obrigatório.`);
-
-                        continue;
-                    }
+                if (field.required && this.isEmptyValue(field, value)) {
+                    nextErrors[field.id] = this.requiredErrorMessage(field);
+                    emptyFields.push(field.label);
+                    continue;
                 }
 
                 if (this.isInputType(field.type) && value) {
                     if (!this.validateFieldValue(field.type, value, field.minSize)) {
-                        errors.push(`O campo ${field.label} é inválido.`);
+                        nextErrors[field.id] = `O campo ${field.label} é inválido.`;
                     }
                 }
             }
 
-            if (errors.length > 0) {
-                for (const error of errors) {
-                    (this as any).$toast.error(error);
-                }
+            this.fieldErrors = nextErrors;
 
+            if (emptyFields.length > 0) {
+                (this as any).$toast.error(emptyFields.join(", ") + " são obrigatórios.");
+            }
+
+            if (Object.keys(nextErrors).length > 0) {
                 return;
             }
 

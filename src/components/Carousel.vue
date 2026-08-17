@@ -169,9 +169,13 @@ export default defineComponent({
             const threshold = 50;
 
             if (this.swipeOffset < -threshold) {
-                this.next();
+                if (this.pos !== this.images.length - 1) {
+                    this.next();
+                }
             } else if (this.swipeOffset > threshold) {
-                this.prev();
+                if (this.pos !== 0) {
+                    this.prev();
+                }
             }
 
             this.swipeOffset = 0;

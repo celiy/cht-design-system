@@ -98,17 +98,9 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
-import { monthNamesLong, monthNamesShort } from "@shared/constants/DateStrings";
+import { chartUsesGroups, groupChartItems, groupChartItemsByDate, type ChartSeries } from "./groupChartItems";
 
-export type BarChartData = {
-    label: string;
-    color?: string;
-    displayAs: "currency" | "sum";
-    items: Array<{
-        date: Date;
-        value: number;
-    }>;
-};
+export type BarChartData = ChartSeries;
 
 export default defineComponent({
     name: "BarChart",
@@ -158,42 +150,18 @@ export default defineComponent({
         },
 
         dateGroups() {
-            const grouped = new Map<string, number>();
-
-            for (const item of this.data.items) {
-                const date = new Date(item.date);
-                const key = `${date.getFullYear()}-${date.getMonth()}`;
-                const currentValue = grouped.get(key) ?? 0;
-
-                grouped.set(key, currentValue + item.value);
+            if (chartUsesGroups(this.data.items)) {
+                return groupChartItems(this.data.items, this.data.label);
             }
 
-            return [...grouped.entries()]
-                .sort((a, b) => {
-                    const aParts = a[0].split("-");
-                    const bParts = b[0].split("-");
-                    const aYear = Number(aParts[0] ?? 0);
-                    const aMonth = Number(aParts[1] ?? 0);
-                    const bYear = Number(bParts[0] ?? 0);
-                    const bMonth = Number(bParts[1] ?? 0);
-
-                    return new Date(aYear, aMonth).getTime() - new Date(bYear, bMonth).getTime();
-                })
-                .map(([key, value]) => {
-                    const parts = key.split("-");
-                    const month = Number(parts[1] ?? 0);
-                    const monthIndex = Math.min(Math.max(month, 0), 11);
-
-                    return {
-                        dateLong: monthNamesLong[monthIndex],
-                        dateShort: monthNamesShort[monthIndex],
-                        value,
-                        label: this.data.label
-                    };
-                });
+            return groupChartItemsByDate(this.data.items, this.data.label);
         },
 
         periodDescription() {
+            if (chartUsesGroups(this.data.items)) {
+                return `Mostrando ${this.data.label} em ${this.dateGroups.length} grupos`;
+            }
+
             return `Mostrando ${this.data.label} nos últimos ${this.dateGroups.length} meses`;
         }
     }

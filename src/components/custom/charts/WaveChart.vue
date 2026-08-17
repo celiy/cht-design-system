@@ -92,16 +92,9 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
+import { chartUsesGroups, groupChartItems, type ChartSeries } from "./groupChartItems";
 
-export type WaveChartData = {
-    label: string;
-    color?: string;
-    displayAs: "currency" | "sum";
-    items: Array<{
-        date: Date;
-        value: number;
-    }>;
-};
+export type WaveChartData = ChartSeries;
 
 export type WaveFilter = "3m" | "1m" | "2s" | "7d";
 
@@ -303,9 +296,14 @@ export default defineComponent({
 
     computed: {
         waveRawItems() {
+            if (chartUsesGroups(this.data.items)) {
+                return groupChartItems(this.data.items, this.data.label);
+            }
+
             return [...this.data.items]
+                .filter((item) => item.date != null)
                 .map((item) => {
-                    const date = new Date(item.date);
+                    const date = new Date(item.date as Date);
 
                     return {
                         date,
@@ -323,14 +321,24 @@ export default defineComponent({
                 return [];
             }
 
+            if (chartUsesGroups(this.data.items)) {
+                return this.waveRawItems;
+            }
+
             const lastItem = this.waveRawItems[this.waveRawItems.length - 1];
-            if (!lastItem) {
+            if (!lastItem || !("date" in lastItem) || !lastItem.date) {
                 return [];
             }
 
             const startDate = this.getWaveFilterStartDate(lastItem.date);
 
-            return this.waveRawItems.filter((item) => item.date.getTime() >= startDate.getTime());
+            return this.waveRawItems.filter((item) => {
+                if (!("date" in item) || !item.date) {
+                    return false;
+                }
+
+                return item.date.getTime() >= startDate.getTime();
+            });
         },
 
         maxWavePoints() {
@@ -402,6 +410,10 @@ export default defineComponent({
         },
 
         periodDescription() {
+            if (chartUsesGroups(this.data.items)) {
+                return `Mostrando ${this.data.label} em ${this.waveItems.length} grupos`;
+            }
+
             const periodLabel = FILTER_LABELS[this.filter] ?? "período selecionado";
 
             return `Mostrando ${this.data.label} em ${this.waveItems.length} pontos (${periodLabel})`;

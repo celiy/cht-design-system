@@ -5,7 +5,7 @@
         </template>
 
         <template #headerRightSide>
-            <div v-if="variant === 'wave'" class="flex w-full justify-end">
+            <div v-if="variant === 'wave' && !usesGroups" class="flex w-full justify-end">
                 <Select
                     class="lg:max-w-1/2"
                     :modelValue="filter"
@@ -40,6 +40,7 @@ import Card from "../Card.vue";
 import Select from "../Select.vue";
 import BarChart from "./charts/BarChart.vue";
 import WaveChart, { type WaveFilter } from "./charts/WaveChart.vue";
+import { chartUsesGroups, type ChartSeries } from "./charts/groupChartItems";
 
 export default defineComponent({
     name: "TableCharts",
@@ -68,15 +69,7 @@ export default defineComponent({
         },
 
         data: {
-            type: Object as PropType<{
-                label: string;
-                color?: string;
-                displayAs: "currency" | "sum";
-                items: Array<{
-                    date: Date;
-                    value: number;
-                }>;
-            }>,
+            type: Object as PropType<ChartSeries>,
             required: true
         }
     },
@@ -91,6 +84,12 @@ export default defineComponent({
             ],
             filter: "3m" as WaveFilter
         };
+    },
+
+    computed: {
+        usesGroups() {
+            return chartUsesGroups(this.data.items);
+        }
     }
 });
 </script>

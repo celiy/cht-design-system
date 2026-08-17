@@ -33,19 +33,19 @@ input {
             class="text-foreground font-semibold text-sm mb-2"
             :for="inputId"
         >
-            {{ label }}
+            {{ label }} {{ required ? '*' : '' }}
         </label>
 
         <div
             class="transition-shadow box-border"
             :class="{
-                'rounded-xl ring-[3px] ring-transparent ring-offset-0':
+                'rounded-lg ring-[3px] ring-transparent ring-offset-0':
                     variant === 'secondary' && !isFocused,
 
-                'rounded-xl ring-[3px] ring-ring/50 ring-offset-0':
+                'rounded-lg ring-[3px] ring-ring/50 ring-offset-0':
                     variant === 'secondary' && isFocused && !(error || errorsMessage.length > 0),
 
-                'rounded-xl ring-[3px] ring-destructive/50 ring-offset-0':
+                'rounded-lg ring-[3px] ring-destructive/50 ring-offset-0':
                     variant === 'secondary' && isFocused && (error || errorsMessage.length > 0)
             }"
         >
