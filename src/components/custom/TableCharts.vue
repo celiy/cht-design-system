@@ -23,6 +23,7 @@
             <BarChart
                 v-if="variant === 'bars'"
                 :data="data"
+                :hideLabel="hideLabel"
             />
 
             <WaveChart
@@ -71,6 +72,11 @@ export default defineComponent({
         data: {
             type: Object as PropType<ChartSeries>,
             required: true
+        },
+
+        hideLabel: {
+            type: Boolean,
+            default: false
         }
     },
 

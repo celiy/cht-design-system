@@ -66,6 +66,7 @@
                         </div>
 
                         <div
+                            v-if="!hideLabel"
                             class="absolute inset-0 pointer-events-none hidden md:flex justify-center"
                             :class="hasNegativeValues ? 'items-center' : 'items-end pb-2'"
                         >
@@ -109,6 +110,14 @@ export default defineComponent({
         data: {
             type: Object as PropType<BarChartData>,
             required: true
+        },
+
+        /**
+         * If true, the label will not be displayed on top of the bars.
+         */
+        hideLabel: {
+            type: Boolean,
+            default: false
         }
     },
 

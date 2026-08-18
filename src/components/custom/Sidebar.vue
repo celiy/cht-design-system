@@ -10,11 +10,11 @@
 </style>
 
 <template>
-    <div class="flex w-full min-h-screen">
+    <div class="relative flex w-full h-full min-h-0">
         <Transition name="fade">
             <div
                 v-if="open && $project.device.isMobile"
-                class="fixed inset-0 bg-black/50 z-40 md:hidden"
+                class="absolute inset-0 bg-black/50 z-40 md:hidden"
                 aria-hidden="true"
                 @click="closeNav"
             />
@@ -22,8 +22,9 @@
 
         <nav 
             :class="[
-                'fixed top-0 left-0 z-50 h-screen bg-sidebar overflow-x-hidden overflow-y-auto transition-transform duration-300 ease-out box-border border-r border-sidebar-border shadow-lg pb-6',
-                open && $project.device.isMobile ? 'w-[85%] max-w-[320px]' : ''
+                'absolute top-0 left-0 z-50 h-full overflow-x-hidden overflow-y-auto transition-transform duration-300 ease-out box-border border-r border-sidebar-border shadow-lg pb-6',
+                open && $project.device.isMobile ? 'min-w-[85%]' : '',
+                variant === 'minimalist' ? 'bg-background overflow-hidden' : 'bg-sidebar'
             ]"
             :style="sidebarStyle"
         >
@@ -112,10 +113,13 @@
         </nav>
 
         <div 
-            class="flex-1 w-full min-h-screen box-border transition-[margin-left] duration-300 ease-out flex flex-col"
+            class="flex-1 w-full h-full min-h-0 box-border transition-[margin-left] duration-300 ease-out flex flex-col overflow-y-auto"
             :style="mainContentStyle"
         >
-            <div class="sticky top-0 z-10 shrink-0 bg-background mb-6 shadow-lg">
+            <div
+                v-if="variant !== 'minimalist'"
+                class="sticky top-0 z-10 shrink-0 bg-background mb-6 shadow-lg"
+            >
                 <div 
                     class="px-2 pt-2 w-full flex"
                     :class="{'justify-end': $project.device.isMobile}"
@@ -173,13 +177,18 @@ export default defineComponent({
 
         sidebarWidth: {
             type: Number,
-            default: 250
+            default: 300
         },
 
         navItems: {
             type: Array as PropType<any[]>,
             required: false
        
+        },
+
+        variant: {
+            type: String as PropType<"minimalist" | "default">,
+            default: "default"
         }
     },
 
