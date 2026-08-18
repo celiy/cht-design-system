@@ -2,7 +2,6 @@
     <div>
         <div
             v-if="search"
-
             class="flex items-center px-4"
         >
             <span class="fa fa-search text-muted-foreground" />
@@ -11,7 +10,7 @@
                 v-model="localSearchQuery"
 
                 id="dropdown-search-input"
-                class="my-2"
+                class="my-1.5"
                 type="text"
                 variant="transparent"
                 placeholder="Pesquisar..."
@@ -22,20 +21,22 @@
 
         <div
             v-if="search"
-
             class="separator"
         />
 
         <div
-            v-for="item of visibleOptions"
+            v-if="visibleOptions.length > 0"
+            v-for="(item, idx) of visibleOptions"
             :key="item.value ?? item.label"
             v-tooltip="optionTooltip(item)"
 
             class="block text-popover-foreground select-none rounded-lg bg-popover text-sm"
             :class="{
                 'brightness-125': showCheckmark && isOptionSelected?.(item.value),
-                'hover:brightness-150 cursor-pointer p-1.5 px-2 py-2 m-1': !item.separator && item.value,
-                'p-1 px-2 m-1 text-muted-foreground! text-sm font-semibold': item.label && !item.value && !item.separator
+                'hover:brightness-150 cursor-pointer px-2 py-1.5 mx-1': !item.separator && item.value,
+                'p-1 px-2 m-1 text-muted-foreground! text-sm font-semibold': item.label && !item.value && !item.separator,
+                'mt-1': idx === 0,
+                'mb-1': idx === visibleOptions.length - 1
             }"
 
             @click="onItemClick(item)"
@@ -44,29 +45,34 @@
                 <div class="w-full">
                     <i
                         v-if="item.icon"
-
                         :class="[`fa-solid ${item.icon} mr-2 text-sm`]"
                     />
 
                     <div
                         v-if="item.separator"
-
                         class="separator my-1"
                     />
 
-                    <span>{{ item.label }}</span>
+                    <span class="text-sm">{{ item.label }}</span>
                 </div>
 
                 <i
                     v-if="showCheckmark"
 
-                    class="fa-solid fa-check text-sm text-muted-foreground"
+                    class="fa-solid fa-check text-xs text-muted-foreground"
                     :class="{
                         'opacity-100': isOptionSelected?.(item.value),
                         'opacity-0': !isOptionSelected?.(item.value)
                     }"
                 />
             </div>
+        </div>
+
+        <div
+            v-else
+            class="text-muted-foreground! text-sm px-3 py-2 text-center"
+        >
+            <p class="text-muted-foreground!">Nenhum resultado encontrado.</p>
         </div>
     </div>
 </template>

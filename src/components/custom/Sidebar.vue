@@ -154,7 +154,27 @@
             :style="mainContentStyle"
         >
             <div
+                v-if="variant === 'minimalist'"
+
+                class="sticky top-0 z-10 shrink-0 w-fit px-2 pt-2"
+            >
+                <Button
+                    variant="transparent"
+                    @click="toggleOpenClose"
+                >
+                    <i class="fa-solid fa-bars" />
+                </Button>
+
+                <Keybind
+                    key-name="s"
+
+                    @trigger="toggleOpenClose"
+                />
+            </div>
+
+            <div
                 v-if="variant !== 'minimalist'"
+
                 class="sticky top-0 z-10 shrink-0 bg-background mb-6 shadow-lg"
             >
                 <div 
@@ -163,7 +183,6 @@
                 >
                     <Button 
                         variant="transparent" 
-                        v-tooltip="'Ctrl + S abrir/fechar'"
                         @click="toggleOpenClose"
                     >
                         <i class="fa-solid fa-bars" />
