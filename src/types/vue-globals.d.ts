@@ -9,4 +9,10 @@ declare module "vue" {
     }
 }
 
+declare module "@vue/runtime-core" {
+    interface ComponentCustomProperties {
+        $project: ProjectState;
+    }
+}
+
 export {};

@@ -15,3 +15,9 @@ declare module "vue" {
         $router: Router;
     }
 }
+
+declare module "@vue/runtime-core" {
+    interface ComponentCustomProperties {
+        $router: Router;
+    }
+}
