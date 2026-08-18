@@ -1,18 +1,19 @@
 <template>
-    <div 
-        ref="rootRef" 
+    <div
+        ref="rootRef"
+
         class="relative inline-block w-full"
-        :class="variant === 'default' ? 'shadow-md' : ''"
     >
-        <div class="w-full flex flex-col">
+        <div
+            class="w-full flex flex-col"
+            :class="{
+                'rounded-lg bg-card border shadow-md overflow-hidden': variant === 'default'
+            }"
+        >
             <div
                 class="cursor-pointer select-none"
                 :class="{
-                    'rounded-lg': !contentFlush,
-                    'rounded-t-lg border-b-0': contentFlush,
-
-                    'bg-card border': variant === 'default',
-                    'border-b rounded-b-none! rounded-none!': variant === 'bordered'
+                    'rounded-none': variant === 'bordered'
                 }"
 
                 @mouseenter="handleMouseEnter"
@@ -26,6 +27,7 @@
                         <i
                             v-if="pinnable"
                             v-tooltip="'Fixar para não fechar'"
+
                             class="fa-solid fa-thumbtack inline-flex items-center justify-center text-xs"
                             :class="{
                                 'text-foreground': isPinned,
@@ -37,34 +39,35 @@
 
                         <i
                             class="fa-solid fa-chevron-down ml-2 text-sm text-muted-foreground transition-transform duration-300 ease-out"
-                            :class="{ 'rotate-180' : contentFlush }"
+                            :class="{ 'rotate-180' : isOpen }"
                         />
                     </div>
                 </span>
             </div>
 
             <div
-                ref="contentGridRef"
                 class="grid w-full transition-[grid-template-rows] duration-300 ease-out"
                 :class="isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
-                @transitionend.self="onContentGridTransitionEnd"
             >
                 <div class="min-h-0 overflow-hidden">
                     <div
                         ref="contentPanelRef"
-                        class="shadow-lg p-3 text-foreground leading-5"
-                        :class="{
-                            'rounded-b-lg border-t-0': contentFlush,
-                            'rounded-lg': !contentFlush,
 
-                            'bg-card border': variant === 'default',
-                            'border-b rounded-b-none! rounded-none!': variant === 'bordered'
+                        class="p-3 text-foreground leading-5"
+                        :class="{
+                            'rounded-none': variant === 'bordered'
                         }"
                     >
                         <slot />
                     </div>
                 </div>
             </div>
+
+            <div
+                v-if="variant === 'bordered'"
+
+                class="h-px w-full bg-border"
+            />
         </div>
     </div>
 </template>
@@ -97,7 +100,6 @@ export default defineComponent({
     data() {
         return {
             isOpen: false,
-            contentFlush: false,
             inside: false,
             isPinned: false
         };
@@ -122,25 +124,8 @@ export default defineComponent({
             this.isPinned = !this.isPinned;
         },
 
-        onContentGridTransitionEnd(e: TransitionEvent) {
-            if (e.propertyName !== "grid-template-rows") {
-                return;
-            }
-
-            if (!this.isOpen) {
-                this.contentFlush = false;
-            }
-        },
-
         toggleOpenClose() {
-            if (!this.isOpen) {
-                this.contentFlush = true;
-                this.isOpen = true;
-
-                return;
-            }
-
-            this.isOpen = false;
+            this.isOpen = !this.isOpen;
         },
 
         handleClickOutside(event: MouseEvent) {
@@ -174,7 +159,6 @@ export default defineComponent({
         },
 
         open() {
-            this.contentFlush = true;
             this.isOpen = true;
         },
 

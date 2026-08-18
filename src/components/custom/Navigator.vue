@@ -1,7 +1,7 @@
 <template>
     <div class="w-full border-b bg-background">
         <!-- Left side -->
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-row gap-2 py-4 px-6">
             <!-- Links -->
             <div v-for="link in links" :key="link.path">
                 <Button

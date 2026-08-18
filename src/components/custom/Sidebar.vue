@@ -7,6 +7,15 @@
 .fade-leave-to {
     opacity: 0;
 }
+
+.sidebar-links-scroll-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.sidebar-links-scroll-hidden::-webkit-scrollbar {
+    display: none;
+}
 </style>
 
 <template>
@@ -20,19 +29,17 @@
             />
         </Transition>
 
-        <nav 
+        <nav
+            class="absolute top-0 left-0 z-50 h-full flex flex-col overflow-hidden transition-transform duration-300 ease-out box-border border-r border-sidebar-border shadow-lg"
             :class="[
-                'absolute top-0 left-0 z-50 h-full overflow-x-hidden overflow-y-auto transition-transform duration-300 ease-out box-border border-r border-sidebar-border shadow-lg pb-6',
                 open && $project.device.isMobile ? 'min-w-[85%]' : '',
-                variant === 'minimalist' ? 'bg-background overflow-hidden' : 'bg-sidebar'
+                variant === 'minimalist' ? 'bg-background' : 'bg-sidebar'
             ]"
             :style="sidebarStyle"
         >
-            <div
-                class="flex flex-col pt-4 px-2 select-none box-border"
-            >
+            <div class="flex flex-col h-full min-h-0 pt-2 px-2 select-none box-border">
                 <div
-                    class="w-full bg-transparent hover:bg-sidebar-accent transition-all px-4 pb-2 pt-3 rounded-lg text-sidebar-primary-foreground text-sm font-semibold"
+                    class="w-full shrink-0 bg-transparent hover:bg-sidebar-accent transition-all px-4 pb-2 pt-3 rounded-lg text-sidebar-primary-foreground text-sm font-semibold"
                 >
                     <h5>
                         {{ title }}
@@ -45,68 +52,98 @@
                     </div>
                 </div>
 
-                <div 
-                    v-for="(link, idx) in resolvedNav"
-                    :key="idx"
-                    class="w-full"
+                <div
+                    class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pb-6 pl-2 pr-1"
+                    :class="{ 'sidebar-links-scroll-hidden': variant === 'minimalist' }"
                 >
                     <div
-                        v-if="link.type === 'section'"
-        
-                        class="w-full text-muted-foreground text-xs font-semibold pl-4 mt-6 mb-1"
-                    >
-                        {{ link.label }}
-                    </div>
-
-                    <div
-                        v-if="link.type === 'link'"
-        
-                        class="w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium cursor-pointer"
-                        :class="[isActive(link.link) ? 'bg-sidebar-accent/50' : 'bg-transparent']"
-
-                        @click="link.link && navigateTo(link.link)"
-                    >
-                        {{ link.label }}
-                    </div>
-
-                    <div
-                        v-if="link.type === 'group'"
+                        v-for="(link, idx) in resolvedNav"
+                        :key="idx"
 
                         class="w-full"
                     >
+                        <!-- Section -->
                         <div
-                            class="w-full flex items-center justify-between cursor-pointer bg-transparent hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium"
-                            
-                            @click="link.open = !link.open"
-                        >
-                            <span>{{ link.label }}</span>
+                            v-if="link.type === 'section'"
 
-                            <i
-                                :class="[
-                                    'fa-solid transition-transform duration-300 text-xs',
-                                    link.open ? 'fa-chevron-down rotate-180' : 'fa-chevron-down'
-                                ]"
-                            />
+                            class="w-full text-muted-foreground text-xs font-semibold pl-4 mt-6 mb-1"
+                        >
+                            {{ link.label }}
                         </div>
 
-                        <transition name="fade">
-                            <div
-                                v-show="link.open"
-                                class="pl-4 flex flex-col"
-                            >
-                                <div
-                                    v-for="sublink in link.links"
-                                    :key="sublink.label"
+                        <!-- Link -->
+                        <div
+                            v-if="link.type === 'link'"
 
-                                    class="w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium cursor-pointer"
-                                    :class="[isActive(sublink.link) ? 'bg-sidebar-accent/50' : 'bg-transparent']"
+                            class="w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium cursor-pointer"
+                            :class="[isActive(link.link) ? 'bg-sidebar-accent/50' : 'bg-transparent']"
 
-                                    @click="navigateTo(sublink.link)"
-                                >
-                                    {{ sublink.label }}
-                                </div>
+                            @mouseenter="hoverLink(link)"
+                            @mouseleave="unhoverLink()"
+                            @mouseup="onUp()"
+                            @mousedown="onDown()"
+                            @mouseout="onOut()"
+                            @touchstart="onDown()"
+                            @touchend="onUp()"
+                            @click="link.link && navigateTo(link.link)"
+                        >
+                            <div class="flex items-center justify-between">
+                                <span>{{ link.label }}</span>
+
+                                <i
+                                    class="fa-solid fa-chevron-right text-xs transition-all duration-100 ease-out"
+                                    :class="[
+                                        hoveredLink === link.link ? 'opacity-50 translate-y-0' : 'opacity-0 translate-y-1',
+                                        isDown ? 'translate-x-1' : 'translate-x-0'
+                                    ]"
+                                />
                             </div>
-                        </transition>
+                        </div>
+
+                        <!-- Group -->
+                        <div
+                            v-if="link.type === 'group'"
+
+                            class="w-full"
+                        >
+                            <!-- Group header -->
+                            <div
+                                class="w-full flex items-center justify-between cursor-pointer bg-transparent hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium"
+
+                                @click="link.open = !link.open"
+                            >
+                                <span>{{ link.label }}</span>
+
+                                <i
+                                    :class="[
+                                        'fa-solid transition-transform duration-300 text-xs',
+                                        link.open ? 'fa-chevron-down rotate-180' : 'fa-chevron-down'
+                                    ]"
+                                />
+                            </div>
+
+                            <!-- Group content -->
+                            <transition name="fade">
+                                <div
+                                    v-show="link.open"
+
+                                    class="pl-4 flex flex-col"
+                                >
+                                    <!-- Sublink -->
+                                    <div
+                                        v-for="sublink in link.links"
+                                        :key="sublink.label"
+
+                                        class="w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium cursor-pointer"
+                                        :class="[isActive(sublink.link) ? 'bg-sidebar-accent/50' : 'bg-transparent']"
+
+                                        @click="navigateTo(sublink.link)"
+                                    >
+                                        {{ sublink.label }}
+                                    </div>
+                                </div>
+                            </transition>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -194,7 +231,9 @@ export default defineComponent({
 
     data() {
         return {
-            open: true
+            open: true,
+            hoveredLink: null,
+            isDown: false
         };
     },
 
@@ -280,6 +319,42 @@ export default defineComponent({
          */
         isActive(link: string | null) {
             return (this as any).$route.path === link;
+        },
+
+        /**
+         * Hovers a link.
+         * @param {any} link The link to hover.
+         */
+        hoverLink(link: any) {
+            this.hoveredLink = link.link;
+        },
+
+        /**
+         * Unhovers a link.
+         */
+        unhoverLink() {
+            this.hoveredLink = null;
+        },
+
+        /**
+         * On up.
+         */
+        onUp() {
+            this.isDown = false;
+        },
+
+        /**
+         * On down.
+         */
+        onDown() {
+            this.isDown = true;
+        },
+
+        /**
+         * On out.
+         */
+        onOut() {
+            this.isDown = false;
         }
     }
 });
