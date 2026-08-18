@@ -93,7 +93,7 @@
                                 <i
                                     class="fa-solid fa-chevron-right text-xs transition-all duration-100 ease-out"
                                     :class="[
-                                        hoveredLink === link.link ? 'opacity-50 translate-y-0' : 'opacity-0 translate-y-1',
+                                        hoveredLink === link.link ? 'opacity-50 translate-y-0' : 'opacity-0 translate-y-4',
                                         isDown ? 'translate-x-1' : 'translate-x-0'
                                     ]"
                                 />
@@ -108,41 +108,64 @@
                         >
                             <!-- Group header -->
                             <div
-                                class="w-full flex items-center justify-between cursor-pointer bg-transparent hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium"
-
-                                @click="link.open = !link.open"
+                                class="w-full flex items-center justify-between border-b-2 cursor-pointer bg-transparent hover:bg-sidebar-accent px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium"
+                                :class="[isGroupOpen(link, idx) ? 'border-border' : 'border-transparent']"
+                                @click="toggleGroup(link, idx)"
                             >
                                 <span>{{ link.label }}</span>
 
                                 <i
                                     :class="[
                                         'fa-solid transition-transform duration-300 text-xs',
-                                        link.open ? 'fa-chevron-down rotate-180' : 'fa-chevron-down'
+                                        isGroupOpen(link, idx) ? 'fa-chevron-down rotate-180' : 'fa-chevron-down'
                                     ]"
                                 />
                             </div>
 
                             <!-- Group content -->
-                            <transition name="fade">
-                                <div
-                                    v-show="link.open"
+                            <div
+                                class="grid w-full transition-[grid-template-rows] duration-300 ease-out"
+                                :class="isGroupOpen(link, idx) ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+                            >
+                                <div class="min-h-0 overflow-hidden">
+                                    <div class="flex flex-col">
+                                        <!-- Sublink -->
+                                        <div 
+                                            v-for="sublink in link.links" 
+                                            :key="sublink.label"
+                                            class="flex"
+                                        >
+                                            <div class="ml-4 mr-2 w-0.5 bg-sidebar-border" />
+                                        
+                                            <div
+                                                :key="sublink.link"
 
-                                    class="pl-4 flex flex-col"
-                                >
-                                    <!-- Sublink -->
-                                    <div
-                                        v-for="sublink in link.links"
-                                        :key="sublink.label"
+                                                class="flex justify-between w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium cursor-pointer"
+                                                :class="[isActive(sublink.link) ? 'bg-sidebar-accent/50' : 'bg-transparent']"
 
-                                        class="w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium cursor-pointer"
-                                        :class="[isActive(sublink.link) ? 'bg-sidebar-accent/50' : 'bg-transparent']"
+                                                @mouseenter="hoverLink(sublink)"
+                                                @mouseleave="unhoverLink()"
+                                                @mouseup="onUp()"
+                                                @mousedown="onDown()"
+                                                @mouseout="onOut()"
+                                                @touchstart="onDown()"
+                                                @touchend="onUp()"
+                                                @click="navigateTo(sublink.link)"
+                                            >
+                                                <span>{{ sublink.label }}</span>
 
-                                        @click="navigateTo(sublink.link)"
-                                    >
-                                        {{ sublink.label }}
+                                                <i
+                                                    class="fa-solid fa-chevron-right text-xs transition-all duration-100 ease-out"
+                                                    :class="[
+                                                        hoveredLink === sublink.link ? 'opacity-50 translate-y-1' : 'opacity-0 translate-y-3',
+                                                        isDown ? 'translate-x-1' : 'translate-x-0'
+                                                    ]"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </transition>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -251,8 +274,9 @@ export default defineComponent({
     data() {
         return {
             open: true,
-            hoveredLink: null,
-            isDown: false
+            hoveredLink: null as string | null,
+            isDown: false,
+            openGroups: {} as Record<string, boolean>
         };
     },
 
@@ -338,6 +362,58 @@ export default defineComponent({
          */
         isActive(link: string | null) {
             return (this as any).$route.path === link;
+        },
+
+        /**
+         * Stable key for a nav group open-state entry.
+         *
+         * @param link Nav group item
+         * @param idx Index in the nav list
+         * @returns Key used in `openGroups`
+         */
+        groupKey(link: any, idx: number): string {
+            return String(link.label ?? idx);
+        },
+
+        /**
+         * Whether a group is expanded.
+         * Uses local state; falls back to `link.open` from the nav config.
+         *
+         * @param link Nav group item
+         * @param idx Index in the nav list
+         * @returns True when the group content should show
+         */
+        isGroupOpen(link: any, idx: number): boolean {
+            if (link.links) {
+                for (const sublink of link.links) {
+                    if (this.isActive(sublink.link)) {
+                        return true;
+                    }
+                }
+            }
+
+            const key = this.groupKey(link, idx);
+
+            if (Object.prototype.hasOwnProperty.call(this.openGroups, key)) {
+                return this.openGroups[key] ?? false;
+            }
+
+            return Boolean(link.open);
+        },
+
+        /**
+         * Toggles a group's expanded state in local reactive state.
+         *
+         * @param link Nav group item
+         * @param idx Index in the nav list
+         */
+        toggleGroup(link: any, idx: number) {
+            const key = this.groupKey(link, idx);
+
+            this.openGroups = {
+                ...this.openGroups,
+                [key]: !this.isGroupOpen(link, idx)
+            };
         },
 
         /**
