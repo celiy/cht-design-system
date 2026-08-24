@@ -31,7 +31,7 @@
 
 <template>
     <div
-        class="transition-all"
+        class="relative transition-colors"
         :class="{
             'p-3 border rounded-lg': variant === 'card',
             'border-primary/40 bg-primary/10': !disabled && variant === 'card' && localChecked,
@@ -85,7 +85,8 @@
 
                 <p
                     v-if="description"
-                    class="text-muted-foreground! text-sm mt-1"
+
+                    class="text-muted-foreground! text-sm mt-1 select-none"
                     :class="{
                         'ml-2': checkboxStyle !== 'switch',
                         'ml-3': checkboxStyle === 'switch'
@@ -200,19 +201,32 @@ export default defineComponent({
          * @param {Event} event The click event.
          */
         onClick(event: Event) {
-            if (this.variant === 'card') {
+            if (this.variant === "card") {
                 event.stopPropagation();
             }
 
-            // Toggle the checked state only if not disabled
-            if (!this.disabled) {
-                this.localChecked = !this.localChecked;
-                this.$emit("update:value", this.localChecked);
+            if (this.disabled) {
+                this.$emit("click", event);
+
+                return;
             }
 
+            const target = event.target as HTMLElement | null;
+
+            /**
+             * Clicks on the native input or an associated `<label for>` already
+             * toggle via `@change`. Toggling again here cancelled the first click.
+             */
+            if (target?.closest("input, label[for]")) {
+                this.$emit("click", event);
+
+                return;
+            }
+
+            this.localChecked = !this.localChecked;
+            this.$emit("update:value", this.localChecked);
             this.$emit("click", event);
         },
-   
 
         /**
          * Handles the change event.
@@ -227,7 +241,6 @@ export default defineComponent({
             this.localChecked = target.checked;
 
             this.$emit("update:value", this.localChecked);
-            this.$emit("click", event);
         },
     },
 });

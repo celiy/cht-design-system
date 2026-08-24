@@ -79,17 +79,29 @@ export default defineComponent({
     },
 
     mounted() {
-        let index = 0;
+        this.refreshTabCount();
+    },
 
-        // Count how many tab slots exist
-        while (this.$slots[`tab-title-${index}`]) {
-            index++;
-        }
-        
-        this.tabCount = index;
+    updated() {
+        this.refreshTabCount();
     },
 
     methods: {
+        /**
+         * Counts `#tab-title-n` slots, including those created with `v-for`.
+         */
+        refreshTabCount() {
+            let index = 0;
+
+            while (this.$slots[`tab-title-${index}`]) {
+                index += 1;
+            }
+
+            if (this.tabCount !== index) {
+                this.tabCount = index;
+            }
+        },
+
         switchTab(tab: number) {
             this.activeTab = tab;
         }

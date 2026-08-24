@@ -379,9 +379,33 @@ export default defineComponent({
             return this.resolveBadgeValue(value)?.label;
         },
 
-        badgeVariant(value: unknown): "primary" | "secondary" | "destructive" | "warning" | "info" | "success" {
+        badgeVariant(value: unknown):
+            | "primary"
+            | "secondary"
+            | "destructive"
+            | "warning"
+            | "info"
+            | "success"
+            | "chart-1"
+            | "chart-2"
+            | "chart-3"
+            | "chart-4"
+            | "chart-5"
+        {
             const v = this.resolveBadgeValue(value)?.variant;
-            const allowed = ["primary", "secondary", "destructive", "warning", "info", "success"] as const;
+            const allowed = [
+                "primary",
+                "secondary",
+                "destructive",
+                "warning",
+                "info",
+                "success",
+                "chart-1",
+                "chart-2",
+                "chart-3",
+                "chart-4",
+                "chart-5"
+            ] as const;
 
             if (v && (allowed as readonly string[]).includes(v)) {
                 return v as (typeof allowed)[number];

@@ -21,10 +21,18 @@
                     preserveAspectRatio="none"
                 >
                     <path
+                        v-if="waveAreaPath"
+                        :d="waveAreaPath"
+                        :fill="strokeColor"
+                        fill-opacity="0.5"
+                        stroke="none"
+                    />
+
+                    <path
                         v-if="wavePath"
                         :d="wavePath"
                         fill="none"
-                        stroke="var(--color-chart-3)"
+                        :stroke="strokeColor"
                         stroke-width="1.5"
                         vector-effect="non-scaling-stroke"
                         stroke-linejoin="round"
@@ -55,7 +63,8 @@
                     @touchleave="() => hoveredPoint = null"
                 >
                     <div
-                        class="absolute border h-full left-1/2 border-chart-3! border-dashed pointer-events-none transition-all"
+                        class="absolute border h-full left-1/2 border-dashed pointer-events-none transition-colors"
+                        :class="hoverLineClass"
                         :style="{
                             opacity: hoveredPoint === point.index ? 1 : 0,
                         }"
@@ -92,6 +101,7 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
+import { chartColorBorderClass, chartColorCssVar, type ChartColor } from "./chartColors";
 import { chartUsesGroups, groupChartItems, type ChartSeries } from "./groupChartItems";
 
 export type WaveChartData = ChartSeries;
@@ -112,6 +122,14 @@ export default defineComponent({
         data: {
             type: Object as PropType<WaveChartData>,
             required: true
+        },
+
+        /**
+         * Palette token for the stroke and the 50% fill under the line.
+         */
+        color: {
+            type: String as PropType<ChartColor>,
+            default: "chart-3"
         },
 
         filter: {
@@ -407,6 +425,29 @@ export default defineComponent({
 
         wavePath() {
             return this.buildWavePath(this.wavePoints);
+        },
+
+        /**
+         * Closed path from the wave line down to the bottom of the viewBox (`y = 100`).
+         */
+        waveAreaPath() {
+            const line = this.wavePath;
+            const first = this.wavePoints[0];
+            const last = this.wavePoints[this.wavePoints.length - 1];
+
+            if (!line || !first || !last) {
+                return "";
+            }
+
+            return `${line} L ${last.x} 100 L ${first.x} 100 Z`;
+        },
+
+        strokeColor() {
+            return chartColorCssVar(this.color);
+        },
+
+        hoverLineClass() {
+            return chartColorBorderClass(this.color);
         },
 
         periodDescription() {

@@ -1,6 +1,5 @@
 <template>
-    <label
-        :for="inputId"
+    <span
         class="inline-flex items-center"
         :class="{
             'cursor-pointer': !disabled,
@@ -20,7 +19,7 @@
                 :class="checked ? 'translate-x-4' : 'translate-x-0.5'"
             />
         </span>
-    </label>
+    </span>
 </template>
 
 <script lang="ts">

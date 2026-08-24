@@ -39,7 +39,7 @@
         >
             <div class="flex flex-col h-full min-h-0 pt-2 px-2 select-none box-border">
                 <div
-                    class="w-full shrink-0 bg-transparent hover:bg-sidebar-accent transition-all px-4 pb-2 pt-3 rounded-lg text-sidebar-primary-foreground text-sm font-semibold"
+                    class="w-full shrink-0 bg-transparent hover:bg-sidebar-accent transition-all px-4 pb-2 pt-3 rounded-lg text-sidebar-foreground text-sm font-semibold"
                 >
                     <h5>
                         {{ title }}
@@ -75,8 +75,8 @@
                         <div
                             v-if="link.type === 'link'"
 
-                            class="w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium cursor-pointer"
-                            :class="[isActive(link.link) ? 'bg-sidebar-accent/50' : 'bg-transparent']"
+                            class="w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
+                            :class="[isActive(link.link) ? 'bg-sidebar-accent/50 text-sidebar-foreground' : 'bg-transparent text-sidebar-foreground/90']"
 
                             @mouseenter="hoverLink(link)"
                             @mouseleave="unhoverLink()"
@@ -108,8 +108,8 @@
                         >
                             <!-- Group header -->
                             <div
-                                class="w-full flex items-center justify-between border-b-2 cursor-pointer bg-transparent hover:bg-sidebar-accent px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium"
-                                :class="[isGroupOpen(link, idx) ? 'border-border' : 'border-transparent']"
+                                class="w-full flex items-center justify-between border-b-2 cursor-pointer bg-transparent hover:bg-sidebar-accent px-4 py-2 rounded-lg text-sm font-medium"
+                                :class="[isGroupOpen(link, idx) ? 'border-border text-sidebar-foreground' : 'border-transparent text-sidebar-foreground/90']"
                                 @click="toggleGroup(link, idx)"
                             >
                                 <span>{{ link.label }}</span>
@@ -140,8 +140,8 @@
                                             <div
                                                 :key="sublink.link"
 
-                                                class="flex justify-between w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sidebar-primary-foreground text-sm font-medium cursor-pointer"
-                                                :class="[isActive(sublink.link) ? 'bg-sidebar-accent/50' : 'bg-transparent']"
+                                                class="flex justify-between w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
+                                                :class="[isActive(sublink.link) ? 'bg-sidebar-accent/50 text-sidebar-foreground' : 'bg-transparent text-sidebar-foreground/90']"
 
                                                 @mouseenter="hoverLink(sublink)"
                                                 @mouseleave="unhoverLink()"

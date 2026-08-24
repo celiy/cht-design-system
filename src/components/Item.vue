@@ -26,7 +26,7 @@
             <p
                 v-if="description"
 
-                class="text-muted-foreground! text-sm"
+                class="text-muted-foreground! text-sm select-none"
             >
                 {{ description }}
             </p>

@@ -35,7 +35,8 @@
                             <div class="flex-1 flex items-end justify-center min-h-0 pb-px">
                                 <div
                                     v-if="item.value > 0"
-                                    class="w-full max-w-[90%] bg-chart-3 rounded-t-lg"
+                                    class="w-full max-w-[90%] rounded-t-lg"
+                                    :class="positiveBarClass"
                                     :style="{ height: `${positiveBarPercent(item.value)}%` }"
                                 />
                             </div>
@@ -48,7 +49,7 @@
                             <div class="flex-1 flex items-start justify-center min-h-0 pt-px">
                                 <div
                                     v-if="item.value < 0"
-                                    class="w-full max-w-[90%] bg-destructive rounded-b-lg"
+                                    class="w-full max-w-[90%] bg-chart-5 rounded-b-lg"
                                     :style="{ height: `${negativeBarPercent(item.value)}%` }"
                                 />
                             </div>
@@ -60,7 +61,8 @@
                         >
                             <div
                                 v-if="item.value > 0"
-                                class="w-full max-w-[90%] bg-chart-3 rounded-t-lg"
+                                class="w-full max-w-[90%] rounded-t-lg"
+                                :class="positiveBarClass"
                                 :style="{ height: `${positiveBarPercent(item.value)}%` }"
                             />
                         </div>
@@ -99,6 +101,7 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
+import { chartColorBgClass, type ChartColor } from "./chartColors";
 import { chartUsesGroups, groupChartItems, groupChartItemsByDate, type ChartSeries } from "./groupChartItems";
 
 export type BarChartData = ChartSeries;
@@ -110,6 +113,15 @@ export default defineComponent({
         data: {
             type: Object as PropType<BarChartData>,
             required: true
+        },
+
+        /**
+         * Palette token for positive bars (`chart-1` … `chart-5`).
+         * Negative bars stay on `chart-5`.
+         */
+        color: {
+            type: String as PropType<ChartColor>,
+            default: "chart-3"
         },
 
         /**
@@ -140,6 +152,10 @@ export default defineComponent({
     },
 
     computed: {
+        positiveBarClass() {
+            return chartColorBgClass(this.color);
+        },
+
         hasNegativeValues() {
             return this.dateGroups.some((group) => group.value < 0);
         },

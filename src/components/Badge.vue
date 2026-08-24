@@ -9,6 +9,11 @@
             'bg-warning text-warning-foreground text-xs': variant === 'warning',
             'bg-info text-info-foreground text-xs': variant === 'info',
             'bg-success text-success-foreground text-xs': variant === 'success',
+            'bg-chart-1 text-foreground text-xs': variant === 'chart-1',
+            'bg-chart-2 text-foreground text-xs': variant === 'chart-2',
+            'bg-chart-3 text-foreground text-xs': variant === 'chart-3',
+            'bg-chart-4 text-foreground text-xs': variant === 'chart-4',
+            'bg-chart-5 text-foreground text-xs': variant === 'chart-5',
             'hover:underline cursor-pointer': type === 'link'
         }"
 
@@ -34,7 +39,19 @@ export default defineComponent({
         },
 
         variant: {
-            type: String as PropType<"primary" | "secondary" | "destructive" | "warning" | "info" | "success">,
+            type: String as PropType<
+                | "primary"
+                | "secondary"
+                | "destructive"
+                | "warning"
+                | "info"
+                | "success"
+                | "chart-1"
+                | "chart-2"
+                | "chart-3"
+                | "chart-4"
+                | "chart-5"
+            >,
             default: "primary",
             required: false
         },

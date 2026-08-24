@@ -20,7 +20,13 @@
                 :style="activeSectionColumns > 1 ? { gridTemplateColumns: `repeat(${activeSectionColumns}, minmax(0, 1fr))` } : undefined"
             >
                 <template v-for="field in sectionObj.fields" :key="field.id">
-                    <div v-if="isFieldVisible(field)" :style="getFieldStyle(field)">
+                    <div
+                        v-if="isFieldVisible(field)"
+
+                        class="min-w-0"
+
+                        :style="getFieldStyle(field)"
+                    >
                         <Input
                             v-if="isInputType(field.type)"
                             :id="field.id"

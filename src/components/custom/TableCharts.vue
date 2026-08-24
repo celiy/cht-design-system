@@ -24,12 +24,14 @@
                 v-if="variant === 'bars'"
                 :data="data"
                 :hideLabel="hideLabel"
+                :color="color"
             />
 
             <WaveChart
                 v-else
                 :data="data"
                 :filter="filter"
+                :color="color"
             />
         </template>
     </Card>
@@ -41,6 +43,7 @@ import Card from "../Card.vue";
 import Select from "../Select.vue";
 import BarChart from "./charts/BarChart.vue";
 import WaveChart, { type WaveFilter } from "./charts/WaveChart.vue";
+import { type ChartColor } from "./charts/chartColors";
 import { chartUsesGroups, type ChartSeries } from "./charts/groupChartItems";
 
 export default defineComponent({
@@ -77,6 +80,14 @@ export default defineComponent({
         hideLabel: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * Palette token forwarded to BarChart / WaveChart (`chart-1` … `chart-5`).
+         */
+        color: {
+            type: String as PropType<ChartColor>,
+            default: "chart-3"
         }
     },
 
