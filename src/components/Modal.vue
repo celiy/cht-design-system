@@ -82,6 +82,7 @@
             :class="shellAlignClass"
         >
             <Transition :name="panelTransitionName">
+                <!-- Modal panel -->
                 <div
                     v-show="modalOpen"
 
@@ -107,54 +108,62 @@
                     </div>
 
                     <div
-                        class="rounded-t-lg px-4 pt-4 text-foreground font-bold shrink-0"
+                        class="rounded-t-lg px-4 pt-4shrink-0 pt-3"
                         :class="{
-                        'cursor-grab active:cursor-grabbing': variant === 'drawer'
+                            'cursor-grab active:cursor-grabbing': variant === 'drawer'
                         }"
                     >
                         <div class="flex items-center justify-between">
-                        <slot name="header" />
+                            <!-- Header -->
+                            <h4>
+                                <slot name="header" />
+                            </h4>
 
-                        <Button
-                            variant="transparent"
+                            <Button
+                                variant="transparent"
 
-                            @click="onCloseButtonClick"
-                        >
-                            <i class="fa-solid fa-x text-xs" />
-                        </Button>
+                                @click="onCloseButtonClick"
+                            >
+                                <i class="fa-solid fa-x text-xs" />
+                            </Button>
                         </div>
                     </div>
 
                     <div
                         v-if="$slots.description"
 
-                        class="text-muted-foreground leading-5 px-4 pb-4 shrink-0"
+                        class="px-4 pb-4 shrink-0"
                     >
-                        <slot name="description" />
+                        <!-- Description -->
+                        <p class="text-muted-foreground!">
+                            <slot name="description" />
+                        </p>
                     </div>
 
                     <div
                         v-if="$slots.body"
 
-                        class="text-foreground leading-5 px-4 pb-4 overflow-auto"
+                        class="px-4 pb-4 overflow-auto"
                         :class="{
-                        'mt-2': !$slots.description,
-                        'max-h-[60vh]': variant === 'modal' && size !== 'large',
-                        'max-h-[80vh]': variant === 'modal' && size === 'large',
-                        'flex-1 min-h-0': variant === 'drawer'
+                            'mt-2': !$slots.description,
+                            'max-h-[60vh]': variant === 'modal' && size !== 'large',
+                            'max-h-[80vh]': variant === 'modal' && size === 'large',
+                            'flex-1 min-h-0': variant === 'drawer'
                         }"
                     >
+                        <!-- Body -->
                         <slot name="body" />
                     </div>
 
                     <div
                         v-if="$slots.footer"
 
-                        class="bg-muted/50 text-foreground p-4 border-t shrink-0 rounded-b-lg"
+                        class="bg-muted/50 p-4 border-t shrink-0 rounded-b-lg"
                         :class="{
                             'mt-auto': variant === 'drawer'
                         }"
                     >
+                        <!-- Footer -->
                         <slot name="footer" />
                     </div>
                 </div>

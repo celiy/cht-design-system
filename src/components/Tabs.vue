@@ -23,7 +23,7 @@ Example on how to use this component:
 <template>
     <div class="w-full">
         <div 
-            class="flex w-fit overflow-x-auto scrollbar-thin rounded-lg mb-2 px-1"
+            class="flex w-fit overflow-x-auto scrollbar-thin rounded-lg mb-2 p-1"
             :class="{
                 'bg-secondary': variant === 'secondary',
                 'bg-transparent': variant === 'transparent'
@@ -33,7 +33,7 @@ Example on how to use this component:
                 v-for="(_, index) in tabCount" 
                 :key="index" 
 
-                class="p-3 bg-transparent text-sm leading-1 my-1 rounded-lg hover:text-foreground transition-all border"
+                class="p-3 bg-transparent text- text- leading-1 rounded-lg hover:text-foreground transition-all border"
                 :class="{
                     'text-foreground': index === activeTab,
                     'text-muted-foreground': index !== activeTab,

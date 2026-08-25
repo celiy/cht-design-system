@@ -38,20 +38,20 @@
             :style="sidebarStyle"
         >
             <div class="flex flex-col h-full min-h-0 pt-2 px-2 select-none box-border">
+                <!-- Title and description -->
                 <div
-                    class="w-full shrink-0 bg-transparent hover:bg-sidebar-accent transition-all px-4 pb-2 pt-3 rounded-lg text-sidebar-foreground text-sm font-semibold"
+                    class="w-full shrink-0 bg-transparent hover:bg-sidebar-accent transition-all px-4 py-3 rounded-lg"
                 >
-                    <h5>
+                    <h4 class="mb-0!">
                         {{ title }}
-                    </h5>
+                    </h4>
 
-                    <div class="text-xs">
-                        <p class="text-muted-foreground! font-semibold!">
-                            {{ description }}
-                        </p>
+                    <div class="text-muted-foreground text-sm">
+                        {{ description }}
                     </div>
                 </div>
 
+                <!-- Links -->
                 <div
                     class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pb-6 pl-2 pr-1"
                     :class="{ 'sidebar-links-scroll-hidden': variant === 'minimalist' }"
@@ -131,11 +131,14 @@
                                     <div class="flex flex-col">
                                         <!-- Sublink -->
                                         <div 
-                                            v-for="sublink in link.links" 
+                                            v-for="(sublink, idx) in link.links" 
                                             :key="sublink.label"
                                             class="flex"
                                         >
-                                            <div class="ml-4 mr-2 w-0.5 bg-sidebar-border" />
+                                            <div 
+                                                class="ml-4 mr-2 w-0.5" 
+                                                :class="idx === link.links.length - 1 ? 'bg-linear-to-t from-transparent to-sidebar-border' : 'bg-sidebar-border'"
+                                            />
                                         
                                             <div
                                                 :key="sublink.link"

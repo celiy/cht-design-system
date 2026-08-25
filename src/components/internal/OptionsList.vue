@@ -1,16 +1,17 @@
 <template>
     <div>
+        <!-- Search input -->
         <div
             v-if="search"
             class="flex items-center px-4"
         >
-            <span class="fa fa-search text-muted-foreground" />
+            <span class="fa fa-search text-muted-foreground! text-sm" />
 
             <Input
                 v-model="localSearchQuery"
 
                 id="dropdown-search-input"
-                class="my-1.5"
+                class="my-1"
                 type="text"
                 variant="transparent"
                 placeholder="Pesquisar..."
@@ -24,6 +25,7 @@
             class="separator"
         />
 
+        <!-- Options list -->
         <div
             v-if="visibleOptions.length > 0"
             v-for="(item, idx) of visibleOptions"
@@ -33,8 +35,8 @@
             class="block text-popover-foreground select-none rounded-lg bg-popover text-sm"
             :class="{
                 'brightness-125': showCheckmark && isOptionSelected?.(item.value),
-                'hover:brightness-150 cursor-pointer px-2 py-1.5 mx-1': !item.separator && item.value,
-                'p-1 px-2 m-1 text-muted-foreground! text-sm font-semibold': item.label && !item.value && !item.separator,
+                'hover:brightness-150 cursor-pointer px-2.5 py-1.5 mx-1': !item.separator && item.value,
+                'p-1 px-2.5 m-1 text-muted-foreground! text-sm font-semibold': item.label && !item.value && !item.separator,
                 'mt-1': idx === 0,
                 'mb-1': idx === visibleOptions.length - 1
             }"
@@ -43,19 +45,25 @@
         >
             <div class="flex items-center justify-between gap-4">
                 <div class="w-full">
+                    <!-- Icon -->
                     <i
                         v-if="item.icon"
                         :class="[`fa-solid ${item.icon} mr-2 text-sm`]"
                     />
 
+                    <!-- Separator -->
                     <div
                         v-if="item.separator"
                         class="separator my-1"
                     />
 
-                    <span class="text-sm">{{ item.label }}</span>
+                    <!-- Label -->
+                    <span class="text-sm">
+                        {{ item.label }}
+                    </span>
                 </div>
 
+                <!-- Checkmark -->
                 <i
                     v-if="showCheckmark"
 
@@ -68,6 +76,7 @@
             </div>
         </div>
 
+        <!-- No options found -->
         <div
             v-else
             class="text-muted-foreground! text-sm px-3 py-2 text-center"

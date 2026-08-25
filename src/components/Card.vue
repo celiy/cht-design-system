@@ -6,23 +6,18 @@
             'bg-transparent': variant === 'transparent'
         }"
     >
+        <!-- Header -->
         <template v-if="$slots.header">
             <div 
                 class="grid"
                 :class="$slots.headerRightSide ? 'grid-cols-2' : ''"
             >
-                <div>
-                    <div class="pt-4 px-4 text-card-foreground text-lg font-semibold">
-                        <slot name="header" />
-                    </div>
-
-                    <template v-if="$slots.description">
-                        <div class="px-4 text-muted-foreground leading-5">
-                            <slot name="description" />
-                        </div>
-                    </template>
+                <!-- Header left side -->
+                <div class="px-4 pt-3">
+                    <slot name="header" />
                 </div>
             
+                <!-- Header right side -->
                 <div 
                     v-if="$slots.headerRightSide"
                     class="pt-4 px-4"
@@ -32,9 +27,10 @@
             </div>
         </template>
 
+        <!-- Body -->
         <template v-if="$slots.body">
             <div 
-                class="px-4 pb-4 text-card-foreground leading-5"
+                class="px-4 pb-4"
 
                 :class="{
                     'pt-4': $slots.description || !$slots.header,
@@ -45,8 +41,9 @@
             </div>
         </template>
 
+        <!-- Footer -->
         <template v-if="$slots.footer">
-            <div class="p-4 bg-muted/50 border-t border-border text-card-foreground">
+            <div class="p-4 bg-muted/50 border-t">
                 <slot name="footer" />
             </div>
         </template>

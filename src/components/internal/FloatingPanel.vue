@@ -115,13 +115,13 @@
                     />
                 </div>
 
-                <span
+                <small
                     v-if="helperText"
 
-                    class="mt-2 block text-sm text-muted-foreground"
+                    class="mt-2 text-sm!"
                 >
                     {{ helperText }}
-                </span>
+                </small>
             </div>
         </div>
 

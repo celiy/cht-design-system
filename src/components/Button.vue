@@ -14,10 +14,9 @@
                 'bg-transparent text-secondary-foreground hover:bg-accent border': variant === 'bordered',
                 'bg-transparent text-foreground hover:bg-accent border border-border': variant === 'outline',
 
-                'p-1 px-2 text-[0.9rem]': size === 'extra-small' && shape !== 'rounded',
-                'p-2 px-2.5 text-[0.94rem]': size === 'small' && shape !== 'rounded',
-                'p-2.5 px-3 text-[1rem]': size === 'medium' && shape !== 'rounded',
-                'p-3 px-3.5 text-[1.1rem]': size === 'large' && shape !== 'rounded',
+                'p-1 px-2.5 text-xs': size === 'small' && shape !== 'rounded',
+                'p-1.5 px-3 text-sm': size === 'medium' && shape !== 'rounded',
+                'p-2 px-3.5 text-base': size === 'large' && shape !== 'rounded',
 
                 'hover:translate-y-[-0.2rem]': hoverEffect,
                 
@@ -99,7 +98,7 @@ export default defineComponent({
         },
 
         size: {
-            type: String as PropType<"extra-small" | "small" | "medium" | "large">,
+            type: String as PropType< "small" | "medium" | "large">,
             default: "medium",
             required: false
         },

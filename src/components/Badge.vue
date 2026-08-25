@@ -1,25 +1,28 @@
 <template>
     <div
-        class="rounded-xl py-1 px-2 select-none font-semibold w-fit"
+        class="rounded-xl py-1 px-2.5 select-none font-semibold w-fit text-xs"
 
         :class="{
-            'bg-primary text-primary-foreground text-xs': variant === 'primary',
-            'bg-secondary text-secondary-foreground text-xs border border-border': variant === 'secondary',
-            'bg-destructive text-destructive-foreground text-xs': variant === 'destructive',
-            'bg-warning text-warning-foreground text-xs': variant === 'warning',
-            'bg-info text-info-foreground text-xs': variant === 'info',
-            'bg-success text-success-foreground text-xs': variant === 'success',
-            'bg-chart-1 text-foreground text-xs': variant === 'chart-1',
-            'bg-chart-2 text-foreground text-xs': variant === 'chart-2',
-            'bg-chart-3 text-foreground text-xs': variant === 'chart-3',
-            'bg-chart-4 text-foreground text-xs': variant === 'chart-4',
-            'bg-chart-5 text-foreground text-xs': variant === 'chart-5',
+            'bg-primary text-primary-foreground': variant === 'primary',
+            'bg-secondary text-secondary-foreground border': variant === 'secondary',
+            'bg-destructive text-destructive-foreground': variant === 'destructive',
+            'bg-warning text-warning-foreground': variant === 'warning',
+            'bg-info text-info-foreground': variant === 'info',
+            'bg-success text-success-foreground': variant === 'success',
+            'bg-chart-1 text-foreground': variant === 'chart-1',
+            'bg-chart-2 text-foreground': variant === 'chart-2',
+            'bg-chart-3 text-foreground': variant === 'chart-3',
+            'bg-chart-4 text-foreground': variant === 'chart-4',
+            'bg-chart-5 text-foreground': variant === 'chart-5',
             'hover:underline cursor-pointer': type === 'link'
         }"
 
         @click="handleClick"
     >
-        <span v-if="label">{{ label }}</span>
+        <span v-if="label">
+            {{ label }}
+        </span>
+
         <slot v-else/>
     </div>
 </template>

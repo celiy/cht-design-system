@@ -5,12 +5,12 @@
             :key="sectionObj.key"
             v-show="isSectionVisible(sectionObj.fields)"
         >
-            <h3
+            <h4
                 v-if="String(sectionObj.title)"
-                class="text-foreground font-semibold text-base mb-3"
+                class="mb-3"
             >
                 {{ sectionObj.title }}
-            </h3>
+            </h4>
 
             <div
                 :class="{

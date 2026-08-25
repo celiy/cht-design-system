@@ -10,6 +10,7 @@
                 'rounded-lg bg-card border shadow-md overflow-hidden': variant === 'default'
             }"
         >
+            <!-- Header -->
             <div
                 class="cursor-pointer select-none"
                 :class="{
@@ -21,9 +22,16 @@
                 @click="toggleOpenClose"
             >
                 <span class="flex items-center justify-between text-foreground p-3">
-                    <span :class="{ 'underline' : inside }">{{ header }}</span>
+                    <!-- Header text -->
+                    <span 
+                        class="text-base" 
+                        :class="{ 'underline' : inside }"
+                    >
+                        {{ header }}
+                    </span>
 
                     <div class="flex gap-1">
+                        <!-- Pin button -->
                         <i
                             v-if="pinnable"
                             v-tooltip="'Fixar para não fechar'"
@@ -37,6 +45,7 @@
                             @click.stop="pin"
                         />
 
+                        <!-- Chevron down icon -->
                         <i
                             class="fa-solid fa-chevron-down ml-2 text-sm text-muted-foreground transition-transform duration-300 ease-out"
                             :class="{ 'rotate-180' : isOpen }"
@@ -45,6 +54,7 @@
                 </span>
             </div>
 
+            <!-- Content -->
             <div
                 class="grid w-full transition-[grid-template-rows] duration-300 ease-out"
                 :class="isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
@@ -53,7 +63,7 @@
                     <div
                         ref="contentPanelRef"
 
-                        class="p-3 text-foreground leading-5"
+                        class="p-3"
                         :class="{
                             'rounded-none': variant === 'bordered'
                         }"
@@ -63,6 +73,7 @@
                 </div>
             </div>
 
+            <!-- Border at the bottom -->
             <div
                 v-if="variant === 'bordered'"
 

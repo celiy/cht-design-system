@@ -38,9 +38,9 @@
         </template>
 
         <template #helperText>
-            <p v-if="inHelperText" class="text-muted-foreground! text-sm px-3 pb-2">
+            <small v-if="inHelperText" class="text-sm! px-3 pb-2">
                 {{ inHelperText }}
-            </p>
+            </small>
         </template>
     </FloatingPanel>
 </template>

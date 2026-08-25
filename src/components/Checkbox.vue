@@ -42,6 +42,7 @@
         @click="onClick"
     >
         <div class="flex">
+            <!-- Input -->
             <input
                 type="checkbox"
 
@@ -61,6 +62,7 @@
                 @change="onChange"
             />
 
+            <!-- Switch -->
             <CheckboxSwitch
                 v-if="checkboxStyle === 'switch'"
                 :input-id="id"
@@ -69,11 +71,11 @@
                 class="shrink-0"
             />
 
+            <!-- Label -->
             <div>
                 <label 
                     :for="id"
 
-                    class="text-foreground font-medium text-sm select-none"
                     :class="{
                         'ml-2': checkboxStyle !== 'switch',
                         'ml-3': checkboxStyle === 'switch',
@@ -83,17 +85,18 @@
                     {{ label }}
                 </label>
 
-                <p
+                <!-- Description -->
+                <small
                     v-if="description"
 
-                    class="text-muted-foreground! text-sm mt-1 select-none"
+                    class="text-sm! mt-1 select-none text-muted-foreground!"
                     :class="{
                         'ml-2': checkboxStyle !== 'switch',
                         'ml-3': checkboxStyle === 'switch'
                     }"
                 >
                     {{ description }}
-                </p>
+                </small>
             </div>
         </div>
     </div>

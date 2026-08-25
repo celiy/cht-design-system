@@ -5,6 +5,7 @@
 
         @click="onClick"
     >
+        <!-- Icon -->
         <div
             class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
             :class="iconWrapClass"
@@ -15,21 +16,24 @@
             />
         </div>
 
+        <!-- Label and description -->
         <div class="min-w-0">
+            <!-- Label -->
             <p
-                class="font-medium text-sm select-none leading-tight!"
+                class="select-none leading-tight!"
                 :class="disabled ? 'text-muted-foreground' : 'text-foreground'"
             >
                 {{ label }}
             </p>
 
-            <p
+            <!-- Description -->
+            <small
                 v-if="description"
 
-                class="text-muted-foreground! text-sm select-none"
+                class="text-sm! select-none text-muted-foreground!"
             >
                 {{ description }}
-            </p>
+            </small>
         </div>
     </div>
 </template>

@@ -6,7 +6,6 @@
             <div v-for="link in links" :key="link.path">
                 <Button
                     variant="transparent"
-                    size="small"
                     :label="link.label"
                     :link="link.path"
                     @click="navigateTo(link.path)"

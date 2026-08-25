@@ -27,15 +27,17 @@ input {
             fit ? 'w-fit' : 'w-full'
         ]"
     >
+        <!-- Label -->
         <label 
             v-if="label"
 
-            class="text-foreground font-semibold text-sm mb-2"
+            class="mb-2"
             :for="inputId"
         >
             {{ label }} {{ required ? '*' : '' }}
         </label>
 
+        <!-- Input container -->
         <div
             class="transition-shadow box-border"
             :class="{
@@ -49,6 +51,7 @@ input {
                     variant === 'secondary' && isFocused && (error || errorsMessage.length > 0)
             }"
         >
+            <!-- Input/textarea -->
             <div
                 :class=" [
                     borderClass,
@@ -81,6 +84,7 @@ input {
                     @input="onInput($event)"
                 />
 
+                <!-- Input/textarea content -->
                 <div
                     v-else
                     class="flex min-w-0 items-center gap-2"
@@ -89,6 +93,7 @@ input {
                         inputClass
                     ]"
                 >
+                    <!-- Input -->
                     <input
                         class="focus:outline-none focus:ring-0 min-w-0 flex-1 bg-transparent"
                         v-maska="mask"
@@ -108,6 +113,7 @@ input {
                         @input="onInput($event)"
                     />
 
+                    <!-- Password toggle -->
                     <div 
                         v-if="showPasswordToggle"
                         class="flex shrink-0 self-center"
@@ -126,6 +132,7 @@ input {
                         </button>
                     </div>
 
+                    <!-- Copy button -->
                     <div 
                         v-if="showCopyButton"
                         class="flex shrink-0 self-center"
@@ -144,15 +151,16 @@ input {
             </div>
         </div>
 
+        <!-- Error message -->
         <transition name="expand-error">
             <span 
                 v-if="error || errorsMessage.length > 0"
                 
-                class="text-destructive/90 mt-2 block bg-destructive/10 p-1 px-1.5 rounded-lg border-destructive/20 border font-light leading-5"
+                class="text-destructive/90 mt-2 block bg-destructive/10 p-1 px-1.5 rounded-lg border-destructive/20! border"
                 
                 :class="{ 'error-active': isFocused }"
             >
-                <i class="fa-solid fa-warning mr-2"/>
+                <i class="fa-solid fa-warning mr-2 text-sm"/>
                 
                 <span v-if="error">
                     {{ error }}
@@ -161,6 +169,8 @@ input {
                 <span 
                     v-else-if="errorsMessage?.length > 0" 
                     v-for="(errorMessage, index) of errorsMessage"
+
+                    class="text-sm"
                 >
                     {{ errorMessage }}
 
@@ -169,13 +179,14 @@ input {
             </span>
         </transition>
 
-        <span 
+        <!-- Helper text -->
+        <small 
             v-if="helperText"
 
-            class="text-muted-foreground mt-2 text-sm"
+            class="mt-2 text-sm! text-muted-foreground!"
         >
             {{ helperText }}
-        </span>
+        </small>
     </div>
 </template>
 
@@ -656,18 +667,18 @@ export default defineComponent({
 
             if (this.isEmptyValue) {
                 if (this.required && this.hasValueEver) {
-                    errors.push(`O ${this.fieldLabel} é obrigatório.`);
+                    errors.push(`${this.fieldLabel} é obrigatório.`);
                 }
 
                 return errors;
             }
 
             if (!this.isValid()) {
-                errors.push(`O ${this.fieldLabel} é inválido.`);
+                errors.push(`${this.fieldLabel} é inválido.`);
             }
 
             if (this.minSize && valStr.length < this.minSize) {
-                errors.push(`O ${this.fieldLabel} precisa ter pelo menos ${this.minSize} caracteres.`);
+                errors.push(`${this.fieldLabel} precisa ter pelo menos ${this.minSize} caracteres.`);
             }
 
             return errors;
