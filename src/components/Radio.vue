@@ -65,7 +65,7 @@
                     {{ label }}
                 </label>
 
-                <p v-if="description" class="text-muted-foreground! text-sm mt-1 ml-2">
+                <p v-if="description" class="text-muted-foreground! select-none text-sm mt-1 ml-2">
                     {{ description }}
                 </p>
             </div>

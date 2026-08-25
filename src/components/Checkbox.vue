@@ -31,7 +31,7 @@
 
 <template>
     <div
-        class="relative transition-colors"
+        class="relative transition-colors cursor-pointer"
         :class="{
             'p-3 border rounded-lg': variant === 'card',
             'border-primary/40 bg-primary/10': !disabled && variant === 'card' && localChecked,

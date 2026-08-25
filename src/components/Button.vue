@@ -100,7 +100,7 @@ export default defineComponent({
 
         size: {
             type: String as PropType<"extra-small" | "small" | "medium" | "large">,
-            default: "small",
+            default: "medium",
             required: false
         },
 
