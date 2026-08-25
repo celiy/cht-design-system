@@ -187,15 +187,17 @@
 
 <template>
     <div class="flex flex-col w-full">
+        <!-- Label -->
         <label 
             v-if="label"
 
-            class="text-foreground font-semibold text-sm mb-2 block"
+            class="mb-2"
             :for="id"
         >
             {{ label }}
         </label>
 
+        <!-- Bar -->
         <div
             v-if="variant === 'bar'"
             class="relative"
@@ -246,12 +248,13 @@
                     'opacity-0': !isVisible
                 }"
             >
-                <div class="bg-popover border p-2 rounded-lg select-none shadow-sm">
+                <div class="bg-popover border p-2 rounded-lg select-none shadow-sm text-foreground!">
                     {{ localValue }}
                 </div>
             </div>
         </div>
 
+        <!-- Circular -->
         <div
             v-if="variant === 'circular'"
             class="relative"
@@ -304,13 +307,14 @@
             </svg>
         </div>
 
-        <span 
+        <!-- Helper text -->
+        <small 
             v-if="helperText"
 
-            class="text-muted-foreground mt-2 text-sm block"
+            class="mt-2 text-muted-foreground!"
         >
             {{ helperText }}
-        </span>
+        </small>
     </div>
 </template>
 

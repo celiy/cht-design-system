@@ -91,10 +91,6 @@
                     {{ point.dateShort }}
                 </div>
             </div>
-
-            <div class="text-md font-medium mt-4">
-                {{ periodDescription }}
-            </div>
         </div>
     </div>
 </template>
@@ -448,16 +444,6 @@ export default defineComponent({
 
         hoverLineClass() {
             return chartColorBorderClass(this.color);
-        },
-
-        periodDescription() {
-            if (chartUsesGroups(this.data.items)) {
-                return `Mostrando ${this.data.label} em ${this.waveItems.length} grupos`;
-            }
-
-            const periodLabel = FILTER_LABELS[this.filter] ?? "período selecionado";
-
-            return `Mostrando ${this.data.label} em ${this.waveItems.length} pontos (${periodLabel})`;
         }
     }
 });

@@ -10,6 +10,7 @@
         <template #header>
             <span class="flex gap-2 items-center">
                 <i
+                    class="text-lg"
                     :class="[
                         variant === 'warning' && 'fa-solid fa-triangle-exclamation text-warning',
                         variant === 'destructive' && 'fa-solid fa-circle-xmark text-destructive',
@@ -27,7 +28,7 @@
         </template>
 
         <template #body>
-            {{ body }}
+            <p>{{ body }}</p>
         </template>
 
         <template #footer>

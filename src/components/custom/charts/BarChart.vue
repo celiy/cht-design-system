@@ -72,7 +72,7 @@
                             class="absolute inset-0 pointer-events-none hidden md:flex justify-center"
                             :class="hasNegativeValues ? 'items-center' : 'items-end pb-2'"
                         >
-                            <span class="h-fit max-w-full bg-accent border border-border p-1 px-2 rounded-lg text-xs overflow-hidden text-ellipsis whitespace-nowrap mx-2">
+                            <span class="h-fit max-w-full bg-accent border border-border p-1 px-2 rounded-lg text-xs overflow-hidden text-ellipsis whitespace-nowrap mx-2 text-foreground!">
                                 <span v-if="data.displayAs === 'currency'">R$ </span>{{ item.value }}
                             </span>
                         </div>
@@ -90,10 +90,6 @@
                 >
                     {{ item.dateShort }}
                 </div>
-            </div>
-
-            <div class="text-md font-medium mt-4">
-                {{ periodDescription }}
             </div>
         </div>
     </div>
@@ -180,14 +176,6 @@ export default defineComponent({
             }
 
             return groupChartItemsByDate(this.data.items, this.data.label);
-        },
-
-        periodDescription() {
-            if (chartUsesGroups(this.data.items)) {
-                return `Mostrando ${this.data.label} em ${this.dateGroups.length} grupos`;
-            }
-
-            return `Mostrando ${this.data.label} nos últimos ${this.dateGroups.length} meses`;
         }
     }
 });

@@ -57,7 +57,7 @@
             <div>
                 <label
                     :for="id"
-                    class="text-foreground font-medium text-sm ml-2 cursor-pointer select-none"
+                    class="ml-2 cursor-pointer select-none"
                     :class="{
                         'text-muted-foreground': disabled
                     }"
@@ -65,9 +65,9 @@
                     {{ label }}
                 </label>
 
-                <p v-if="description" class="text-muted-foreground! select-none text-sm mt-1 ml-2">
+                <small v-if="description" class="mt-1 ml-2 text-muted-foreground! select-none">
                     {{ description }}
-                </p>
+                </small>
             </div>
         </div>
     </div>
@@ -148,6 +148,10 @@ export default defineComponent({
          * @param {Event} event The click event.
          */
         onClick(event: Event) {
+            if (this.disabled) {
+                return;
+            }
+
             if (this.variant === 'card') {
                 event.stopPropagation();
             }

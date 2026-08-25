@@ -4,7 +4,7 @@
             v-if="selectCols" 
             class="flex items-center w-full mb-2"
         >
-            <h5 class="ml-2">{{ title }}</h5>
+            <h4 class="ml-2">{{ title }}</h4>
 
             <div class="w-full flex justify-end">
                 <Select
@@ -17,9 +17,6 @@
 
                     :options="selectTableHeaders"
                     :selectMultiple="{ min: 2, allSelected: true }"
-                    :buttonAtributes="{
-                        size: 'small'
-                    }"
 
                     @update:value="(value) => selectedHeaders = value"
                 />
@@ -133,7 +130,6 @@
                                 class="w-fit!"
                                 :buttonAtributes="{
                                     variant: 'transparent',
-                                    size: 'extra-small'
                                 }"
                             >
                                 <div class="w-full flex flex-col gap-2">
@@ -193,9 +189,6 @@
             <Popover
                 header="Ações"
                 class="w-fit!"
-                :buttonAtributes="{
-                    size: 'small'
-                }"
             >
                 <div class="w-full flex flex-col gap-2">
                     <Button

@@ -116,12 +116,12 @@
             </span>
         </button>
 
-        <span
+        <small   
             v-if="helperText"
-            class="text-muted-foreground text-sm"
+            class="text-muted-foreground!"
         >
             {{ helperText }}
-        </span>
+        </small>
     </div>
 </template>
 

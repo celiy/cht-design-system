@@ -46,9 +46,9 @@
                         {{ title }}
                     </h4>
 
-                    <div class="text-muted-foreground text-sm">
+                    <small class="text-muted-foreground!">
                         {{ description }}
-                    </div>
+                    </small>
                 </div>
 
                 <!-- Links -->

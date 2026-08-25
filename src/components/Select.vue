@@ -38,7 +38,7 @@
         </template>
 
         <template #helperText>
-            <small v-if="inHelperText" class="text-sm! px-3 pb-2">
+            <small v-if="inHelperText" class="px-3 pb-2 text-muted-foreground!">
                 {{ inHelperText }}
             </small>
         </template>

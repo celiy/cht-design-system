@@ -118,7 +118,7 @@
                 <small
                     v-if="helperText"
 
-                    class="mt-2 text-sm!"
+                    class="mt-2 text-muted-foreground!"
                 >
                     {{ helperText }}
                 </small>

@@ -1,7 +1,8 @@
 <template>
     <Card>
         <template #header>
-            {{ header }}
+            <h4>{{ header }}</h4>
+            <p class="text-muted-foreground!">{{ description }}</p>
         </template>
 
         <template #headerRightSide>
@@ -13,10 +14,6 @@
                     @update:value="filter = String($event) as WaveFilter"
                 />
             </div>
-        </template>
-
-        <template #description>
-            {{ description }}
         </template>
 
         <template #body>

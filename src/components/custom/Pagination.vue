@@ -5,7 +5,6 @@
     >
         <Button
             variant="transparent"
-            size="small"
             :class="[
                 { 'transparent': selectedPage > 1 },
                 { 'invisible': selectedPage === 1 }
@@ -33,7 +32,6 @@
                     v-for="page of pagesHiddenBeforeOptions"
                     :key="page.value"
                     :variant="Number.parseInt(page.value, 10) !== selectedPage ? 'transparent' : 'default'"
-                    size="small"
 
                     @click="selectPage(Number.parseInt(page.value, 10))"
                 >
@@ -49,7 +47,6 @@
             >
                 <Button
                     :variant="page != selectedPage ? 'transparent' : 'default'"
-                    size="small"
 
                     @click="selectPage(page)"
                 >
@@ -74,7 +71,6 @@
                     v-for="page of pagesHiddenAfterOptions"
                     :key="page.value"
                     :variant="Number.parseInt(page.value, 10) !== selectedPage ? 'transparent' : 'default'"
-                    size="small"
 
                     @click="selectPage(Number.parseInt(page.value, 10))"
                 >
@@ -85,7 +81,6 @@
 
         <Button
             variant="transparent"
-            size="small"
             :class="[
                 { 'transparent': selectedPage < amount },
                 { 'invisible': selectedPage === amount }
