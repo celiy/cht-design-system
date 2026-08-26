@@ -8,6 +8,7 @@
 
             <div class="w-full flex justify-end">
                 <Select
+                    v-if="!loading"
                     header="Colunas"
                     class="w-fit!"
                     panelClass="w-fit!"
@@ -28,12 +29,13 @@
                 <tr class="hover:bg-accent transition-all w-full">
                     <th 
                         v-if="selectable"
-                        class="font-semibold p-2 text-sm text-left"
+                        class="font-semibold p-2 text-sm text-left w-1"
                     >
                         <Checkbox
                             :checked="isAllSelected"
                             name="selectable"
                             id="selectable"
+                            :disabled="loading"
 
                             @click="selectAll()"
                         />
@@ -63,7 +65,7 @@
                     </th>
 
                     <th
-                        v-if="actions"
+                        v-if="hasActions"
                         scope="col"
                         class="font-semibold p-2 text-sm text-right"
                     >
@@ -73,6 +75,24 @@
             </thead>
 
             <tbody>
+                <tr v-if="loading" v-for="i in 4" :key="'skeleton-row-' + i" class="border-t border-border/50">
+                    <td v-if="selectable" class="p-2 flex justify-start">
+                        <Skeleton type="card" class="w-5 h-4" />
+                    </td>
+
+                    <td
+                        v-for="head in displayHeaders"
+                        :key="'skeleton-cell-' + i + '-' + head.label"
+                        class="p-2"
+                    >
+                        <Skeleton type="text" class="w-full" />
+                    </td>
+
+                    <td v-if="hasActions" class="p-2 flex justify-end">
+                        <Skeleton type="card" class="w-10 h-4" />
+                    </td>
+                </tr>
+
                 <tr 
                     v-for="(item, index) in data"
                     class="hover:bg-accent/50 transition-all border-t border-border/50 text-sm"
@@ -120,58 +140,21 @@
                         </div>
                     </td>
 
-                    <td 
-                        v-if="actions"
+                    <td
+                        v-if="hasActions"
                         class="px-2 text-right align-middle"
                     >
                         <div class="flex w-full justify-end">
-                            <Popover
-                                header="..."
+                            <Dropdown
                                 class="w-fit!"
-                                :buttonAtributes="{
-                                    variant: 'transparent',
-                                }"
-                            >
-                                <div class="w-full flex flex-col gap-2">
-                                    <Button
-                                        v-if="actions.inspect"
+                                header="..."
 
-                                        class="text-left w-full text-xs!"
-                                        size="small"
-                                        label="Visualizar"
-                                        variant="transparent"
-                                        :hoverEffect="false"
+                                :hideDropdownArrow="true"
+                                :buttonAtributes="{ variant: 'transparent' }"
+                                :options="actions"
 
-                                        @click="inspectItem(item.id)"
-                                    />
-
-                                    <Button
-                                        v-if="actions.edit"
-
-                                        class="text-left w-full text-xs!"
-                                        size="small"
-                                        label="Editar"
-                                        variant="transparent"
-                                        :hoverEffect="false"
-                                        
-                                        @click="editItem(item.id)"
-                                    />
-
-                                    <div v-if="actions.delete" class="separator"/>
-
-                                    <Button
-                                        v-if="actions.delete"
-
-                                        class="text-left w-full text-xs!"
-                                        size="small"
-                                        label="Excluir"
-                                        variant="transparent-destructive"
-                                        :hoverEffect="false"
-                                        
-                                        @click="deleteItem(item.id)"
-                                    />
-                                </div>
-                            </Popover>
+                                @click:value="onActionClick($event, item)"
+                            />
                         </div>
                     </td>
                 </tr>
@@ -186,33 +169,28 @@
                 Itens selecionados: {{ selectedRows.length }}
             </span>
 
-            <Popover
-                header="Ações"
+            <Dropdown
+                v-if="hasSelectableActions"
+
                 class="w-fit!"
-            >
-                <div class="w-full flex flex-col gap-2">
-                    <Button
-                        class="text-left w-full text-xs!"
-                        size="small"
-                        label="Excluir itens selecionados"
-                        variant="transparent-destructive"
-                        :hoverEffect="false"
-                        
-                        @click="deleteSelectedItems()"
-                    />
-                </div>
-            </Popover>
+                header="Ações"
+
+                :options="selectableActions"
+
+                @click:value="onSelectableActionClick"
+            />
         </div>
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
-import Button from "./Button.vue";
 import Select from "./Select.vue";
-import Popover from "./Popover.vue";
+import Dropdown from "./Dropdown.vue";
 import Badge from "./Badge.vue";
 import Checkbox from "./Checkbox.vue";
+import Skeleton from "./Skeleton.vue";
+import type { OptionItem } from "./internal/OptionsList.vue";
 
 type TableHeader = Record<string, unknown> & {
     label: string;
@@ -223,14 +201,14 @@ type TableHeader = Record<string, unknown> & {
 export default defineComponent({
     name: 'Table',
 
-    emits: ['click'],
+    emits: ["click:action", "click:selectableAction"],
 
     components: {
-        Button,
         Select,
-        Popover,
+        Dropdown,
         Badge,
-        Checkbox
+        Checkbox,
+        Skeleton
     },
 
     props: {
@@ -252,7 +230,7 @@ export default defineComponent({
 
         data: {
             type: Array as PropType<Array<Record<string, any>>>,
-            required: true
+            required: false
         },
 
         selectable: {
@@ -261,14 +239,29 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * Per-row menu options, same shape as Dropdown `options`.
+         * Selecting an item emits `click:action` with `(value, row)`.
+         */
         actions: {
-            type: Object as PropType<{ 
-                inspect?: boolean,
-                edit?: boolean,
-                delete?: boolean
-            }>,
-
+            type: Array as PropType<OptionItem[]>,
             required: false
+        },
+
+        /**
+         * Bulk menu options shown when at least one row is selected.
+         * Same shape as Dropdown `options`. Selecting an item emits
+         * `click:selectableAction` with `(value, selectedRows)`.
+         */
+        selectableActions: {
+            type: Array as PropType<OptionItem[]>,
+            required: false
+        },
+
+        loading: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
 
@@ -425,30 +418,39 @@ export default defineComponent({
                 this.selectedRows = [];
             } else {
                 // Otherwise, select all
-                this.selectedRows = this.data.map((_: any, index: number) => index);
+                this.selectedRows = (this.data ?? []).map((_: any, index: number) => index);
             }
         },
 
-        inspectItem(_item: string) {
-
+        onActionClick(value: string, item: Record<string, any>) {
+            this.$emit("click:action", value, item);
         },
 
-        editItem(_item: string) {
-
-        },
-
-        deleteItem(_item: string) {
-
-        },
-
-        deleteSelectedItems() {
-
+        onSelectableActionClick(value: string) {
+            this.$emit("click:selectableAction", value, this.selectedItems);
         }
     }, 
     
     computed: {
+        hasActions(): boolean {
+            return Array.isArray(this.actions) && this.actions.length > 0;
+        },
+
+        hasSelectableActions(): boolean {
+            return Array.isArray(this.selectableActions) && this.selectableActions.length > 0;
+        },
+
+        selectedItems(): Record<string, any>[] {
+            const rows = this.data ?? [];
+
+            return this.selectedRows
+                .map((index) => rows[index])
+                .filter((item): item is Record<string, any> => item != null);
+        },
+
         isAllSelected() {
-            const n = this.data.length;
+            const rows = this.data ?? [];
+            const n = rows.length;
 
             if (n === 0) {
                 return false;
@@ -458,7 +460,7 @@ export default defineComponent({
                 return false;
             }
 
-            return this.data.every((_: unknown, i: number) => this.selectedRows.includes(i));
+            return rows.every((_: unknown, i: number) => this.selectedRows.includes(i));
         },
 
         selectTableHeaders() {

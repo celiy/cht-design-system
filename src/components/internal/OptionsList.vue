@@ -10,7 +10,6 @@
             <Input
                 v-model="localSearchQuery"
 
-                id="dropdown-search-input"
                 class="my-1"
                 type="text"
                 variant="transparent"
@@ -32,16 +31,21 @@
             :key="item.value ?? item.label"
             v-tooltip="optionTooltip(item)"
 
-            class="block text-popover-foreground select-none rounded-lg bg-popover text-sm"
+            class="block select-none rounded-lg bg-popover text-sm"
             :class="{
+                'text-destructive!': isDestructive(item),
+                'text-popover-foreground': !isDestructive(item),
                 'brightness-125': showCheckmark && isOptionSelected?.(item.value),
+                'brightness-150': isItemHighlighted(idx, item),
                 'hover:brightness-150 cursor-pointer px-2.5 py-1.5 mx-1': !item.separator && item.value,
                 'p-1 px-2.5 m-1 text-muted-foreground! text-sm font-semibold': item.label && !item.value && !item.separator,
                 'mt-1': idx === 0,
                 'mb-1': idx === visibleOptions.length - 1
             }"
+            :data-option-highlighted="isItemHighlighted(idx, item) ? 'true' : undefined"
 
             @click="onItemClick(item)"
+            @mouseenter="onItemMouseEnter(idx, item)"
         >
             <div class="flex items-center justify-between gap-4">
                 <div class="w-full">
@@ -98,6 +102,7 @@ export type OptionItem = {
     value?: string;
     selected?: boolean;
     tooltip?: string;
+    variant?: "destructive";
 };
 
 export type SearchConfig = {
@@ -163,8 +168,19 @@ export default defineComponent({
 
     data() {
         return {
-            localSearchQuery: this.searchQuery
+            localSearchQuery: this.searchQuery,
+            highlightedIndex: -1
         };
+    },
+
+    mounted() {
+        this.resetHighlight();
+        this.$nextTick(() => this.focusSearchInput());
+        document.addEventListener("keydown", this.onKeydown);
+    },
+
+    beforeUnmount() {
+        document.removeEventListener("keydown", this.onKeydown);
     },
 
     watch: {
@@ -172,6 +188,10 @@ export default defineComponent({
             if (next !== this.localSearchQuery) {
                 this.localSearchQuery = next;
             }
+        },
+
+        visibleOptions() {
+            this.resetHighlight();
         }
     },
 
@@ -179,6 +199,117 @@ export default defineComponent({
         onSearchQueryUpdate(value: string) {
             this.localSearchQuery = value;
             this.$emit("update:searchQuery", value);
+        },
+
+        isSelectable(item: OptionItem): boolean {
+            return !item.separator && Boolean(item.value);
+        },
+
+        isDestructive(item: OptionItem): boolean {
+            return item.variant === "destructive" && this.isSelectable(item);
+        },
+
+        isItemHighlighted(idx: number, item: OptionItem): boolean {
+            return this.highlightedIndex === idx && this.isSelectable(item);
+        },
+
+        resetHighlight() {
+            const idx = this.visibleOptions.findIndex((item) => this.isSelectable(item));
+            this.highlightedIndex = idx;
+            this.scrollHighlightedIntoView();
+        },
+
+        onItemMouseEnter(idx: number, item: OptionItem) {
+            if (!this.isSelectable(item)) {
+                return;
+            }
+
+            this.highlightedIndex = idx;
+        },
+
+        moveHighlight(delta: number) {
+            const selectable = this.visibleOptions
+                .map((item, index) => ({ item, index }))
+                .filter(({ item }) => this.isSelectable(item));
+
+            if (selectable.length === 0) {
+                this.highlightedIndex = -1;
+
+                return;
+            }
+
+            let position = selectable.findIndex((entry) => entry.index === this.highlightedIndex);
+
+            if (position < 0) {
+                position = delta > 0 ? -1 : 0;
+            }
+
+            const next = selectable[(position + delta + selectable.length) % selectable.length];
+
+            if (!next) {
+                return;
+            }
+
+            this.highlightedIndex = next.index;
+            this.scrollHighlightedIntoView();
+        },
+
+        scrollHighlightedIntoView() {
+            this.$nextTick(() => {
+                const root = this.$el as HTMLElement | undefined;
+                const el = root?.querySelector("[data-option-highlighted='true']");
+
+                el?.scrollIntoView({ block: "nearest" });
+            });
+        },
+
+        focusSearchInput() {
+            if (!this.search) {
+                return;
+            }
+
+            const root = this.$el as HTMLElement | undefined;
+            const input = root?.querySelector<HTMLInputElement | HTMLTextAreaElement>("input, textarea");
+
+            if (!input) {
+                return;
+            }
+
+            input.focus({ preventScroll: true });
+
+            if ("setSelectionRange" in input) {
+                const length = input.value?.length ?? 0;
+                input.setSelectionRange(length, length);
+            }
+        },
+
+        onKeydown(event: KeyboardEvent) {
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                this.moveHighlight(1);
+
+                return;
+            }
+
+            if (event.key === "ArrowUp") {
+                event.preventDefault();
+                this.moveHighlight(-1);
+
+                return;
+            }
+
+            if (event.key !== "Enter") {
+                return;
+            }
+
+            const item = this.visibleOptions[this.highlightedIndex];
+
+            if (!item || !this.isSelectable(item)) {
+                return;
+            }
+
+            event.preventDefault();
+            this.onItemClick(item);
         },
 
         onItemClick(item: OptionItem) {

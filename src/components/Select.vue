@@ -11,8 +11,6 @@
         :hideDropdownArrow="hideDropdownArrow"
         :maxHeightPx="maxHeightPx"
         :panelClass="panelClass"
-
-        @open="onPanelOpen"
     >
         <template #triggerLabel>
             <span
@@ -428,31 +426,6 @@ export default defineComponent({
             }
 
             return this.value === val;
-        },
-
-        onPanelOpen() {
-            if (!this.search) {
-                return;
-            }
-
-            this.$nextTick(() => this.focusSearchInput());
-        },
-
-        focusSearchInput() {
-            const input = document.querySelector<HTMLInputElement | HTMLTextAreaElement>(
-                "[data-dropdown-floating-panel] input, [data-dropdown-floating-panel] textarea"
-            );
-
-            if (!input) {
-                return;
-            }
-
-            input.focus({ preventScroll: true });
-
-            if ("setSelectionRange" in input) {
-                const length = input.value?.length ?? 0;
-                input.setSelectionRange(length, length);
-            }
         },
 
         open() {

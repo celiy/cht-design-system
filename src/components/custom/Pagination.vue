@@ -11,7 +11,7 @@
             ]"
             @click="goPrev"
         >
-            <span class="flex gap-1">
+            <span class="flex gap-1 items-center">
                 <span class="fa-solid fa-arrow-left"/> <span class="hidden md:block">Anterior</span>
             </span>
         </Button>
@@ -87,7 +87,7 @@
             ]"
             @click="goNext"
         >
-            <span class="flex gap-1">
+            <span class="flex gap-1 items-center">
                 <span class="hidden md:block">Próximo</span> <span class="fa-solid fa-arrow-right"/>
             </span>
         </Button>

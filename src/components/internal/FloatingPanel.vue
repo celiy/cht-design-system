@@ -282,12 +282,14 @@ export default defineComponent({
                 window.addEventListener("scroll", this.updatePosition, true);
                 window.addEventListener("resize", this.updatePosition);
                 document.addEventListener("click", this.handleClickOutside);
+                document.addEventListener("keydown", this.handleKeydown);
 
                 this.$emit("open");
             } else {
                 window.removeEventListener("scroll", this.updatePosition, true);
                 window.removeEventListener("resize", this.updatePosition);
                 document.removeEventListener("click", this.handleClickOutside);
+                document.removeEventListener("keydown", this.handleKeydown);
 
                 this.$emit("close");
             }
@@ -296,6 +298,7 @@ export default defineComponent({
 
     beforeUnmount() {
         document.removeEventListener("click", this.handleClickOutside);
+        document.removeEventListener("keydown", this.handleKeydown);
         window.removeEventListener("scroll", this.updatePosition, true);
         window.removeEventListener("resize", this.updatePosition);
     },
@@ -398,6 +401,15 @@ export default defineComponent({
                 return;
             }
 
+            this.close();
+        },
+
+        handleKeydown(event: KeyboardEvent) {
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            event.preventDefault();
             this.close();
         }
     },
