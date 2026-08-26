@@ -34,7 +34,7 @@
         class="transition-all"
         :class="{
             'p-3 border rounded-lg': variant === 'card',
-            'border-primary/40 bg-primary/10': !disabled && variant === 'card' && isChecked,
+            'border-primary/30! bg-primary/10': !disabled && variant === 'card' && isChecked,
             'border-input bg-input/10': !disabled && variant === 'card' && !isChecked,
             'bg-transparent border-border/50': disabled && variant === 'card'
         }"

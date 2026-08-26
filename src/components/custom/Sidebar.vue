@@ -75,8 +75,8 @@
                         <div
                             v-if="link.type === 'link'"
 
-                            class="w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
-                            :class="[isActive(link.link) ? 'bg-sidebar-accent/50 text-sidebar-foreground' : 'bg-transparent text-sidebar-foreground/90']"
+                            class="w-full transition-all px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
+                            :class="[isActive(link.link) ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-transparent text-sidebar-foreground/90 hover:bg-sidebar-accent']"
 
                             @mouseenter="hoverLink(link)"
                             @mouseleave="unhoverLink()"
@@ -135,16 +135,27 @@
                                             :key="sublink.label"
                                             class="flex"
                                         >
-                                            <div 
-                                                class="ml-4 mr-2 w-0.5" 
-                                                :class="idx === link.links.length - 1 ? 'bg-linear-to-t from-transparent to-sidebar-border' : 'bg-sidebar-border'"
-                                            />
-                                        
+                                            <div class="relative self-stretch shrink-0 ml-4 mr-2 w-0.5">
+                                                <div
+                                                    class="absolute inset-0 z-0"
+                                                    :class="[
+                                                        (idx === link.links.length - 1)
+                                                            ? 'bg-linear-to-t from-transparent to-sidebar-border'
+                                                            : 'bg-sidebar-border'
+                                                    ]"
+                                                />
+
+                                                <div
+                                                    class="absolute inset-0 z-10 origin-center bg-linear-to-t from-transparent via-primary to-transparent transition-transform duration-300 ease-out"
+                                                    :class="isActive(sublink.link) ? 'scale-y-100 opacity-100' : 'scale-y-50 opacity-0'"
+                                                />
+                                            </div>
+                                   
                                             <div
                                                 :key="sublink.link"
 
-                                                class="flex justify-between w-full hover:bg-sidebar-accent transition-all px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
-                                                :class="[isActive(sublink.link) ? 'bg-sidebar-accent/50 text-sidebar-foreground' : 'bg-transparent text-sidebar-foreground/90']"
+                                                class="flex justify-between w-full transition-all px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
+                                                :class="[isActive(sublink.link) ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-transparent text-sidebar-foreground/90 hover:bg-sidebar-accent']"
 
                                                 @mouseenter="hoverLink(sublink)"
                                                 @mouseleave="unhoverLink()"

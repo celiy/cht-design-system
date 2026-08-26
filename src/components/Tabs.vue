@@ -33,7 +33,7 @@ Example on how to use this component:
                 v-for="(_, index) in tabCount" 
                 :key="index" 
 
-                class="p-3 bg-transparent text-sm leading-1 rounded-lg hover:text-foreground transition-all border"
+                class="p-3 bg-transparent text-sm leading-1 rounded-lg transition-all border hover:brightness-150"
                 :class="{
                     'text-foreground': index === activeTab,
                     'text-muted-foreground': index !== activeTab,
@@ -41,8 +41,8 @@ Example on how to use this component:
 
                     'border-ring/50!': index === activeTab && variant === 'secondary',
 
-                    'border-b-2 border-t-0 border-x-0 rounded-none!': variant === 'transparent',
-                    'border-foreground!': index == activeTab && variant === 'transparent'
+                    'text-primary border-primary!': index === activeTab && variant === 'transparent',
+                    'border-b-2 border-t-0 border-x-0 rounded-none!': variant === 'transparent'
                 }"
                 
                 @click="switchTab(index)"

@@ -34,7 +34,7 @@
         class="relative transition-colors cursor-pointer"
         :class="{
             'p-3 border rounded-lg': variant === 'card',
-            'border-primary/40 bg-primary/10': !disabled && variant === 'card' && localChecked,
+            'border-primary/30! bg-primary/10': !disabled && variant === 'card' && localChecked,
             'border-input/50 bg-input/20': !disabled && variant === 'card' && !localChecked,
             'bg-transparent border-input/30': disabled && variant === 'card'
         }"
