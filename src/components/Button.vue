@@ -7,6 +7,7 @@
                 'bg-destructive/25 text-destructive hover:bg-destructive/40': variant === 'destructive',
                 'text-destructive hover:bg-destructive/40': variant === 'transparent-destructive',
                 'bg-success/95 text-success-foreground': variant === 'success',
+                'bg-info/95 text-info-foreground': variant === 'info',
                 'bg-warning/95 text-warning-foreground': variant === 'warning',
                 'bg-secondary text-secondary-foreground border': variant === 'secondary',
                 'bg-input/30 hover:bg-input/50 text-foreground/90 border': variant === 'default',

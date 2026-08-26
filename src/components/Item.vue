@@ -1,13 +1,13 @@
 <template>
     <div
-        class="transition-all p-3 border rounded-lg flex items-start gap-3"
+        class="transition-all p-3 border rounded-lg flex items-start gap-3 hover:brightness-125"
         :class="cardClass"
 
         @click="onClick"
     >
         <!-- Icon -->
         <div
-            class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+            class="flex items-center justify-center shrink-0"
             :class="iconWrapClass"
         >
             <i
@@ -27,13 +27,13 @@
             </p>
 
             <!-- Description -->
-            <small
+            <span
                 v-if="description"
 
-                class="text-sm! select-none text-muted-foreground!"
+                :class="[descriptionClass]"
             >
                 {{ description }}
-            </small>
+            </span>
         </div>
     </div>
 </template>
@@ -54,7 +54,7 @@ export default defineComponent({
          */
         label: {
             type: String,
-            required: true
+            required: false
         },
 
         /**
@@ -83,12 +83,10 @@ export default defineComponent({
             required: false
         },
 
-        /**
-         * Highlights the card like a selected radio/checkbox card.
-         */
-        selected: {
-            type: Boolean,
-            default: false
+        type: {
+            type: String as PropType<"card" | "alert">,
+            default: "card",
+            required: false
         },
 
         /**
@@ -129,8 +127,19 @@ export default defineComponent({
         /**
          * Icon wrap class.
          */
-        iconWrapClass(): Record<string, boolean> {
-            return {
+        iconWrapClass() {
+            if (this.type === 'alert') {
+                return ['pt-1', {
+                    "text-primary": this.variant === "primary",
+                    "text-secondary-foreground": this.variant === "secondary",
+                    "text-success": this.variant === "success",
+                    "text-warning": this.variant === "warning",
+                    "text-destructive": this.variant === "destructive",
+                    "text-info": this.variant === "info"
+                }]
+            } 
+
+            return ['p-3 rounded-lg', {
                 "bg-primary/15 text-primary": this.variant === "primary",
                 "bg-secondary text-secondary-foreground": this.variant === "secondary",
                 "bg-success/15 text-success": this.variant === "success",
@@ -138,7 +147,7 @@ export default defineComponent({
                 "bg-destructive/15 text-destructive": this.variant === "destructive",
                 "bg-info/15 text-info": this.variant === "info",
                 "opacity-50": this.disabled
-            };
+            }];
         },
 
         /**
@@ -151,23 +160,31 @@ export default defineComponent({
                 };
             }
 
-            if (this.selected) {
-                return {
-                    "cursor-pointer": true,
-                    "hover:brightness-125": this.hoverEffect,
-                    "border-primary/40 bg-primary/10": this.variant === "primary",
-                    "border-border bg-secondary/40": this.variant === "secondary",
-                    "border-success/40 bg-success/10": this.variant === "success",
-                    "border-warning/40 bg-warning/10": this.variant === "warning",
-                    "border-destructive/40 bg-destructive/10": this.variant === "destructive",
-                    "border-info/40 bg-info/10": this.variant === "info"
-                };
+            return {
+                "cursor-pointer": true,
+                "border-primary/40! bg-primary/10": this.variant === "primary",
+                "bg-secondary/40": this.variant === "secondary",
+                "border-success/30! bg-success/10!": this.variant === "success",
+                "border-warning/30! bg-warning/10!": this.variant === "warning",
+                "border-destructive/30! bg-destructive/10!": this.variant === "destructive",
+                "border-info/30! bg-info/10!": this.variant === "info",
+                "cursor-pointer border-input bg-input/10": true
+            };
+        },
+
+        descriptionClass() {
+            if (this.type === 'alert') {
+                return ['leading-normal text-base', {
+                    'text-info!': this.variant === 'info',
+                    'text-success!': this.variant === 'success',
+                    'text-warning!': this.variant === 'warning',
+                    'text-destructive!': this.variant === 'destructive',
+                    'text-primary!': this.variant === 'primary',
+                    'text-secondary-foreground!': this.variant === 'secondary'
+                }]
             }
 
-            return {
-                "cursor-pointer border-input bg-input/10": true,
-                "hover:brightness-125": this.hoverEffect
-            };
+            return "text-muted-foreground! select-none"
         }
     },
 

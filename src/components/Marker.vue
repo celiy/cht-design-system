@@ -2,7 +2,8 @@
     <div
         v-if="separator" 
         :class="{
-            'flex items-center': label
+            'flex items-center': (label || centerIcon) && orientation === 'horizontal',
+            'flex flex-col justify-center items-center': centerIcon && orientation === 'vertical'
         }"
     >
         <div       
@@ -16,8 +17,24 @@
             {{ label }}
         </small>
 
+        <span       
+            v-else-if="centerIcon"
+            :class="[
+                `fa-solid ${centerIcon} text-muted-foreground!`,
+                {
+                    'mx-4': orientation === 'horizontal',
+                    'my-4': orientation === 'vertical'
+                }
+            ]" 
+        />
+
         <div       
-            v-if="label"
+            v-if="centerIcon && orientation === 'vertical'"
+            class="h-full border-r w-fit': orientation === 'vertical"
+        />
+
+        <div       
+            v-if="label || centerIcon"
             :class="{
                 'w-full border-t': orientation === 'horizontal'
             }"
@@ -32,12 +49,24 @@
         
         <div
             v-if="leftNumber" 
-            :class="`bg-muted-foreground rounded-full flex items-center justify-center h-6 w-6 text-background text-sm mr-3`"
+            :class="[
+                `rounded-full flex items-center justify-center h-6 w-6 text-sm mr-3`,
+                {
+                    'bg-muted text-foreground': color === 'foreground',
+                    'bg-muted text-muted-foreground': color === 'muted'
+                }
+            ]"
         >
             {{ leftNumber }}
         </div>
 
-        <span class="text-muted-foreground!">
+        <span 
+            class="font-medium"
+            :class="{
+                'text-foreground': color === 'foreground',
+                'text-muted-foreground': color === 'muted'
+            }"
+        >
             {{ label }}
         </span>
     </div>
@@ -49,8 +78,6 @@ import { defineComponent, type PropType } from "vue";
 export default defineComponent({
     name: "Marker",
 
-    emits: ["click"],
-
     props: {
         label: {
             type: String,
@@ -58,6 +85,11 @@ export default defineComponent({
         },
 
         leftIcon: {
+            type: String,
+            required: false
+        },
+
+        centerIcon: {
             type: String,
             required: false
         },
@@ -79,34 +111,9 @@ export default defineComponent({
         },
 
         color: {
-            type: String,
+            type: String as PropType <"foreground" | "muted">,
+            default: "muted",
             required: false
-        }
-    },
-
-    data() {
-        return {
-
-        };
-    },
-
-    mounted() {
-
-    },
-
-    watch: {
-
-    },
-
-    methods: {
-
-    },
-
-    computed: {
-        borderColor() {
-            if (this.color) {
-                return "border-" + this.color + "!";
-            }
         }
     }
 });
