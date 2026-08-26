@@ -60,12 +60,12 @@
 </style>
 
 <template>
-    <div
-        v-show="modalOpen"
+    <Teleport to="body">
+        <div
+            v-show="modalOpen"
 
-        id="modal"
-        class="fixed z-999 left-0 top-0 w-full h-full"
-    >
+            class="fixed z-999 left-0 top-0 w-full h-full"
+        >
         <Transition name="fade-modal">
             <div
                 v-show="modalOpen"
@@ -82,8 +82,20 @@
             :class="shellAlignClass"
         >
             <Transition :name="panelTransitionName">
+                <div 
+                    v-if="variant === 'preview'"
+                    v-show="modalOpen"
+
+                    ref="modalRef"
+
+                    class="relative pointer-events-auto max-w-[90vw] max-h-[90vh]"
+                >
+                    <slot name="body" />
+                </div>
+
                 <!-- Modal panel -->
                 <div
+                    v-else
                     v-show="modalOpen"
 
                     ref="modalRef"
@@ -177,7 +189,8 @@
 
             @trigger="onEscape"
         />
-    </div>
+        </div>
+    </Teleport>
 </template>
 
 <script lang="ts">
@@ -201,7 +214,7 @@ export default defineComponent({
 
     props: {
         variant: {
-            type: String as PropType<"modal" | "drawer">,
+            type: String as PropType<"modal" | "drawer" | "preview">,
             default: "modal",
             required: false
         },
@@ -252,7 +265,7 @@ export default defineComponent({
          * @returns {string} The shell align class.
          */
         shellAlignClass(): string {
-            if (this.variant === "modal") {
+            if (this.variant === "modal" || this.variant === "preview") {
                 return "items-center justify-center p-4";
             }
 
@@ -272,7 +285,7 @@ export default defineComponent({
          * @returns {string} The panel transition name.
          */
         panelTransitionName(): string {
-            if (this.variant === "modal") {
+            if (this.variant === "modal" || this.variant === "preview") {
                 return "fade-modal";
             }
 

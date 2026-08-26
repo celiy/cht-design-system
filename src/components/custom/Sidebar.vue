@@ -140,14 +140,14 @@
                                                     class="absolute inset-0 z-0"
                                                     :class="[
                                                         (idx === link.links.length - 1)
-                                                            ? 'bg-linear-to-t from-transparent to-sidebar-border'
+                                                            ? 'bg-linear-to-t from-transparent to-sidebar-border to-30%'
                                                             : 'bg-sidebar-border'
                                                     ]"
                                                 />
 
                                                 <div
-                                                    class="absolute inset-0 z-10 origin-center bg-linear-to-t from-transparent via-primary to-transparent transition-transform duration-300 ease-out"
-                                                    :class="isActive(sublink.link) ? 'scale-y-100 opacity-100' : 'scale-y-50 opacity-0'"
+                                                    class="absolute inset-0 z-10 origin-center h-1/3 rounded-full my-auto bg-primary transition-transform duration-300 ease-out"
+                                                    :class="isActive(sublink.link) ? 'scale-y-100' : 'scale-y-0'"
                                                 />
                                             </div>
                                    

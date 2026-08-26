@@ -20,7 +20,7 @@
         <div class="min-w-0">
             <!-- Label -->
             <p
-                class="select-none leading-tight!"
+                class="select-none leading-tight! font-medium!"
                 :class="disabled ? 'text-muted-foreground' : 'text-foreground'"
             >
                 {{ label }}
