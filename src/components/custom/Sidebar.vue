@@ -29,15 +29,26 @@
             />
         </Transition>
 
-        <nav
+        <Resizable
             class="absolute top-0 left-0 z-50 h-full flex flex-col overflow-hidden transition-transform duration-300 ease-out box-border border-r border-sidebar-border shadow-lg"
             :class="[
-                open && $project.device.isMobile ? 'min-w-[85%]' : '',
+                open && $project.device.isMobile ? 'min-w-[80%] sm:min-w-[60%]' : '',
                 variant === 'minimalist' ? 'bg-background' : 'bg-sidebar'
             ]"
-            :style="sidebarStyle"
+            resize="right"
+
+            :style="sidebarMotionStyle"
+            :hover-border="!$project.device.isMobile"
+            :disabled="$project.device.isMobile || !open"
+            :width="$project.device.isMobile ? undefined : currentWidth"
+            :min-width="minSidebarWidth"
+            :max-width="maxSidebarWidth"
+
+            @update:width="onSidebarWidth"
+            @resize-start="isResizing = true"
+            @resize-end="isResizing = false"
         >
-            <div class="flex flex-col h-full min-h-0 pt-2 px-2 select-none box-border">
+            <nav class="flex flex-col h-full min-h-0 pt-2 px-2 select-none box-border w-full">
                 <!-- Title and description -->
                 <div
                     class="w-full shrink-0 bg-transparent hover:bg-sidebar-accent transition-all px-4 py-3 rounded-lg"
@@ -183,11 +194,12 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
+        </Resizable>
 
         <div 
-            class="flex-1 w-full h-full min-h-0 box-border transition-[margin-left] duration-300 ease-out flex flex-col overflow-y-auto"
+            class="flex-1 w-full h-full min-h-0 box-border flex flex-col overflow-y-auto"
+            :class="{ 'transition-[margin-left] duration-300 ease-out': !isResizing }"
             :style="mainContentStyle"
         >
             <div
@@ -246,6 +258,7 @@
 import { defineComponent, type PropType } from "vue";
 import Button from "../Button.vue";
 import Keybind from "../internal/Keybind.vue";
+import Resizable from "./Resizable.vue";
 
 export default defineComponent({
     name: "Sidebar",
@@ -254,7 +267,8 @@ export default defineComponent({
 
     components: {
         Button,
-        Keybind
+        Keybind,
+        Resizable
     },
 
     props: {
@@ -271,6 +285,16 @@ export default defineComponent({
         sidebarWidth: {
             type: Number,
             default: 300
+        },
+
+        minSidebarWidth: {
+            type: Number,
+            default: 250
+        },
+
+        maxSidebarWidth: {
+            type: Number,
+            default: 350
         },
 
         navItems: {
@@ -290,7 +314,9 @@ export default defineComponent({
             open: true,
             hoveredLink: null as string | null,
             isDown: false,
-            openGroups: {} as Record<string, boolean>
+            openGroups: {} as Record<string, boolean>,
+            currentWidth: this.sidebarWidth as number,
+            isResizing: false
         };
     },
 
@@ -308,21 +334,17 @@ export default defineComponent({
         },
 
         /**
-         * Calculates the sidebar style.
-         * @returns {Record<string, string>} The sidebar style.
+         * Open/close transform only. Width is owned by `Resizable`.
          */
-        sidebarStyle(): Record<string, string> {
+        sidebarMotionStyle(): Record<string, string> {
             if (this.$project.device.isMobile) {
                 return {
-                    transform: this.open ? 'translateX(0)' : 'translateX(-100%)'
+                    transform: this.open ? "translateX(0)" : "translateX(-100%)"
                 };
             }
 
-            const w = `${this.sidebarWidth}px`;
-
             return {
-                width: w,
-                transform: this.open ? 'translateX(0)' : 'translateX(calc(-100% - 1px))'
+                transform: this.open ? "translateX(0)" : "translateX(calc(-100% - 1px))"
             };
         },
 
@@ -332,14 +354,27 @@ export default defineComponent({
          */
         mainContentStyle(): { marginLeft: string } {
             if (this.$project.device.isMobile || !this.open) {
-                return { marginLeft: '0px' };
+                return { marginLeft: "0px" };
             }
 
-            return { marginLeft: this.sidebarWidth + 'px' };
+            return { marginLeft: this.currentWidth + "px" };
+        }
+    },
+
+    watch: {
+        sidebarWidth(value: number) {
+            this.currentWidth = value;
         }
     },
 
     methods: {
+        /**
+         * Applies a desktop width coming from `Resizable`.
+         */
+        onSidebarWidth(width: number) {
+            this.currentWidth = width;
+        },
+
         /**
          * Toggles the open/close state of the sidebar.
          */

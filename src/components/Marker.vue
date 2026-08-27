@@ -2,7 +2,7 @@
     <div
         v-if="separator" 
         :class="{
-            'flex items-center': (label || centerIcon) && orientation === 'horizontal',
+            'flex items-center': (hasLabel || centerIcon) && orientation === 'horizontal',
             'flex flex-col justify-center items-center': centerIcon && orientation === 'vertical'
         }"
     >
@@ -13,8 +13,12 @@
             }"
         />
 
-        <small v-if="label" class="px-4 text-muted-foreground!">
-            {{ label }}
+        <small v-if="hasLabel" class="px-4 text-muted-foreground!">
+            <slot name="label" />
+
+            <template v-if="!$slots.label">
+                {{ label }}
+            </template>
         </small>
 
         <span       
@@ -34,7 +38,7 @@
         />
 
         <div       
-            v-if="label || centerIcon"
+            v-if="hasLabel || centerIcon"
             :class="{
                 'w-full border-t': orientation === 'horizontal'
             }"
@@ -67,7 +71,11 @@
                 'text-muted-foreground': color === 'muted'
             }"
         >
-            {{ label }}
+            <slot name="label" />
+
+            <template v-if="!$slots.label">
+                {{ label }}
+            </template>
         </span>
     </div>
 </template>
@@ -114,6 +122,16 @@ export default defineComponent({
             type: String as PropType <"foreground" | "muted">,
             default: "muted",
             required: false
+        }
+    },
+    
+    computed: {
+        hasLabel(): boolean {
+            if (this.label || this.$slots.label) {
+                return true;
+            }
+
+            return false;
         }
     }
 });
