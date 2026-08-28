@@ -9,26 +9,22 @@
     >
         <template #header>
             <span class="flex gap-2 items-center">
-                <i
-                    class="text-lg"
-                    :class="[
-                        variant === 'warning' && 'fa-solid fa-triangle-exclamation text-warning',
-                        variant === 'destructive' && 'fa-solid fa-circle-xmark text-destructive',
-                        variant === 'success' && 'fa-solid fa-circle-check text-success',
-                        (variant === 'primary' || !variant) && 'fa-solid fa-circle-question text-primary'
-                    ]"
-                />
-                
                 {{ title }}
             </span>
+
+            <slot name="header" />
         </template>
 
         <template #description>
             {{ description }}
+
+            <slot name="description" />
         </template>
 
         <template #body>
             <p>{{ body }}</p>
+
+            <slot name="body" />
         </template>
 
         <template #footer>
@@ -51,6 +47,8 @@
                     {{ confirmText }}
                 </Button>
             </div>
+
+            <slot name="footer" />
         </template>
     </Modal>
 </template>

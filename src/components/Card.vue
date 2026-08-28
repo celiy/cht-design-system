@@ -27,6 +27,11 @@
             </div>
         </template>
 
+        <!-- Card -->
+        <template v-if="$slots.card">
+            <slot name="card" />
+        </template>
+
         <!-- Body -->
         <template v-if="$slots.body">
             <div 

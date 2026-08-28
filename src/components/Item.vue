@@ -23,7 +23,7 @@
         </div>
 
         <!-- Label and description -->
-        <div class="min-w-0">
+        <div class="min-w-0 flex-1 w-full">
             <div class="flex flex-col gap-1">
                 <span 
                     v-if="head"
@@ -49,6 +49,15 @@
                 >
                     {{ description }}
                 </span>
+
+                <!-- Smaller text -->
+                <small
+                    v-if="smallText"
+
+                    class="text-muted-foreground!"
+                >
+                    {{ smallText }}
+                </small>
             </div>
 
             <slot name="body" />
@@ -84,6 +93,11 @@ export default defineComponent({
          * Optional text under the label.
          */
         description: {
+            type: String,
+            required: false
+        },
+
+        smallText: {
             type: String,
             required: false
         },
@@ -184,7 +198,7 @@ export default defineComponent({
 
             return {
                 "border-primary/40! bg-primary/10": this.variant === "primary",
-                "bg-secondary/40": this.variant === "secondary",
+                "bg-muted/40": this.variant === "secondary",
                 "border-success/30! bg-success/10!": this.variant === "success",
                 "border-warning/30! bg-warning/10!": this.variant === "warning",
                 "border-destructive/30! bg-destructive/10!": this.variant === "destructive",

@@ -4,16 +4,15 @@
         :class="{
             'text-destructive!': isDestructive,
             'text-popover-foreground': !isDestructive,
-            'brightness-125': showCheckmark && selected,
-            'brightness-150': highlighted,
-            'hover:brightness-150 cursor-pointer px-2.5 py-1.5 mx-1': isSelectable,
+            'bg-accent!': showCheckmark && selected || (highlighted && !$project.device.isMobile),
+            'hover:bg-accent! cursor-pointer px-2.5 py-1.5 mx-1': isSelectable,
             'p-1 px-2.5 m-1 text-muted-foreground! text-sm font-semibold': isHeading,
             'mt-1': first,
             'mb-1': last
         }"
     >
-        <div class="flex items-center justify-between gap-4">
-            <div class="w-full">
+        <div class="flex flex-nowrap items-center justify-between gap-4">
+            <div class="w-full flex flex-nowrap">
                 <i
                     v-if="icon"
 
@@ -29,6 +28,7 @@
                 <span
                     v-if="label"
 
+                    class="font-medium truncate"
                     :class="{
                         'text-sm': value,
                         'text-xs': !value

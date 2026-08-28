@@ -58,20 +58,21 @@ input {
                     'text-foreground/90 text-sm font-normal',
                     {
                         'p-1.5 px-2.5': !isTextarea,
-                        'pt-2.5 pl-2.5 pr-0.5': isTextarea,
-
                         'rounded bg-input/30': variant === 'secondary'
                     },
                 ]"
             >
                 <textarea
                     v-if="isTextarea"
+                    ref="textareaEl"
 
-                    class="focus:outline-none focus:ring-0"
+                    class="focus:outline-none focus:ring-0 pl-2.5 pt-2"
                     :class="[
                         fit ? 'w-fit' : 'w-full',
                         inputClass
                     ]"
+                    :style="textareaStyle"
+                    :rows="expandOnTyping ? 1 : undefined"
 
                     :id="inputId"
                     :value="localValue"
@@ -151,6 +152,8 @@ input {
                         </button>
                     </div>
                 </div>
+
+                <slot name="input" />
             </div>
         </div>
 
@@ -272,7 +275,7 @@ export default defineComponent({
         /**
          * Semantic field type: input variants, textarea, or special types for validation and masking.
          */
-            type: {
+        type: {
             type: String as PropType<
                 | "cpf"
                 | "cnpj"
@@ -404,6 +407,36 @@ export default defineComponent({
             type: Boolean,
             default: false,
             required: false
+        },
+
+        hideResize: {
+            type: Boolean,
+            default: false,
+            required: false
+        },
+
+        /**
+         * Grows the textarea with its content. Pair with `maxHeightPx` to cap height.
+         */
+        expandOnTyping: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * Min height in pixels when `expandOnTyping` is on.
+         */
+        minHeightPx: {
+            type: Number,
+            required: false
+        },
+
+        /**
+         * Max height in pixels when `expandOnTyping` is on. Beyond that, the field scrolls.
+         */
+        maxHeightPx: {
+            type: Number,
+            required: false
         }
     },
 
@@ -426,6 +459,10 @@ export default defineComponent({
                 this.localValue = value ?? "";
             }
         }
+
+        this.$nextTick(() => {
+            this.syncTextareaHeight();
+        });
     },
 
     watch: {
@@ -442,6 +479,12 @@ export default defineComponent({
                 }
             },
             immediate: true
+        },
+
+        localValue() {
+            this.$nextTick(() => {
+                this.syncTextareaHeight();
+            });
         }
     },
 
@@ -498,6 +541,42 @@ export default defineComponent({
 
             this.$emit("update:value", value);
             this.$emit("update:modelValue", value);
+
+            this.$nextTick(() => {
+                this.syncTextareaHeight();
+            });
+        },
+
+        syncTextareaHeight() {
+            if (!this.expandOnTyping || !this.isTextarea) {
+                return;
+            }
+
+            const el = this.$refs.textareaEl as HTMLTextAreaElement | undefined;
+
+            if (!el) {
+                return;
+            }
+
+            el.style.overflowY = "hidden";
+            el.style.height = "0px";
+
+            const contentHeight = el.scrollHeight;
+            const min = this.minHeightPx;
+            const max = this.maxHeightPx;
+            let next = contentHeight;
+
+            if (min != null) {
+                next = Math.max(next, min);
+            }
+
+            if (max != null) {
+                const cap = min != null ? Math.max(max, min) : max;
+                next = Math.min(next, cap);
+            }
+
+            el.style.height = `${next}px`;
+            el.style.overflowY = contentHeight > next ? "auto" : "hidden";
         },
 
         /**
@@ -636,6 +715,16 @@ export default defineComponent({
 
         isTextarea(): boolean {
             return this.type === "textarea";
+        },
+
+        textareaStyle(): Record<string, string> | undefined {
+            if (!this.hideResize && !this.expandOnTyping) {
+                return undefined;
+            }
+
+            return {
+                resize: "none"
+            };
         },
 
         isMoney(): boolean {
