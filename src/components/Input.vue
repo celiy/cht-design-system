@@ -41,13 +41,13 @@ input {
         <div
             class="transition-shadow box-border"
             :class="{
-                'rounded-lg ring-[3px] ring-transparent ring-offset-0':
+                'rounded ring-[3px] ring-transparent ring-offset-0':
                     variant === 'secondary' && !isFocused,
 
-                'rounded-lg ring-[3px] ring-ring/50 ring-offset-0':
+                'rounded ring-[3px] ring-ring/50 ring-offset-0':
                     variant === 'secondary' && isFocused && !(error || errorsMessage.length > 0),
 
-                'rounded-lg ring-[3px] ring-destructive/50 ring-offset-0':
+                'rounded ring-[3px] ring-destructive/50 ring-offset-0':
                     variant === 'secondary' && isFocused && (error || errorsMessage.length > 0)
             }"
         >
@@ -60,7 +60,7 @@ input {
                         'p-1.5 px-2.5': !isTextarea,
                         'pt-2.5 pl-2.5 pr-0.5': isTextarea,
 
-                        'rounded-lg bg-input/30': variant === 'secondary'
+                        'rounded bg-input/30': variant === 'secondary'
                     },
                 ]"
             >
@@ -95,10 +95,13 @@ input {
                 >
                     <!-- Input -->
                     <input
-                        class="focus:outline-none focus:ring-0 min-w-0 flex-1 bg-transparent"
+                        class="focus:outline-none focus:ring-0 bg-transparent"
                         v-maska="mask"
 
-                        :class="inputClass"
+                        :class="[
+                            inputClass,
+                            'min-w-0 w-full flex-1'
+                        ]"
                         :id="inputId"
                         :value="localValue"
                         :type="htmlInputType"
@@ -156,7 +159,7 @@ input {
             <span 
                 v-if="error || errorsMessage.length > 0"
                 
-                class="text-destructive/90 mt-2 block bg-destructive/10 p-1 px-1.5 rounded-lg border-destructive/20! border"
+                class="text-destructive/90 mt-2 block bg-destructive/10 p-1 px-1.5 rounded border-destructive/20! border"
                 
                 :class="{ 'error-active': isFocused }"
             >
@@ -196,6 +199,30 @@ import validateEmail from "@shared/validators/email";
 import validatePhone from "@shared/validators/phone";
 import { validateCPF, validateCNPJ } from "@shared/validators/documents";
 import { vMaska } from "maska/vue";
+import type { MaskInputOptions } from "maska";
+
+function formatMoneyMask(input: string): string {
+    const digits = input.replace(/\D/g, "");
+
+    if (digits === "") {
+        return "";
+    }
+
+    const amount = Number(digits) / 100;
+
+    if (!Number.isFinite(amount)) {
+        return "";
+    }
+
+    return `$ ${new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(amount)}`;
+}
+
+const MONEY_MASK: MaskInputOptions = {
+    mask: formatMoneyMask
+};
 
 export default defineComponent({
     name: 'Input',
@@ -245,7 +272,7 @@ export default defineComponent({
         /**
          * Semantic field type: input variants, textarea, or special types for validation and masking.
          */
-        type: {
+            type: {
             type: String as PropType<
                 | "cpf"
                 | "cnpj"
@@ -255,6 +282,7 @@ export default defineComponent({
                 | "password"
                 | "text"
                 | "number"
+                | "money"
                 | "date"
                 | "textarea"
             >,
@@ -382,7 +410,7 @@ export default defineComponent({
     data() {
         return {
             isFocused: false,
-            numericTypes: ["cpf", "cnpj", "cep", "phone"],
+            numericTypes: ["cpf", "cnpj", "cep", "phone", "money"],
             localValue: "",
             isInputValid: true,
             hasValueEver: false,
@@ -523,6 +551,7 @@ export default defineComponent({
                 case "text":
                 case "password":
                 case "number":
+                case "money":
                 case "date":
                     break;
                 case "email":
@@ -607,6 +636,10 @@ export default defineComponent({
 
         isTextarea(): boolean {
             return this.type === "textarea";
+        },
+
+        isMoney(): boolean {
+            return this.type === "money";
         },
 
         showPasswordToggle(): boolean {
@@ -727,6 +760,10 @@ export default defineComponent({
 
             if (this.textMask) {
                 return this.textMask;
+            }
+
+            if (this.type === "money") {
+                return MONEY_MASK;
             }
 
             if (this.type === "phone") {

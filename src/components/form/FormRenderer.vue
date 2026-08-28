@@ -97,7 +97,7 @@
                         <p
                             v-if="!isInputType(field.type) && fieldError(field)"
 
-                            class="text-destructive/90 mt-2 block bg-destructive/10 p-1 px-1.5 rounded-lg border-destructive/20 border font-light leading-5 text-sm"
+                            class="text-destructive/90 mt-2 block bg-destructive/10 p-1 px-1.5 rounded border-destructive/20 border font-light leading-5 text-sm"
                         >
                             <i class="fa-solid fa-warning mr-2" />
                             {{ fieldError(field) }}

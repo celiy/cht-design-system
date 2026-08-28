@@ -206,7 +206,7 @@
             }"
         >
             <input
-                class="progress-range rounded-lg relative"
+                class="progress-range rounded relative"
                 :class="[
                     direction === 'vertical' ? 'progress-range--vertical rotate-180' : 'h-2 w-full',
                     {
@@ -248,7 +248,7 @@
                     'opacity-0': !isVisible
                 }"
             >
-                <div class="bg-popover border p-2 rounded-lg select-none shadow-sm text-foreground!">
+                <div class="bg-popover border p-2 rounded select-none shadow-sm text-foreground!">
                     {{ localValue }}
                 </div>
             </div>

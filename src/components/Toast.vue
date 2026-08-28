@@ -34,7 +34,7 @@
                     @touchend="onTouchEnd(item.id)"
                     @touchcancel="onTouchCancel"
                 >
-                    <div class="relative w-full rounded-lg border bg-background shadow-sm overflow-hidden">
+                    <div class="relative w-full rounded border bg-background shadow-sm overflow-hidden">
                         <div
                             class="relative flex items-center gap-2 py-2 px-3 text-xs font-medium"
 
@@ -245,10 +245,10 @@ export default defineComponent({
 
         variantClass(type: ToastType) {
             return {
-                "border-2 border-success/50! text-success rounded-lg": type === "success",
-                "border-2 border-info/50! text-info rounded-lg": type === "info",
-                "border-2 border-destructive/50! text-destructive rounded-lg": type === "error",
-                "border-2 border-warning/50! text-warning rounded-lg": type === "warning"
+                "border-2 border-success/50! text-success rounded": type === "success",
+                "border-2 border-info/50! text-info rounded": type === "info",
+                "border-2 border-destructive/50! text-destructive rounded": type === "error",
+                "border-2 border-warning/50! text-warning rounded": type === "warning"
             };
         },
 

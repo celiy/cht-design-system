@@ -121,7 +121,7 @@
                     </div>
 
                     <div
-                        class="rounded-t-lg px-4 pt-4shrink-0 pt-3"
+                        class="rounded-t px-4 pt-4shrink-0 pt-3"
                         :class="{
                             'cursor-grab active:cursor-grabbing': variant === 'drawer'
                         }"
@@ -171,7 +171,7 @@
                     <div
                         v-if="$slots.footer"
 
-                        class="bg-muted/50 p-4 border-t shrink-0 rounded-b-lg"
+                        class="bg-muted/50 p-4 border-t shrink-0 rounded-b"
                         :class="{
                             'mt-auto': variant === 'drawer'
                         }"
@@ -310,7 +310,7 @@ export default defineComponent({
                 "lg:w-[35%] md:w-[50%] sm:w-[70%] w-[90%]": this.size === "small" && this.variant === "modal",
                 "lg:w-[50%] md:w-[70%] sm:w-[80%] w-[94%]": this.size === "medium" && this.variant === "modal",
                 "lg:w-[70%] md:w-[80%] sm:w-[86%] w-[98%]": this.size === "large" && this.variant === "modal",
-                "rounded-lg border": this.variant === "modal",
+                "rounded border": this.variant === "modal",
 
                 "border-warning/50! border-2!": this.color === "warning",
                 "border-destructive/50! border-2!": this.color === "destructive",
@@ -326,9 +326,9 @@ export default defineComponent({
                 "w-full self-stretch max-h-[58vh] sm:max-h-[68vh] md:max-h-[72vh]": this.variant === "drawer" && this.side === "bottom" && this.size === "medium",
                 "w-full self-stretch max-h-[78vh] sm:max-h-[85vh] md:max-h-[88vh]": this.variant === "drawer" && this.side === "bottom" && this.size === "large",
 
-                "border rounded-r-lg border-r": this.variant === "drawer" && this.side === "left",
-                "border rounded-l-lg border-l":this.variant === "drawer" && this.side === "right",
-                "border rounded-t-lg border-t border-x": this.variant === "drawer" && this.side === "bottom"
+                "border rounded-r border-r": this.variant === "drawer" && this.side === "left",
+                "border rounded-l border-l":this.variant === "drawer" && this.side === "right",
+                "border rounded-t border-t border-x": this.variant === "drawer" && this.side === "bottom"
             };
 
             return c;

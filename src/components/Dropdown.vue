@@ -7,6 +7,7 @@
         :buttonVariant="buttonVariant"
         :hideDropdownArrow="hideDropdownArrow"
         :maxHeightPx="maxHeightPx"
+        :minWidthPx="minWidthPx"
     >
         <template
             v-if="$slots.button"
@@ -94,6 +95,14 @@ export default defineComponent({
         maxHeightPx: {
             type: Number,
             default: 280
+        },
+
+        /**
+         * Minimum floating panel width in pixels. The panel is max(trigger, minWidthPx).
+         */
+        minWidthPx: {
+            type: Number,
+            default: 192
         }
     },
 

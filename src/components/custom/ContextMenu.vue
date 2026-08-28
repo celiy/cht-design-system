@@ -38,7 +38,7 @@
                     v-if="isOpen"
                     ref="panelRef"
 
-                    class="fixed z-50 min-w-40 border border-border rounded-lg bg-popover shadow-md overflow-y-auto"
+                    class="fixed z-50 min-w-40 border border-border rounded bg-popover shadow-md overflow-y-auto"
                     :style="panelStyle"
 
                     @click.stop

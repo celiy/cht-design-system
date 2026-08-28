@@ -51,7 +51,7 @@
             <nav class="flex flex-col h-full min-h-0 pt-2 px-2 select-none box-border w-full">
                 <!-- Title and description -->
                 <div
-                    class="w-full shrink-0 bg-transparent hover:bg-sidebar-accent transition-all px-4 py-3 rounded-lg"
+                    class="w-full shrink-0 bg-transparent hover:bg-sidebar-accent transition-all px-4 py-3 rounded"
                 >
                     <h4 class="mb-0!">
                         {{ title }}
@@ -86,7 +86,7 @@
                         <div
                             v-if="link.type === 'link'"
 
-                            class="w-full transition-all px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
+                            class="w-full transition-all px-4 py-2 rounded text-sm font-medium cursor-pointer"
                             :class="[isActive(link.link) ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-transparent text-sidebar-foreground/90 hover:bg-sidebar-accent']"
 
                             @mouseenter="hoverLink(link)"
@@ -119,7 +119,7 @@
                         >
                             <!-- Group header -->
                             <div
-                                class="w-full flex items-center justify-between border-b-2 cursor-pointer bg-transparent hover:bg-sidebar-accent px-4 py-2 rounded-lg text-sm font-medium"
+                                class="w-full flex items-center justify-between border-b-2 cursor-pointer bg-transparent hover:bg-sidebar-accent px-4 py-2 rounded text-sm font-medium"
                                 :class="[isGroupOpen(link, idx) ? 'border-border text-sidebar-foreground' : 'border-transparent text-sidebar-foreground/90']"
                                 @click="toggleGroup(link, idx)"
                             >
@@ -165,7 +165,7 @@
                                             <div
                                                 :key="sublink.link"
 
-                                                class="flex justify-between w-full transition-all px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
+                                                class="flex justify-between w-full transition-all px-4 py-2 rounded text-sm font-medium cursor-pointer"
                                                 :class="[isActive(sublink.link) ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-transparent text-sidebar-foreground/90 hover:bg-sidebar-accent']"
 
                                                 @mouseenter="hoverLink(sublink)"

@@ -27,7 +27,7 @@
 
         <button
             type="button"
-            class="w-full border border-dashed rounded-lg p-4 transition-all text-left bg-card"
+            class="w-full border border-dashed rounded p-4 transition-all text-left bg-card"
             :class="{
                 'border-primary/70 bg-primary/10': isDragActive && !disabled,
                 'border-border/70 hover:border-border': !isDragActive && !disabled,
@@ -61,7 +61,7 @@
                 :key="item.key"
                 class="media-thumb"
             >
-                <div class="relative w-[88px] h-[88px] rounded-lg border border-border/60 bg-input/20 overflow-hidden">
+                <div class="relative w-[88px] h-[88px] rounded border border-border/60 bg-input/20 overflow-hidden">
                     <button
                         type="button"
                         class="absolute top-1 right-1 w-5 h-5 rounded-full bg-popover border border-border/80 text-muted-foreground hover:text-foreground text-[11px] leading-none z-10 cursor-pointer"
@@ -106,7 +106,7 @@
 
         <button
             type="button"
-            class="w-full text-left p-2.5 rounded-lg border border-border/70 bg-input/30 transition-all text-sm text-foreground"
+            class="w-full text-left p-2.5 rounded border border-border/70 bg-input/30 transition-all text-sm text-foreground"
             :class="{ 'opacity-60 cursor-not-allowed': disabled }"
             :disabled="disabled"
             @click="openFilePicker"

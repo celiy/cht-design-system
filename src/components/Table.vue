@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full overflow-x-auto rounded-lg border-border border p-2 h-fit shadow-md">
+    <div class="w-full overflow-x-auto rounded border-border border p-2 h-fit shadow-md">
         <div 
             v-if="selectCols" 
             class="flex items-center w-full mb-2"
@@ -25,7 +25,7 @@
         </div>
 
         <table class="w-full text-foreground">
-            <thead class="rounded-t-lg">
+            <thead class="rounded-t">
                 <tr class="hover:bg-accent transition-all w-full">
                     <th 
                         v-if="selectable"

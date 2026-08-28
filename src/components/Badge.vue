@@ -1,6 +1,6 @@
 <template>
     <div
-        class="rounded-xl py-1 px-2.5 select-none font-semibold w-fit text-xs"
+        class="rounded py-0.5 px-2 select-none font-semibold w-fit text-xs flex items-center"
 
         :class="{
             'bg-primary text-primary-foreground': variant === 'primary',

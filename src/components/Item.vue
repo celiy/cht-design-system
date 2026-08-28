@@ -1,12 +1,18 @@
 <template>
     <div
-        class="transition-all p-3 border rounded-lg flex items-start gap-3 hover:brightness-125"
-        :class="cardClass"
+        class="transition-all p-3 border rounded flex items-start gap-3"
+        :class="[
+            cardClass,
+            {
+                'hover:brightness-125 cursor-pointer': hoverEffect
+            }
+        ]"
 
         @click="onClick"
     >
         <!-- Icon -->
         <div
+            v-if="icon"
             class="flex items-center justify-center shrink-0"
             :class="iconWrapClass"
         >
@@ -18,22 +24,34 @@
 
         <!-- Label and description -->
         <div class="min-w-0">
-            <!-- Label -->
-            <p
-                class="select-none leading-tight! font-medium!"
-                :class="disabled ? 'text-muted-foreground' : 'text-foreground'"
-            >
-                {{ label }}
-            </p>
+            <div class="flex flex-col gap-1">
+                <span 
+                    v-if="head"
+                    class="font-semibold text-xs text-muted-foreground"
+                >
+                    {{ head }}
+                </span>
 
-            <!-- Description -->
-            <span
-                v-if="description"
+                <!-- Label -->
+                <p
+                    v-if="label"
+                    class="select-none leading-tight! font-semibold!"
+                    :class="disabled ? 'text-muted-foreground' : 'text-foreground'"
+                >
+                    {{ label }}
+                </p>
 
-                :class="[descriptionClass]"
-            >
-                {{ description }}
-            </span>
+                <!-- Description -->
+                <span
+                    v-if="description"
+
+                    :class="[descriptionClass]"
+                >
+                    {{ description }}
+                </span>
+            </div>
+
+            <slot name="body" />
         </div>
     </div>
 </template>
@@ -49,6 +67,11 @@ export default defineComponent({
     emits: ["click"],
 
     props: {
+        head: {
+            type: String,
+            required: false
+        },
+
         /**
          * Title shown next to the icon.
          */
@@ -70,8 +93,7 @@ export default defineComponent({
          * (`user` or `fa-user`). Extra classes like `fa-regular` can be passed in full.
          */
         icon: {
-            type: String,
-            default: "fa-circle"
+            type: String
         },
 
         /**
@@ -102,7 +124,7 @@ export default defineComponent({
          */
         hoverEffect: {
             type: Boolean,
-            default: false
+            default: true
         }
     },
 
@@ -139,7 +161,7 @@ export default defineComponent({
                 }]
             } 
 
-            return ['p-3 rounded-lg', {
+            return ['p-3.5 rounded', {
                 "bg-primary/15 text-primary": this.variant === "primary",
                 "bg-secondary text-secondary-foreground": this.variant === "secondary",
                 "bg-success/15 text-success": this.variant === "success",
@@ -161,14 +183,13 @@ export default defineComponent({
             }
 
             return {
-                "cursor-pointer": true,
                 "border-primary/40! bg-primary/10": this.variant === "primary",
                 "bg-secondary/40": this.variant === "secondary",
                 "border-success/30! bg-success/10!": this.variant === "success",
                 "border-warning/30! bg-warning/10!": this.variant === "warning",
                 "border-destructive/30! bg-destructive/10!": this.variant === "destructive",
                 "border-info/30! bg-info/10!": this.variant === "info",
-                "cursor-pointer border-input bg-input/10": true
+                "border-input bg-input/10": true
             };
         },
 
@@ -184,7 +205,7 @@ export default defineComponent({
                 }]
             }
 
-            return "text-muted-foreground! select-none"
+            return "text-muted-foreground! select-none text-sm"
         }
     },
 

@@ -60,7 +60,7 @@
             @mouseenter="hoverSelector = true"
             @mouseleave="hoverSelector = false"
         >
-            <div class="flex justify-center gap-1.5 bg-black/20 w-fit p-1 rounded-lg">
+            <div class="flex justify-center gap-1.5 bg-black/20 w-fit p-1 rounded">
                 <div
                     v-for="(_, index) in itemCount"
                     :key="index"

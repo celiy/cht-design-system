@@ -7,7 +7,7 @@
         <div
             class="w-full flex flex-col"
             :class="{
-                'rounded-lg bg-card border shadow-md overflow-hidden': variant === 'default'
+                'rounded bg-card border shadow-md overflow-hidden': variant === 'default'
             }"
         >
             <!-- Header -->

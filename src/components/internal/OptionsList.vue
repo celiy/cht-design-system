@@ -25,60 +25,27 @@
         />
 
         <!-- Options list -->
-        <div
+        <Option
             v-if="visibleOptions.length > 0"
             v-for="(item, idx) of visibleOptions"
             :key="item.value ?? item.label"
             v-tooltip="optionTooltip(item)"
 
-            class="block select-none rounded-lg bg-popover text-sm"
-            :class="{
-                'text-destructive!': isDestructive(item),
-                'text-popover-foreground': !isDestructive(item),
-                'brightness-125': showCheckmark && isOptionSelected?.(item.value),
-                'brightness-150': isItemHighlighted(idx, item),
-                'hover:brightness-150 cursor-pointer px-2.5 py-1.5 mx-1': !item.separator && item.value,
-                'p-1 px-2.5 m-1 text-muted-foreground! text-sm font-semibold': item.label && !item.value && !item.separator,
-                'mt-1': idx === 0,
-                'mb-1': idx === visibleOptions.length - 1
-            }"
+            :label="item.label"
+            :icon="item.icon"
+            :separator="item.separator"
+            :value="item.value"
+            :variant="item.variant"
+            :showCheckmark="showCheckmark"
+            :selected="Boolean(isOptionSelected?.(item.value))"
+            :highlighted="isItemHighlighted(idx, item)"
+            :first="idx === 0"
+            :last="idx === visibleOptions.length - 1"
             :data-option-highlighted="isItemHighlighted(idx, item) ? 'true' : undefined"
 
             @click="onItemClick(item)"
             @mouseenter="onItemMouseEnter(idx, item)"
-        >
-            <div class="flex items-center justify-between gap-4">
-                <div class="w-full">
-                    <!-- Icon -->
-                    <i
-                        v-if="item.icon"
-                        :class="[`fa-solid ${item.icon} mr-2 text-sm`]"
-                    />
-
-                    <!-- Separator -->
-                    <div
-                        v-if="item.separator"
-                        class="separator my-1"
-                    />
-
-                    <!-- Label -->
-                    <span class="text-sm">
-                        {{ item.label }}
-                    </span>
-                </div>
-
-                <!-- Checkmark -->
-                <i
-                    v-if="showCheckmark"
-
-                    class="fa-solid fa-check text-xs text-muted-foreground"
-                    :class="{
-                        'opacity-100': isOptionSelected?.(item.value),
-                        'opacity-0': !isOptionSelected?.(item.value)
-                    }"
-                />
-            </div>
-        </div>
+        />
 
         <!-- No options found -->
         <div
@@ -93,6 +60,7 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Input from "../Input.vue";
+import Option from "../Option.vue";
 import tooltip from "@shared/frontend/tooltip";
 
 export type OptionItem = {
@@ -116,7 +84,8 @@ export default defineComponent({
     emits: ["select", "update:searchQuery"],
 
     components: {
-        Input
+        Input,
+        Option
     },
 
     directives: {
@@ -203,10 +172,6 @@ export default defineComponent({
 
         isSelectable(item: OptionItem): boolean {
             return !item.separator && Boolean(item.value);
-        },
-
-        isDestructive(item: OptionItem): boolean {
-            return item.variant === "destructive" && this.isSelectable(item);
         },
 
         isItemHighlighted(idx: number, item: OptionItem): boolean {

@@ -10,7 +10,7 @@
 
         <div v-if="type === 'card'" class="h-full">
             <div
-                class="bg-muted rounded-lg w-full h-full"
+                class="bg-muted rounded w-full h-full"
                 :style="aspectRatio ? { aspectRatio: typeof aspectRatio === 'number' ? aspectRatio : aspectRatio.toString() } : {}"
             />
         </div>

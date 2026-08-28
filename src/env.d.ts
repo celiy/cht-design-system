@@ -7,7 +7,6 @@ declare module "*.vue" {
     export default component;
 }
 
-
 import type { Router } from "vue-router";
 
 declare module "vue" {

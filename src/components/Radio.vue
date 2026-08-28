@@ -33,7 +33,7 @@
     <div
         class="transition-all"
         :class="{
-            'p-3 border rounded-lg': variant === 'card',
+            'p-3 border rounded': variant === 'card',
             'border-primary/30! bg-primary/10': !disabled && variant === 'card' && isChecked,
             'border-input bg-input/10': !disabled && variant === 'card' && !isChecked,
             'bg-transparent border-border/50': disabled && variant === 'card'
@@ -54,7 +54,7 @@
                 @change="onChange"
             />
 
-            <div>
+            <div v-if="label || description">
                 <label
                     :for="id"
                     class="ml-2 cursor-pointer select-none"
@@ -90,7 +90,7 @@ export default defineComponent({
 
         label: {
             type: String,
-            required: true
+            required: false
         },
 
         name: {

@@ -1,6 +1,6 @@
 <template>
     <button
-        class="transition-all w-fit cursor-pointer font-semibold  select-none hover:brightness-125 shadow-sm"
+        class="transition-all w-fit cursor-pointer font-semibold select-none hover:brightness-125 shadow-sm"
         :class="[
             {
                 'bg-primary/95 text-primary-foreground': variant === 'primary',
@@ -21,7 +21,7 @@
 
                 'hover:translate-y-[-0.2rem]': hoverEffect,
                 
-                'rounded-lg': shape === 'square',
+                'rounded': shape === 'square',
                 'rounded-full aspect-square flex items-center justify-center justify-items-center p-0': shape === 'rounded'
             }, 
             buttonClass
@@ -44,19 +44,24 @@
         @click="handleClick"
     >
         <div 
-            class="w-full h-full flex transition-all" 
+            class="w-full h-full flex justify-center items-center transition-all"
             :class="[{
                 'translate-y-[0.1rem]': isPressed,
-                'items-center justify-center': shape === 'rounded'
+                'items-center justify-center': shape === 'rounded',
+                'flex gap-2 items-center': leftIcon || rightIcon
             }, 
                 labelClass
             ]"
         >
+            <span v-if="leftIcon" :class="`fa-solid ${leftIcon}`" />
+
             <span v-if="label">
                 {{ label }}
             </span>
 
             <slot v-else/>
+
+            <span v-if="rightIcon" :class="`fa-solid ${rightIcon}`" />
         </div>
     </button>
 </template>
@@ -119,6 +124,16 @@ export default defineComponent({
         hoverEffect: {
             type: Boolean,
             default: true,
+            required: false
+        },
+
+        leftIcon: {
+            type: String,
+            required: false
+        },
+
+        rightIcon: {
+            type: String,
             required: false
         }
     },

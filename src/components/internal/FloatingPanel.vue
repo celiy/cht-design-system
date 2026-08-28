@@ -133,7 +133,7 @@
 
                     data-dropdown-floating-panel
 
-                    class="absolute left-0 border border-border rounded-lg bg-popover shadow-md z-50 overflow-y-auto min-w-fit"
+                    class="absolute left-0 border border-border rounded bg-popover shadow-md z-50 overflow-y-auto min-w-fit"
                     :class="[
                         panelClass,
                         positionAbove ? 'bottom-full mb-1 dropdown-origin-bottom' : 'top-full mt-1 dropdown-origin-top'

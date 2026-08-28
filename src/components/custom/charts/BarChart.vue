@@ -12,7 +12,7 @@
             </div>
 
             <div class="relative h-80 transition-all">
-                <div class="flex h-full items-stretch gap-2 md:gap-4">
+                <div class="flex h-full items-stretch gap-2">
                     <div
                         v-for="item in dateGroups"
                         :key="item.dateShort + item.label"
@@ -35,7 +35,7 @@
                             <div class="flex-1 flex items-end justify-center min-h-0 pb-px">
                                 <div
                                     v-if="item.value > 0"
-                                    class="w-full max-w-[90%] rounded-t-lg"
+                                    class="w-full max-w-[90%] rounded-t"
                                     :class="positiveBarClass"
                                     :style="{ height: `${positiveBarPercent(item.value)}%` }"
                                 />
@@ -49,7 +49,7 @@
                             <div class="flex-1 flex items-start justify-center min-h-0 pt-px">
                                 <div
                                     v-if="item.value < 0"
-                                    class="w-full max-w-[90%] bg-chart-5 rounded-b-lg"
+                                    class="w-full max-w-[90%] bg-chart-5 rounded-b"
                                     :style="{ height: `${negativeBarPercent(item.value)}%` }"
                                 />
                             </div>
@@ -61,7 +61,7 @@
                         >
                             <div
                                 v-if="item.value > 0"
-                                class="w-full max-w-[90%] rounded-t-lg"
+                                class="w-full max-w-[90%] rounded-t"
                                 :class="positiveBarClass"
                                 :style="{ height: `${positiveBarPercent(item.value)}%` }"
                             />
@@ -72,7 +72,7 @@
                             class="absolute inset-0 pointer-events-none hidden md:flex justify-center"
                             :class="hasNegativeValues ? 'items-center' : 'items-end pb-2'"
                         >
-                            <span class="h-fit max-w-full bg-accent border border-border p-1 px-2 rounded-lg text-xs overflow-hidden text-ellipsis whitespace-nowrap mx-2 text-foreground!">
+                            <span class="h-fit max-w-full bg-accent border border-border p-1 px-2 rounded text-xs overflow-hidden text-ellipsis whitespace-nowrap mx-2 text-foreground!">
                                 <span v-if="data.displayAs === 'currency'">R$ </span>{{ item.value }}
                             </span>
                         </div>

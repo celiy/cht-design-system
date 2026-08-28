@@ -1,6 +1,6 @@
 <template>
     <div 
-        class="border border-border rounded-lg w-full shadow-md"
+        class="border border-border rounded w-full shadow-md"
         :class="{
             'bg-card': variant === 'default',
             'bg-transparent': variant === 'transparent'

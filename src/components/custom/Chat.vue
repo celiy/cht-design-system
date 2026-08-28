@@ -33,7 +33,7 @@
                         >
                             <div
                                 v-for="index in maxImages(message.images?.length)"
-                                :class="(message.images?.length || 0) > 1 ? 'aspect-square min-w-0 overflow-hidden rounded-lg' : ''"
+                                :class="(message.images?.length || 0) > 1 ? 'aspect-square min-w-0 overflow-hidden rounded' : ''"
                             >  
                                 <template v-if="message.images?.length <= 4">
                                     <ContextMenu
@@ -72,7 +72,7 @@
                                     >
                                         <button
                                             type="button"
-                                            class="relative h-full w-full text-foreground cursor-pointer rounded-lg hover:brightness-150 transition-all overflow-hidden"
+                                            class="relative h-full w-full text-foreground cursor-pointer rounded hover:brightness-150 transition-all overflow-hidden"
                                             v-tooltip="{ content: 'Ver mais', placement: 'center' }"
 
                                             @click="openGallery(message.images)"
@@ -80,13 +80,13 @@
                                             <img
                                                 :src="message.images[3]"
                                                 alt=""
-                                                class="absolute inset-0 w-full h-full object-cover rounded-lg"
+                                                class="absolute inset-0 w-full h-full object-cover rounded"
                                                 style="filter: blur(4px);"
                                                 draggable="false"
                                             />
                                             
                                             <span
-                                                class="absolute inset-0 bg-card opacity-80 pointer-events-none rounded-lg"
+                                                class="absolute inset-0 bg-card opacity-80 pointer-events-none rounded"
                                             />
 
                                             <span class="relative z-10">
@@ -538,7 +538,7 @@ export default defineComponent({
             const message = this.messages[index];
 
             if (!message) {
-                return "rounded-lg";
+                return "rounded";
             }
 
             const side = this.messageHasStatus(message);
