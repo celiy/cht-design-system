@@ -92,9 +92,19 @@ export default defineComponent({
         Button
     },
 
+    props: {
+        /**
+         * 0-based slide shown first (`#item-0` is 0). Clamped to the last slide.
+         */
+        startIndex: {
+            type: Number,
+            default: 0
+        }
+    },
+
     data() {
         return {
-            pos: 0,
+            pos: this.startIndex as number,
             hoverSelector: false,
             touchStartX: 0,
             swipeOffset: 0,
@@ -132,8 +142,13 @@ export default defineComponent({
                 return;
             }
 
-            if (this.pos > this.itemCount - 1) {
-                this.pos = this.itemCount - 1;
+            const last = this.itemCount - 1;
+            const start = Math.min(Math.max(this.startIndex, 0), last);
+
+            if (this.pos > last) {
+                this.pos = last;
+            } else if (this.pos < 0) {
+                this.pos = start;
             }
         },
 
@@ -154,7 +169,13 @@ export default defineComponent({
         },
 
         goTo(to: number) {
-            this.pos = to;
+            if (this.itemCount === 0) {
+                this.pos = Math.max(to, 0);
+
+                return;
+            }
+
+            this.pos = Math.min(Math.max(to, 0), this.itemCount - 1);
         },
 
         onTouchStart(e: TouchEvent) {
@@ -190,6 +211,12 @@ export default defineComponent({
             }
 
             this.swipeOffset = 0;
+        }
+    },
+
+    watch: {
+        startIndex(value: number) {
+            this.goTo(value);
         }
     }
 });

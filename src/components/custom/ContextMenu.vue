@@ -137,6 +137,7 @@ export default defineComponent({
             }
 
             event.preventDefault();
+            event.stopPropagation();
             this.openAt(event.clientX, event.clientY);
         },
 
@@ -154,6 +155,7 @@ export default defineComponent({
             this.touchX = touch.clientX;
             this.touchY = touch.clientY;
             this.clearLongPress();
+            event.stopPropagation();
             this.longPressTimer = window.setTimeout(() => {
                 this.longPressTimer = null;
                 this.ignoreNextClick = true;

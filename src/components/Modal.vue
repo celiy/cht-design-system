@@ -66,6 +66,7 @@
 
             class="fixed z-999 left-0 top-0 w-full h-full"
         >
+
         <Transition name="fade-modal">
             <div
                 v-show="modalOpen"
