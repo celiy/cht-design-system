@@ -3,16 +3,16 @@
         ref="panelRef"
 
         :header="header"
-        :buttonAtributes="buttonAtributes"
-        :hideDropdownArrow="hideDropdownArrow"
-        :openOnHover="openOnHover"
-        :closeOnContentClick="closeOnContentClick"
-        :maxHeightPx="maxHeightPx"
-        :minWidthPx="minWidthPx"
-        :mobileModal="mobileModal"
-        :forceModal="forceModal"
+        :button-atributes="buttonAtributes"
+        :hide-dropdown-arrow="hideDropdownArrow"
+        :open-on-hover="openOnHover"
+        :close-on-content-click="closeOnContentClick"
+        :max-height-px="maxHeightPx"
+        :min-width-px="minWidthPx"
+        :mobile-modal="mobileModal"
+        :force-modal="forceModal"
 
-        :panelClass="panelClass"
+        :panel-class="panelClass"
     >
         <template
             v-if="$slots.button"

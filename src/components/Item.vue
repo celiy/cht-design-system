@@ -73,8 +73,6 @@ type ItemVariant = "primary" | "secondary" | "success" | "warning" | "destructiv
 export default defineComponent({
     name: "Item",
 
-    emits: ["click"],
-
     props: {
         head: {
             type: String,
@@ -142,6 +140,8 @@ export default defineComponent({
         }
     },
 
+    emits: ["click"],
+
     computed: {
         /**
          * Font Awesome icon class.
@@ -196,7 +196,7 @@ export default defineComponent({
         cardClass(): Record<string, boolean> {
             if (this.disabled) {
                 return {
-                    "bg-transparent border-border/50 cursor-not-allowed": true
+                    "bg-transparent border-border/50 cursor-not-allowed!": true
                 };
             }
 

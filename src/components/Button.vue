@@ -43,13 +43,13 @@
         @touchleave="handleMouseUp"
         @click="handleClick"
     >
-        <div 
+        <div
             class="w-full h-full flex justify-center items-center transition-all"
             :class="[{
                 'translate-y-[0.1rem]': isPressed,
                 'items-center justify-center': shape === 'rounded',
                 'flex gap-2 items-center': leftIcon || rightIcon
-            }, 
+            },
                 labelClass
             ]"
         >
@@ -72,8 +72,6 @@ import type { ButtonVariants } from "@shared/constants/ButtonTypes";
 
 export default defineComponent({
     name: 'Button',
-
-    emits: ['click'],
 
     props: {
         label: {
@@ -138,28 +136,12 @@ export default defineComponent({
         }
     },
 
+    emits: ['click'],
+
     data() {
         return {
             isPressed: false
         };
-    },
-
-    methods: {
-        handleClick(event: MouseEvent) {
-            this.$emit("click", event);
-        },
-
-        handleMouseDown() {
-            this.isPressed = true;
-        },
-
-        handleMouseUp() {
-            this.isPressed = false;
-        },
-
-        handleMouseLeave() {
-            this.isPressed = false;
-        },
     }, 
 
     computed: {
@@ -179,6 +161,24 @@ export default defineComponent({
 
             return `${base}px`;
         }
+    },
+
+    methods: {
+        handleClick(event: MouseEvent) {
+            this.$emit("click", event);
+        },
+
+        handleMouseDown() {
+            this.isPressed = true;
+        },
+
+        handleMouseUp() {
+            this.isPressed = false;
+        },
+
+        handleMouseLeave() {
+            this.isPressed = false;
+        },
     }
 });
 </script>

@@ -2,7 +2,7 @@
     <Modal
         variant="modal"
         :size="size"
-        :isOpen="isOpen"
+        :is-open="isOpen"
         :color="variant"
 
         @update:value="onModalOpenUpdate"
@@ -22,7 +22,7 @@
         </template>
 
         <template #body>
-            <p>{{ body }}</p>
+            <p class="px-4 pb-4">{{ body }}</p>
 
             <slot name="body" />
         </template>
@@ -65,8 +65,6 @@ export default defineComponent({
         Modal,
         Button
     },
-
-    emits: ["cancel", "confirm", "update:isOpen"],
 
     props: {
         variant: {
@@ -117,6 +115,8 @@ export default defineComponent({
             required: false
         }
     },
+
+    emits: ["cancel", "confirm", "update:isOpen"],
 
     computed: {
         toneVariant(): "destructive" | "success" | "warning" | "secondary" | "primary" {

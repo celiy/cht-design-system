@@ -3,12 +3,12 @@
         ref="panelRef"
 
         :header="header"
-        :buttonAtributes="buttonAtributes"
-        :hideDropdownArrow="hideDropdownArrow"
-        :maxHeightPx="maxHeightPx"
-        :minWidthPx="minWidthPx"
-        :mobileModal="mobileModal"
-        :forceModal="forceModal"
+        :button-atributes="buttonAtributes"
+        :hide-dropdown-arrow="hideDropdownArrow"
+        :max-height-px="maxHeightPx"
+        :min-width-px="minWidthPx"
+        :mobile-modal="mobileModal"
+        :force-modal="forceModal"
     >
         <template
             v-if="$slots.button"
@@ -24,7 +24,7 @@
 
         <template #default>
             <OptionsList
-                v-model:searchQuery="searchQuery"
+                v-model:search-query="searchQuery"
 
                 :options="options"
                 :search="search"
@@ -42,8 +42,6 @@ import OptionsList, { type OptionItem, type SearchConfig } from "./internal/Opti
 
 export default defineComponent({
     name: "Dropdown",
-
-    emits: ["click:value"],
 
     components: {
         FloatingPanel,
@@ -110,6 +108,8 @@ export default defineComponent({
             default: false
         }
     },
+
+    emits: ["click:value"],
 
     data() {
         return {

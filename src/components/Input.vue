@@ -1,25 +1,3 @@
-<style scoped>
-.expand-error-enter-active, .expand-error-leave-active {
-    transition: all 0.3s cubic-bezier(.4,0,.2,1);
-}
-
-.expand-error-enter-from, .expand-error-leave-to {
-    max-height: 0;
-    opacity: 0;
-    margin-top: 0;
-}
-
-.expand-error-enter-to, .expand-error-leave-from {
-    max-height: 40px;
-    opacity: 1;
-    margin-top: 0.5rem;
-}
-
-input {
-  color-scheme: dark;
-}
-</style>
-
 <template>
     <div
         class="flex flex-col"
@@ -64,17 +42,17 @@ input {
             >
                 <textarea
                     v-if="isTextarea"
-                    ref="textareaEl"
+                    :id="inputId"
 
+                    ref="textareaEl"
                     class="focus:outline-none focus:ring-0 pl-2.5 pt-2"
                     :class="[
                         fit ? 'w-fit' : 'w-full',
                         inputClass
                     ]"
                     :style="textareaStyle"
-                    :rows="expandOnTyping ? 1 : undefined"
 
-                    :id="inputId"
+                    :rows="expandOnTyping ? 1 : undefined"
                     :value="localValue"
                     :placeholder="placeholder"
                     :disabled="disabled"
@@ -96,14 +74,14 @@ input {
                 >
                     <!-- Input -->
                     <input
-                        class="focus:outline-none focus:ring-0 bg-transparent"
+                        :id="inputId"
                         v-maska="mask"
 
+                        class="focus:outline-none focus:ring-0 bg-transparent"
                         :class="[
                             inputClass,
                             'min-w-0 w-full flex-1'
                         ]"
-                        :id="inputId"
                         :value="localValue"
                         :type="htmlInputType"
                         :name="id"
@@ -172,9 +150,10 @@ input {
                     {{ error }}
                 </span>
 
-                <span 
-                    v-else-if="errorsMessage?.length > 0" 
+                <span
                     v-for="(errorMessage, index) of errorsMessage"
+                    v-else-if="errorsMessage?.length > 0"
+                    :key="index"
 
                     class="text-sm"
                 >
@@ -229,8 +208,6 @@ const MONEY_MASK: MaskInputOptions = {
 
 export default defineComponent({
     name: 'Input',
-
-    emits: ['update:value', 'update:modelValue'],
 
     directives: { maska: vMaska },
 
@@ -440,6 +417,8 @@ export default defineComponent({
         }
     },
 
+    emits: ['update:value', 'update:modelValue'],
+
     data() {
         return {
             isFocused: false,
@@ -449,227 +428,6 @@ export default defineComponent({
             hasValueEver: false,
             passwordRevealed: false
         };
-    },
-
-    mounted() {
-        if (this.useMemo) {
-            const value = localStorage.getItem(this.id ?? "");
-
-            if (!this.localValue) {
-                this.localValue = value ?? "";
-            }
-        }
-
-        this.$nextTick(() => {
-            this.syncTextareaHeight();
-        });
-    },
-
-    watch: {
-        sourceValue: {
-            /**
-             * Synchronizes local state with the value coming from props.
-             */
-            handler(newVal) {
-                this.localValue = String(newVal ?? "");
-                const normalized = String(newVal ?? "");
-
-                if (normalized !== "") {
-                    this.hasValueEver = true;
-                }
-            },
-            immediate: true
-        },
-
-        localValue() {
-            this.$nextTick(() => {
-                this.syncTextareaHeight();
-            });
-        }
-    },
-
-    methods: {
-        /**
-         * Persists the current value in localStorage when useMemo is enabled.
-         *
-         * @param value - Final normalized value that should be persisted.
-         */
-        persistMemoValue(value: string | number | boolean) {
-            if (!this.id) {
-                return;
-            }
-
-            localStorage.setItem(this.id, String(value ?? ""));
-        },
-
-        /**
-         * Handles typing, normalizes the value, and emits updates to the parent.
-         *
-         * @param event - Native input/textarea event.
-         */
-        onInput(event: Event) {
-            if (this.isReadonlyMode) {
-                return;
-            }
-
-            let value = (event.target as HTMLInputElement).value;
-
-            for (const numericKind of this.numericTypes) {
-                if (this.type === numericKind) {
-                    value = String(value).replace(/\D/g, "");
-                    break;
-                }
-            }
-
-            // Enforce minSize and maxSize if value is a string
-            if (typeof value === "string") {
-                if (this.maxSize && value.length > this.maxSize) {
-                    value = value.slice(0, this.maxSize);
-                }
-            }
-
-            this.localValue = value;
-
-            if (String(value ?? "") !== "") {
-                this.hasValueEver = true;
-            }
-
-            if (this.id) {
-                // Save the final normalized value for future restores.
-                this.persistMemoValue(value);
-            }
-
-            this.$emit("update:value", value);
-            this.$emit("update:modelValue", value);
-
-            this.$nextTick(() => {
-                this.syncTextareaHeight();
-            });
-        },
-
-        syncTextareaHeight() {
-            if (!this.expandOnTyping || !this.isTextarea) {
-                return;
-            }
-
-            const el = this.$refs.textareaEl as HTMLTextAreaElement | undefined;
-
-            if (!el) {
-                return;
-            }
-
-            el.style.overflowY = "hidden";
-            el.style.height = "0px";
-
-            const contentHeight = el.scrollHeight;
-            const min = this.minHeightPx;
-            const max = this.maxHeightPx;
-            let next = contentHeight;
-
-            if (min != null) {
-                next = Math.max(next, min);
-            }
-
-            if (max != null) {
-                const cap = min != null ? Math.max(max, min) : max;
-                next = Math.min(next, cap);
-            }
-
-            el.style.height = `${next}px`;
-            el.style.overflowY = contentHeight > next ? "auto" : "hidden";
-        },
-
-        /**
-         * Marks the field as focused to apply visual styles.
-         */
-        onFocus() {
-            this.isFocused = true;
-        }, 
-
-        /**
-         * Clears the focused state when the user leaves the field.
-         */
-        onBlur() {
-            this.isFocused = false;
-        },
-
-        togglePasswordVisibility() {
-            if (this.disabled) {
-                return;
-            }
-
-            this.passwordRevealed = !this.passwordRevealed;
-        },
-
-        async copyValueToClipboard() {
-            if (this.disabled) {
-                return;
-            }
-
-            const text = String(this.localValue ?? "");
-            const toast = (this as unknown as { $toast?: { success: (m: string) => void; error: (m: string) => void } }).$toast;
-
-            try {
-                await navigator.clipboard.writeText(text);
-                toast?.success("Copiado para a área de transferência.");
-            } catch {
-                toast?.error("Não foi possível copiar.");
-            }
-        },
-
-        /**
-         * Validates the current value according to the configured field type.
-         *
-         * @Returns - true when the value is valid for the type; otherwise false.
-         */
-        isValid(): Boolean {
-            const valStr = String(this.sourceValue ?? "");
-
-            switch (this.type) {
-                case "textarea":
-                case "text":
-                case "password":
-                case "number":
-                case "money":
-                case "date":
-                    break;
-                case "email":
-                    if (!validateEmail(valStr)) {
-                        return false;
-                    }
-
-                    break;
-                case "phone":
-                    if (!validatePhone(valStr)) {
-                        return false;
-                    }
-
-                    break;
-
-                case "cpf":
-                    if (!validateCPF(valStr)) {
-                        return false;
-                    }
-
-                    break;
-
-                case "cnpj":
-                    if (!validateCNPJ(valStr)) {
-                        return false;
-                    }
-
-                    break;
-
-                case "cep":
-                    if (valStr.length < 8) {
-                        return false;
-                    }
-
-                    break;
-            }
-
-            return true;
-        }
     }, 
     
     computed: {
@@ -873,6 +631,249 @@ export default defineComponent({
 
             return undefined;
         }
+    },
+
+    watch: {
+        sourceValue: {
+            /**
+             * Synchronizes local state with the value coming from props.
+             */
+            handler(newVal) {
+                this.localValue = String(newVal ?? "");
+                const normalized = String(newVal ?? "");
+
+                if (normalized !== "") {
+                    this.hasValueEver = true;
+                }
+            },
+            immediate: true
+        },
+
+        localValue() {
+            this.$nextTick(() => {
+                this.syncTextareaHeight();
+            });
+        }
+    },
+
+    mounted() {
+        if (this.useMemo) {
+            const value = localStorage.getItem(this.id ?? "");
+
+            if (!this.localValue) {
+                this.localValue = value ?? "";
+            }
+        }
+
+        this.$nextTick(() => {
+            this.syncTextareaHeight();
+        });
+    },
+
+    methods: {
+        /**
+         * Persists the current value in localStorage when useMemo is enabled.
+         *
+         * @param value - Final normalized value that should be persisted.
+         */
+        persistMemoValue(value: string | number | boolean) {
+            if (!this.id) {
+                return;
+            }
+
+            localStorage.setItem(this.id, String(value ?? ""));
+        },
+
+        /**
+         * Handles typing, normalizes the value, and emits updates to the parent.
+         *
+         * @param event - Native input/textarea event.
+         */
+        onInput(event: Event) {
+            if (this.isReadonlyMode) {
+                return;
+            }
+
+            let value = (event.target as HTMLInputElement).value;
+
+            for (const numericKind of this.numericTypes) {
+                if (this.type === numericKind) {
+                    value = String(value).replace(/\D/g, "");
+                    break;
+                }
+            }
+
+            // Enforce minSize and maxSize if value is a string
+            if (typeof value === "string") {
+                if (this.maxSize && value.length > this.maxSize) {
+                    value = value.slice(0, this.maxSize);
+                }
+            }
+
+            this.localValue = value;
+
+            if (String(value ?? "") !== "") {
+                this.hasValueEver = true;
+            }
+
+            if (this.id) {
+                // Save the final normalized value for future restores.
+                this.persistMemoValue(value);
+            }
+
+            this.$emit("update:value", value);
+            this.$emit("update:modelValue", value);
+
+            this.$nextTick(() => {
+                this.syncTextareaHeight();
+            });
+        },
+
+        syncTextareaHeight() {
+            if (!this.expandOnTyping || !this.isTextarea) {
+                return;
+            }
+
+            const el = this.$refs.textareaEl as HTMLTextAreaElement | undefined;
+
+            if (!el) {
+                return;
+            }
+
+            el.style.overflowY = "hidden";
+            el.style.height = "0px";
+
+            const contentHeight = el.scrollHeight;
+            const min = this.minHeightPx;
+            const max = this.maxHeightPx;
+            let next = contentHeight;
+
+            if (min != null) {
+                next = Math.max(next, min);
+            }
+
+            if (max != null) {
+                const cap = min != null ? Math.max(max, min) : max;
+                next = Math.min(next, cap);
+            }
+
+            el.style.height = `${next}px`;
+            el.style.overflowY = contentHeight > next ? "auto" : "hidden";
+        },
+
+        /**
+         * Marks the field as focused to apply visual styles.
+         */
+        onFocus() {
+            this.isFocused = true;
+        }, 
+
+        /**
+         * Clears the focused state when the user leaves the field.
+         */
+        onBlur() {
+            this.isFocused = false;
+        },
+
+        togglePasswordVisibility() {
+            if (this.disabled) {
+                return;
+            }
+
+            this.passwordRevealed = !this.passwordRevealed;
+        },
+
+        async copyValueToClipboard() {
+            if (this.disabled) {
+                return;
+            }
+
+            const text = String(this.localValue ?? "");
+            const toast = (this as unknown as { $toast?: { success: (m: string) => void; error: (m: string) => void } }).$toast;
+
+            try {
+                await navigator.clipboard.writeText(text);
+                toast?.success("Copiado para a área de transferência.");
+            } catch {
+                toast?.error("Não foi possível copiar.");
+            }
+        },
+
+        /**
+         * Validates the current value according to the configured field type.
+         *
+         * @Returns - true when the value is valid for the type; otherwise false.
+         */
+        isValid(): boolean {
+            const valStr = String(this.sourceValue ?? "");
+
+            switch (this.type) {
+                case "textarea":
+                case "text":
+                case "password":
+                case "number":
+                case "money":
+                case "date":
+                    break;
+                case "email":
+                    if (!validateEmail(valStr)) {
+                        return false;
+                    }
+
+                    break;
+                case "phone":
+                    if (!validatePhone(valStr)) {
+                        return false;
+                    }
+
+                    break;
+
+                case "cpf":
+                    if (!validateCPF(valStr)) {
+                        return false;
+                    }
+
+                    break;
+
+                case "cnpj":
+                    if (!validateCNPJ(valStr)) {
+                        return false;
+                    }
+
+                    break;
+
+                case "cep":
+                    if (valStr.length < 8) {
+                        return false;
+                    }
+
+                    break;
+            }
+
+            return true;
+        }
     }
 });
 </script>
+
+<style scoped>
+.expand-error-enter-active, .expand-error-leave-active {
+    transition: all 0.3s cubic-bezier(.4,0,.2,1);
+}
+
+.expand-error-enter-from, .expand-error-leave-to {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+}
+
+.expand-error-enter-to, .expand-error-leave-from {
+    max-height: 40px;
+    opacity: 1;
+    margin-top: 0.5rem;
+}
+
+input {
+  color-scheme: dark;
+}
+</style>

@@ -1,50 +1,3 @@
-<style scoped>
-.dropdown-down-enter-active,
-.dropdown-down-leave-active {
-    transition:
-        opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.dropdown-down-enter-from,
-.dropdown-down-leave-to {
-    opacity: 0;
-    transform: translate3d(0, -0.4rem, 0) scale(0.98);
-    transform-origin: top center;
-}
-.dropdown-down-enter-to,
-.dropdown-down-leave-from {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-    transform-origin: top center;
-}
-
-.dropdown-up-enter-active,
-.dropdown-up-leave-active {
-    transition:
-        opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.dropdown-up-enter-from,
-.dropdown-up-leave-to {
-    opacity: 0;
-    transform: translate3d(0, 0.4rem, 0) scale(0.98);
-    transform-origin: bottom center;
-}
-.dropdown-up-enter-to,
-.dropdown-up-leave-from {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-    transform-origin: bottom center;
-}
-
-.dropdown-origin-top {
-    transform-origin: top center;
-}
-.dropdown-origin-bottom {
-    transform-origin: bottom center;
-}
-</style>
-
 <template>
     <div
         ref="rootRef"
@@ -82,7 +35,11 @@
 
                         v-bind="buttonAtributes"
                         class="w-full"
-                        :hoverEffect="false"
+                        :class="{
+                            'ring-[3px]! ring-ring/50! ring-offset-0!': isOpen
+                        }"
+
+                        :hover-effect="false"
 
                         @click.stop="toggleOpenClose"
                     >
@@ -90,7 +47,7 @@
                             <div class="flex-1 min-w-0 text-left">
                                 <slot
                                     name="triggerLabel"
-                                    :isOpen="isOpen"
+                                    :is-open="isOpen"
                                 >
                                     <span>{{ header }}</span>
                                 </slot>
@@ -108,7 +65,7 @@
                     <slot
                         name="button"
 
-                        :isOpen="isOpen"
+                        :is-open="isOpen"
                         :toggle="toggleOpenClose"
                         :open="open"
                         :close="close"
@@ -142,7 +99,7 @@
                     @click.stop="onPanelClick"
                 >
                     <slot
-                        :isOpen="isOpen"
+                        :is-open="isOpen"
                         :close="close"
                     />
 
@@ -153,7 +110,7 @@
 
         <Modal
             variant="blank"
-            :isOpen="isOpen && useSheetModal"
+            :is-open="isOpen && useSheetModal"
 
             @update:value="onSheetModalUpdate"
         >
@@ -165,7 +122,7 @@
                     @click.stop="onPanelClick"
                 >
                     <slot
-                        :isOpen="isOpen"
+                        :is-open="isOpen"
                         :close="close"
                     />
 
@@ -185,8 +142,6 @@ const NARROW_VIEWPORT = "(max-width: 767px)";
 
 export default defineComponent({
     name: "FloatingPanel",
-
-    emits: ["open", "close", "panel-click"],
 
     components: {
         Button,
@@ -299,6 +254,8 @@ export default defineComponent({
         }
     },
 
+    emits: ["open", "close", "panel-click"],
+
     data() {
         return {
             isOpen: false,
@@ -308,9 +265,14 @@ export default defineComponent({
         };
     },
 
-    mounted() {
-        this.syncNarrowViewport();
-        window.matchMedia(NARROW_VIEWPORT).addEventListener("change", this.syncNarrowViewport);
+    computed: {
+        useSheetModal(): boolean {
+            return this.forceModal || (this.mobileModal && this.isNarrow);
+        },
+
+        panelTransitionName(): "dropdown-up" | "dropdown-down" {
+            return this.positionAbove ? "dropdown-up" : "dropdown-down";
+        }
     },
 
     watch: {
@@ -330,6 +292,11 @@ export default defineComponent({
                 this.$emit("close");
             }
         }
+    },
+
+    mounted() {
+        this.syncNarrowViewport();
+        window.matchMedia(NARROW_VIEWPORT).addEventListener("change", this.syncNarrowViewport);
     },
 
     beforeUnmount() {
@@ -466,16 +433,53 @@ export default defineComponent({
             event.preventDefault();
             this.close();
         }
-    },
-
-    computed: {
-        useSheetModal(): boolean {
-            return this.forceModal || (this.mobileModal && this.isNarrow);
-        },
-
-        panelTransitionName(): "dropdown-up" | "dropdown-down" {
-            return this.positionAbove ? "dropdown-up" : "dropdown-down";
-        }
     }
 });
 </script>
+
+<style scoped>
+.dropdown-down-enter-active,
+.dropdown-down-leave-active {
+    transition:
+        opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dropdown-down-enter-from,
+.dropdown-down-leave-to {
+    opacity: 0;
+    transform: translate3d(0, -0.4rem, 0) scale(0.98);
+    transform-origin: top center;
+}
+.dropdown-down-enter-to,
+.dropdown-down-leave-from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    transform-origin: top center;
+}
+
+.dropdown-up-enter-active,
+.dropdown-up-leave-active {
+    transition:
+        opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dropdown-up-enter-from,
+.dropdown-up-leave-to {
+    opacity: 0;
+    transform: translate3d(0, 0.4rem, 0) scale(0.98);
+    transform-origin: bottom center;
+}
+.dropdown-up-enter-to,
+.dropdown-up-leave-from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    transform-origin: bottom center;
+}
+
+.dropdown-origin-top {
+    transform-origin: top center;
+}
+.dropdown-origin-bottom {
+    transform-origin: bottom center;
+}
+</style>

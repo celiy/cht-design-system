@@ -12,7 +12,7 @@
 
         <Modal
             variant="preview"
-            :isOpen="modalOpen"
+            :is-open="modalOpen"
             
             @update:value="modalOpen = $event"
         >
@@ -68,6 +68,8 @@ export default defineComponent({
         }
     },
 
+    emits: ["click"],
+
     data() {
         return {
             modalOpen: false
@@ -87,8 +89,6 @@ export default defineComponent({
             return false;
         }
     },
-
-    emits: ["click"],
 
     methods: {
         onImageClick(event: MouseEvent) {

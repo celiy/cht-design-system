@@ -33,8 +33,6 @@ import { defineComponent, type PropType } from "vue";
 export default defineComponent({
     name: 'Badge',
 
-    emits: ['click'],
-
     props: {
         label: {
             type: String,
@@ -76,6 +74,8 @@ export default defineComponent({
             required: false
         }
     },
+
+    emits: ['click'],
 
     methods: {
         handleClick() {

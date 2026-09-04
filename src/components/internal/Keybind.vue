@@ -5,8 +5,6 @@ import { isTypingTarget, matchesKey } from "@shared/frontend/keybinds";
 export default defineComponent({
     name: "Keybind",
 
-    emits: ["trigger"],
-
     props: {
         /**
          * Key to listen for, e.g. `"s"` or `"Escape"`.
@@ -33,6 +31,8 @@ export default defineComponent({
             default: true
         }
     },
+
+    emits: ["trigger"],
 
     mounted() {
         window.addEventListener("keydown", this.onKeydown);

@@ -1,9 +1,9 @@
 <template>
-    <form @submit="onSubmit" class="flex flex-col gap-6">
+    <form class="flex flex-col gap-6" @submit="onSubmit">
         <div
             v-for="sectionObj in normalizedSections"
-            :key="sectionObj.key"
             v-show="isSectionVisible(sectionObj.fields)"
+            :key="sectionObj.key"
         >
             <h4
                 v-if="String(sectionObj.title)"
@@ -33,15 +33,15 @@
                             :type="field.type as any"
                             :label="field.label"
                             :placeholder="field.placeholder"
-                            :helperText="field.helperText"
+                            :helper-text="field.helperText"
                             :error="fieldError(field)"
                             :required="field.required"
                             :disabled="field.disabled"
                             :readonly="field.readonly"
-                            :maxSize="field.maxSize"
-                            :minSize="field.minSize"
-                            :inputClass="field.inputClass"
-                            :textMask="field.textMask"
+                            :max-size="field.maxSize"
+                            :min-size="field.minSize"
+                            :input-class="field.inputClass"
+                            :text-mask="field.textMask"
                             :copiable="field.copiable"
                             :value="formValues[field.id] ?? ''"
 
@@ -68,9 +68,9 @@
                         <div v-else-if="field.type === 'radio'" class="flex flex-col gap-2">
                             <Radio
                                 v-for="option in field.options"
-                                :key="option.value"
-
                                 :id="`${field.id}-${option.value}`"
+
+                                :key="option.value"
                                 :name="field.name || field.id"
                                 :label="option.label"
                                 :value="option.value"
@@ -78,9 +78,9 @@
                                 :variant="(field.variant as 'normal' | 'card') || 'normal'"
                                 :required="field.required"
                                 :disabled="field.disabled"
-                                :modelValue="formValues[field.id]"
+                                :model-value="formValues[field.id]"
 
-                                @update:modelValue="updateValue(field.id, $event)"
+                                @update:model-value="updateValue(field.id, $event)"
                             />
                         </div>
 
@@ -88,7 +88,7 @@
                             <Select
                                 :header="field.label"
                                 :options="field.options"
-                                :modelValue="formValues[field.id]"
+                                :model-value="formValues[field.id]"
 
                                 @update:value="updateValue(field.id, $event)"
                             />
@@ -133,8 +133,6 @@ interface FormSection {
 export default defineComponent({
     name: 'FormRenderer',
 
-    emits: ['submit'],
-
     components: {
         Input,
         Checkbox,
@@ -167,11 +165,47 @@ export default defineComponent({
         }
     },
 
+    emits: ['submit'],
+
     data() {
         return {
             formValues: {} as Record<string, any>,
             fieldErrors: {} as Record<string, string>,
             activeSectionColumns: 1
+        }
+    },
+
+    computed: {
+        normalizedSections(): Array<{ key: string; title: string; fields: FormFieldType[] }> {
+            if (this.sections && this.sections.length > 0) {
+                return this.sections.map((sec, idx) => ({
+                    key: sec.key ?? sec.title ?? `section-${idx}`,
+                    title: sec.title ?? '',
+                    fields: sec.fields ?? [],
+                }));
+            }
+
+            const result: Record<string, FormFieldType[]> = {};
+
+            for (const field of this.fields) {
+                const sectionTitle = field.section ?? '';
+
+                if (!result[sectionTitle]) {
+                    result[sectionTitle] = [];
+                }
+
+                result[sectionTitle].push(field);
+            }
+
+            return Object.entries(result).map(([title, fields]) => ({
+                key: title,
+                title,
+                fields,
+            }));
+        },
+
+        allFields(): FormFieldType[] {
+            return this.normalizedSections.flatMap((s) => s.fields);
         }
     },
 
@@ -361,40 +395,6 @@ export default defineComponent({
 
         isSectionVisible(sectionFields: FormFieldType[]): boolean {
             return sectionFields.some(field => this.isFieldVisible(field));
-        }
-    },
-
-    computed: {
-        normalizedSections(): Array<{ key: string; title: string; fields: FormFieldType[] }> {
-            if (this.sections && this.sections.length > 0) {
-                return this.sections.map((sec, idx) => ({
-                    key: sec.key ?? sec.title ?? `section-${idx}`,
-                    title: sec.title ?? '',
-                    fields: sec.fields ?? [],
-                }));
-            }
-
-            const result: Record<string, FormFieldType[]> = {};
-
-            for (const field of this.fields) {
-                const sectionTitle = field.section ?? '';
-
-                if (!result[sectionTitle]) {
-                    result[sectionTitle] = [];
-                }
-
-                result[sectionTitle].push(field);
-            }
-
-            return Object.entries(result).map(([title, fields]) => ({
-                key: title,
-                title,
-                fields,
-            }));
-        },
-
-        allFields(): FormFieldType[] {
-            return this.normalizedSections.flatMap((s) => s.fields);
         }
     }
 });

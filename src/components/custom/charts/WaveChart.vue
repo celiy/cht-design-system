@@ -43,8 +43,6 @@
                 <div
                     v-for="point in wavePoints"
                     :key="`wave-point-${point.index}`"
-                    class="absolute top-0 bottom-0 w-6 -translate-x-1/2"
-                    :style="{ left: `${point.x}%` }"
                     v-tooltip="{
                         content: `
                             <div>
@@ -55,6 +53,8 @@
                         placement: 'center',
                         html: true
                     }"
+                    class="absolute top-0 bottom-0 w-6 -translate-x-1/2"
+                    :style="{ left: `${point.x}%` }"
 
                     @mouseenter="() => hoveredPoint = point.index"
                     @mouseout="() => hoveredPoint = null"
@@ -143,6 +143,145 @@ export default defineComponent({
             waveResizeObserver: null as ResizeObserver | null,
             hoveredPoint: null as number | null,
         };
+    },
+
+    computed: {
+        waveRawItems() {
+            if (chartUsesGroups(this.data.items)) {
+                return groupChartItems(this.data.items, this.data.label);
+            }
+
+            return [...this.data.items]
+                .filter((item) => item.date != null)
+                .map((item) => {
+                    const date = new Date(item.date as Date);
+
+                    return {
+                        date,
+                        dateLong: this.formatWaveLongDate(date),
+                        dateShort: this.formatWaveShortDate(date),
+                        value: item.value,
+                        label: this.data.label,
+                    };
+                })
+                .sort((a, b) => a.date.getTime() - b.date.getTime());
+        },
+
+        filteredWaveRawItems() {
+            if (!this.waveRawItems.length) {
+                return [];
+            }
+
+            if (chartUsesGroups(this.data.items)) {
+                return this.waveRawItems;
+            }
+
+            const lastItem = this.waveRawItems[this.waveRawItems.length - 1];
+            if (!lastItem || !("date" in lastItem) || !lastItem.date) {
+                return [];
+            }
+
+            const startDate = this.getWaveFilterStartDate(lastItem.date);
+
+            return this.waveRawItems.filter((item) => {
+                if (!("date" in item) || !item.date) {
+                    return false;
+                }
+
+                return item.date.getTime() >= startDate.getTime();
+            });
+        },
+
+        maxWavePoints() {
+            const fallbackWidth = 360;
+            const width = this.waveContainerWidth || fallbackWidth;
+
+            return Math.max(2, Math.floor(width / 48));
+        },
+
+        waveItems() {
+            const total = this.filteredWaveRawItems.length;
+            if (total <= this.maxWavePoints) {
+                return this.filteredWaveRawItems.map((item, index) => ({
+                    ...item,
+                    index,
+                }));
+            }
+
+            const selectedIndexes = new Set<number>([0, total - 1]);
+            const step = (total - 1) / (this.maxWavePoints - 1);
+
+            for (let index = 1; index < this.maxWavePoints - 1; index += 1) {
+                selectedIndexes.add(Math.round(index * step));
+            }
+
+            return [...selectedIndexes]
+                .sort((a, b) => a - b)
+                .flatMap((sourceIndex) => {
+                    const item = this.filteredWaveRawItems[sourceIndex];
+                    if (!item) {
+                        return [];
+                    }
+
+                    return [{
+                        ...item,
+                        index: sourceIndex,
+                    }];
+                });
+        },
+
+        waveMinValue() {
+            if (!this.waveItems.length) {
+                return 0;
+            }
+
+            return Math.min(...this.waveItems.map((item) => item.value));
+        },
+
+        waveMaxValue() {
+            if (!this.waveItems.length) {
+                return 0;
+            }
+
+            return Math.max(...this.waveItems.map((item) => item.value));
+        },
+
+        wavePoints() {
+            const total = this.waveItems.length;
+
+            return this.waveItems.map((item, index) => ({
+                ...item,
+                x: total <= 1 ? 50 : (index / (total - 1)) * 100,
+                y: this.toWaveY(item.value),
+            }));
+        },
+
+        wavePath() {
+            return this.buildWavePath(this.wavePoints);
+        },
+
+        /**
+         * Closed path from the wave line down to the bottom of the viewBox (`y = 100`).
+         */
+        waveAreaPath() {
+            const line = this.wavePath;
+            const first = this.wavePoints[0];
+            const last = this.wavePoints[this.wavePoints.length - 1];
+
+            if (!line || !first || !last) {
+                return "";
+            }
+
+            return `${line} L ${last.x} 100 L ${first.x} 100 Z`;
+        },
+
+        strokeColor() {
+            return chartColorCssVar(this.color);
+        },
+
+        hoverLineClass() {
+            return chartColorBorderClass(this.color);
+        }
     },
 
     mounted() {
@@ -298,145 +437,6 @@ export default defineComponent({
                 this.refreshWaveMetrics();
             });
             this.waveResizeObserver.observe(element);
-        }
-    },
-
-    computed: {
-        waveRawItems() {
-            if (chartUsesGroups(this.data.items)) {
-                return groupChartItems(this.data.items, this.data.label);
-            }
-
-            return [...this.data.items]
-                .filter((item) => item.date != null)
-                .map((item) => {
-                    const date = new Date(item.date as Date);
-
-                    return {
-                        date,
-                        dateLong: this.formatWaveLongDate(date),
-                        dateShort: this.formatWaveShortDate(date),
-                        value: item.value,
-                        label: this.data.label,
-                    };
-                })
-                .sort((a, b) => a.date.getTime() - b.date.getTime());
-        },
-
-        filteredWaveRawItems() {
-            if (!this.waveRawItems.length) {
-                return [];
-            }
-
-            if (chartUsesGroups(this.data.items)) {
-                return this.waveRawItems;
-            }
-
-            const lastItem = this.waveRawItems[this.waveRawItems.length - 1];
-            if (!lastItem || !("date" in lastItem) || !lastItem.date) {
-                return [];
-            }
-
-            const startDate = this.getWaveFilterStartDate(lastItem.date);
-
-            return this.waveRawItems.filter((item) => {
-                if (!("date" in item) || !item.date) {
-                    return false;
-                }
-
-                return item.date.getTime() >= startDate.getTime();
-            });
-        },
-
-        maxWavePoints() {
-            const fallbackWidth = 360;
-            const width = this.waveContainerWidth || fallbackWidth;
-
-            return Math.max(2, Math.floor(width / 48));
-        },
-
-        waveItems() {
-            const total = this.filteredWaveRawItems.length;
-            if (total <= this.maxWavePoints) {
-                return this.filteredWaveRawItems.map((item, index) => ({
-                    ...item,
-                    index,
-                }));
-            }
-
-            const selectedIndexes = new Set<number>([0, total - 1]);
-            const step = (total - 1) / (this.maxWavePoints - 1);
-
-            for (let index = 1; index < this.maxWavePoints - 1; index += 1) {
-                selectedIndexes.add(Math.round(index * step));
-            }
-
-            return [...selectedIndexes]
-                .sort((a, b) => a - b)
-                .flatMap((sourceIndex) => {
-                    const item = this.filteredWaveRawItems[sourceIndex];
-                    if (!item) {
-                        return [];
-                    }
-
-                    return [{
-                        ...item,
-                        index: sourceIndex,
-                    }];
-                });
-        },
-
-        waveMinValue() {
-            if (!this.waveItems.length) {
-                return 0;
-            }
-
-            return Math.min(...this.waveItems.map((item) => item.value));
-        },
-
-        waveMaxValue() {
-            if (!this.waveItems.length) {
-                return 0;
-            }
-
-            return Math.max(...this.waveItems.map((item) => item.value));
-        },
-
-        wavePoints() {
-            const total = this.waveItems.length;
-
-            return this.waveItems.map((item, index) => ({
-                ...item,
-                x: total <= 1 ? 50 : (index / (total - 1)) * 100,
-                y: this.toWaveY(item.value),
-            }));
-        },
-
-        wavePath() {
-            return this.buildWavePath(this.wavePoints);
-        },
-
-        /**
-         * Closed path from the wave line down to the bottom of the viewBox (`y = 100`).
-         */
-        waveAreaPath() {
-            const line = this.wavePath;
-            const first = this.wavePoints[0];
-            const last = this.wavePoints[this.wavePoints.length - 1];
-
-            if (!line || !first || !last) {
-                return "";
-            }
-
-            return `${line} L ${last.x} 100 L ${first.x} 100 Z`;
-        },
-
-        strokeColor() {
-            return chartColorCssVar(this.color);
-        },
-
-        hoverLineClass() {
-            return chartColorBorderClass(this.color);
         }
     }
 });

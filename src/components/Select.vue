@@ -1,17 +1,17 @@
 <template>
     <FloatingPanel
-        ref="panelRef"
-
         :id="id"
+
+        ref="panelRef"
         :label="label"
-        :helperText="helperText"
+        :helper-text="helperText"
         :header="header"
-        :buttonAtributes="buttonAtributes"
-        :hideDropdownArrow="hideDropdownArrow"
-        :maxHeightPx="maxHeightPx"
-        :panelClass="panelClass"
-        :mobileModal="mobileModal"
-        :forceModal="forceModal"
+        :button-atributes="buttonAtributes"
+        :hide-dropdown-arrow="hideDropdownArrow"
+        :max-height-px="maxHeightPx"
+        :panel-class="panelClass"
+        :mobile-modal="mobileModal"
+        :force-modal="forceModal"
     >
         <template #triggerLabel>
             <span
@@ -25,12 +25,12 @@
 
         <template #default>
             <OptionsList
-                v-model:searchQuery="searchQuery"
+                v-model:search-query="searchQuery"
 
                 :options="options"
                 :search="search"
-                :showCheckmark="true"
-                :isOptionSelected="isOptionSelected"
+                :show-checkmark="true"
+                :is-option-selected="isOptionSelected"
 
                 @select="selectOption"
             />
@@ -57,8 +57,6 @@ type SelectMultipleConfig = {
 
 export default defineComponent({
     name: "Select",
-
-    emits: ["update:modelValue", "update:value"],
 
     components: {
         FloatingPanel,
@@ -158,6 +156,8 @@ export default defineComponent({
         }
     },
 
+    emits: ["update:modelValue", "update:value"],
+
     data() {
         return {
             value: "",
@@ -172,36 +172,43 @@ export default defineComponent({
         };
     },
 
-    mounted() {
-        if (this.useMemo) {
+    computed: {
+        isSelectMultiple(): boolean {
+            return this.selectMultiple != null;
+        },
+
+        /**
+         * Text shown on the trigger button. Multi-select never surfaces the selected labels.
+         */
+        selectTriggerLabel(): string {
             if (this.isSelectMultiple) {
-                if (
-                    this.id
-                    && !this.multiModelValueProvided
-                    && this.selectedValues.length === 0
-                ) {
-                    if (this.tryHydrateMultiFromStorage()) {
-                        this.multiMemoHydrationDone = true;
-                        this.emitSelectionToParent();
-                    }
-                }
-            } else if (this.id) {
-                const raw = localStorage.getItem(this.id);
+                return this.header ?? "Selecione...";
+            }
 
-                if (!this.value) {
-                    const next = raw ?? "";
+            return this.selectedValueLabel || this.header || "Selecione...";
+        },
 
-                    if (next !== this.value) {
-                        this.value = next;
-                        this.emitSelectionToParent();
-                    }
+        selectTriggerMuted(): boolean {
+            if (this.isSelectMultiple) {
+                return !this.header;
+            }
+
+            return !this.selectedValueLabel && !this.header;
+        },
+
+        selectedValueLabel(): string | undefined {
+            if (!this.options) {
+                return undefined;
+            }
+
+            for (const option of this.options) {
+                if (this.value === option.value) {
+                    return option.label;
                 }
             }
-        }
 
-        this.$nextTick(() => {
-            this.applyInitialAllSelected();
-        });
+            return undefined;
+        }
     },
 
     watch: {
@@ -256,6 +263,38 @@ export default defineComponent({
             immediate: true,
             deep: true
         }
+    },
+
+    mounted() {
+        if (this.useMemo) {
+            if (this.isSelectMultiple) {
+                if (
+                    this.id
+                    && !this.multiModelValueProvided
+                    && this.selectedValues.length === 0
+                ) {
+                    if (this.tryHydrateMultiFromStorage()) {
+                        this.multiMemoHydrationDone = true;
+                        this.emitSelectionToParent();
+                    }
+                }
+            } else if (this.id) {
+                const raw = localStorage.getItem(this.id);
+
+                if (!this.value) {
+                    const next = raw ?? "";
+
+                    if (next !== this.value) {
+                        this.value = next;
+                        this.emitSelectionToParent();
+                    }
+                }
+            }
+        }
+
+        this.$nextTick(() => {
+            this.applyInitialAllSelected();
+        });
     },
 
     methods: {
@@ -441,45 +480,6 @@ export default defineComponent({
         close() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.close();
-        }
-    },
-
-    computed: {
-        isSelectMultiple(): boolean {
-            return this.selectMultiple != null;
-        },
-
-        /**
-         * Text shown on the trigger button. Multi-select never surfaces the selected labels.
-         */
-        selectTriggerLabel(): string {
-            if (this.isSelectMultiple) {
-                return this.header ?? "Selecione...";
-            }
-
-            return this.selectedValueLabel || this.header || "Selecione...";
-        },
-
-        selectTriggerMuted(): boolean {
-            if (this.isSelectMultiple) {
-                return !this.header;
-            }
-
-            return !this.selectedValueLabel && !this.header;
-        },
-
-        selectedValueLabel(): string | undefined {
-            if (!this.options) {
-                return undefined;
-            }
-
-            for (const option of this.options) {
-                if (this.value === option.value) {
-                    return option.label;
-                }
-            }
-
-            return undefined;
         }
     }
 });

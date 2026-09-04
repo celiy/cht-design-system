@@ -8,8 +8,6 @@ import { defineComponent, type PropType } from "vue";
 export default defineComponent({
     name: "Example",
 
-    emits: ["click"],
-
     props: {
         propType: {
             type: String as PropType<"normal" | "not-normal">,
@@ -18,26 +16,28 @@ export default defineComponent({
         }
     },
 
+    emits: ["click"],
+
     data() {
         return {
     
         };
-    },
-
-    mounted() {
-
+    }, 
+    
+    computed: {
+    
     },
 
     watch: {
 
     },
 
+    mounted() {
+
+    },
+
     methods: {
 
-    }, 
-    
-    computed: {
-    
     }
 });
 </script>

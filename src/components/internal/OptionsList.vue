@@ -16,7 +16,7 @@
                 variant="transparent"
                 placeholder="Pesquisar..."
 
-                @update:modelValue="onSearchQueryUpdate"
+                @update:model-value="onSearchQueryUpdate"
             />
         </div>
 
@@ -26,30 +26,31 @@
         />
 
         <!-- Options list -->
-        <div
-            v-if="visibleOptions.length > 0"
-            v-for="(item, idx) of visibleOptions"
-            :key="item.value ?? item.label"
-            :ref="(el) => setOptionRef(idx, el)"
-        >
-            <Option
-                v-tooltip="optionTooltip(item)"
+        <template v-if="visibleOptions.length > 0">
+            <div
+                v-for="(item, idx) of visibleOptions"
+                :key="item.value ?? item.label"
+                :ref="(el) => setOptionRef(idx, el)"
+            >
+                <Option
+                    v-tooltip="optionTooltip(item)"
 
-                :label="item.label"
-                :icon="item.icon"
-                :separator="item.separator"
-                :value="item.value"
-                :variant="item.variant"
-                :showCheckmark="showCheckmark"
-                :selected="Boolean(isOptionSelected?.(item.value))"
-                :highlighted="isItemHighlighted(idx, item)"
-                :first="idx === 0"
-                :last="idx === visibleOptions.length - 1"
+                    :label="item.label"
+                    :icon="item.icon"
+                    :separator="item.separator"
+                    :value="item.value"
+                    :variant="item.variant"
+                    :show-checkmark="showCheckmark"
+                    :selected="Boolean(isOptionSelected?.(item.value))"
+                    :highlighted="isItemHighlighted(idx, item)"
+                    :first="idx === 0"
+                    :last="idx === visibleOptions.length - 1"
 
-                @click="onItemClick(item)"
-                @mouseenter="onItemMouseEnter(idx, item)"
-            />
-        </div>
+                    @click="onItemClick(item)"
+                    @mouseenter="onItemMouseEnter(idx, item)"
+                />
+            </div>
+        </template>
 
         <!-- No options found -->
         <div
@@ -84,8 +85,6 @@ export type SearchConfig = {
 
 export default defineComponent({
     name: "OptionsList",
-
-    emits: ["select", "update:searchQuery"],
 
     components: {
         Input,
@@ -139,6 +138,8 @@ export default defineComponent({
         }
     },
 
+    emits: ["select", "update:searchQuery"],
+
     data() {
         return {
             localSearchQuery: this.searchQuery,
@@ -147,14 +148,38 @@ export default defineComponent({
         };
     },
 
-    mounted() {
-        this.resetHighlight();
-        this.$nextTick(() => this.focusSearchInput());
-        document.addEventListener("keydown", this.onKeydown);
-    },
+    computed: {
+        visibleOptions(): OptionItem[] {
+            const source = this.options ?? [];
 
-    beforeUnmount() {
-        document.removeEventListener("keydown", this.onKeydown);
+            if (!this.search || this.search.external) {
+                return [...source];
+            }
+
+            const query = this.localSearchQuery?.trim().toLowerCase();
+
+            if (!query) {
+                return [...source];
+            }
+
+            const byLabel = source.filter(
+                item =>
+                    !item.separator
+                    && item.label
+                    && item.label.toLowerCase().includes(query)
+            );
+
+            if (byLabel.length > 0) {
+                return byLabel;
+            }
+
+            return source.filter(
+                item =>
+                    !item.separator
+                    && item.value
+                    && item.value.toLowerCase().includes(query)
+            );
+        }
     },
 
     watch: {
@@ -167,6 +192,16 @@ export default defineComponent({
         visibleOptions() {
             this.resetHighlight();
         }
+    },
+
+    mounted() {
+        this.resetHighlight();
+        this.$nextTick(() => this.focusSearchInput());
+        document.addEventListener("keydown", this.onKeydown);
+    },
+
+    beforeUnmount() {
+        document.removeEventListener("keydown", this.onKeydown);
     },
 
     methods: {
@@ -308,40 +343,6 @@ export default defineComponent({
                 content: item.tooltip,
                 placement: "right" as const
             };
-        }
-    },
-
-    computed: {
-        visibleOptions(): OptionItem[] {
-            const source = this.options ?? [];
-
-            if (!this.search || this.search.external) {
-                return [...source];
-            }
-
-            const query = this.localSearchQuery?.trim().toLowerCase();
-
-            if (!query) {
-                return [...source];
-            }
-
-            const byLabel = source.filter(
-                item =>
-                    !item.separator
-                    && item.label
-                    && item.label.toLowerCase().includes(query)
-            );
-
-            if (byLabel.length > 0) {
-                return byLabel;
-            }
-
-            return source.filter(
-                item =>
-                    !item.separator
-                    && item.value
-                    && item.value.toLowerCase().includes(query)
-            );
         }
     }
 });

@@ -1,9 +1,3 @@
-<style scoped>
-.media-thumb {
-    width: 88px;
-}
-</style>
-
 <template>
     <div class="w-full flex flex-col gap-3">
         <label
@@ -147,8 +141,6 @@ interface MediaItem {
 export default defineComponent({
     name: "MediaUploader",
 
-    emits: ["update:value", "update:modelValue", "invalid"],
-
     props: {
         id: {
             type: String,
@@ -199,6 +191,8 @@ export default defineComponent({
             default: undefined
         }
     },
+
+    emits: ["update:value", "update:modelValue", "invalid"],
 
     data() {
         return {
@@ -563,3 +557,9 @@ export default defineComponent({
     }
 });
 </script>
+
+<style scoped>
+.media-thumb {
+    width: 88px;
+}
+</style>

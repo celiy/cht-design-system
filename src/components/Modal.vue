@@ -1,64 +1,3 @@
-<style scoped>
-/* Backdrop / modal panel — mesma curva que o overlay da Sidebar (opacity 0.2s ease) */
-.fade-modal-enter-active,
-.fade-modal-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-modal-enter-from,
-.fade-modal-leave-to {
-  opacity: 0;
-}
-
-.fade-modal-enter-to,
-.fade-modal-leave-from {
-  opacity: 1;
-}
-
-/*
- * Drawer: mesmo timing da Sidebar (`transition-transform duration-300 ease-out`).
- * ease-out Tailwind ≈ cubic-bezier(0, 0, 0.2, 1)
- */
-.drawer-slide-left-enter-active,
-.drawer-slide-left-leave-active,
-.drawer-slide-right-enter-active,
-.drawer-slide-right-leave-active,
-.drawer-slide-bottom-enter-active,
-.drawer-slide-bottom-leave-active {
-  transition: transform 300ms cubic-bezier(0, 0, 0.2, 1);
-}
-
-.drawer-slide-left-enter-from,
-.drawer-slide-left-leave-to {
-  transform: translateX(-100%);
-}
-
-.drawer-slide-left-enter-to,
-.drawer-slide-left-leave-from {
-  transform: translateX(0);
-}
-
-.drawer-slide-right-enter-from,
-.drawer-slide-right-leave-to {
-  transform: translateX(100%);
-}
-
-.drawer-slide-right-enter-to,
-.drawer-slide-right-leave-from {
-  transform: translateX(0);
-}
-
-.drawer-slide-bottom-enter-from,
-.drawer-slide-bottom-leave-to {
-  transform: translateY(100%);
-}
-
-.drawer-slide-bottom-enter-to,
-.drawer-slide-bottom-leave-from {
-  transform: translateY(0);
-}
-</style>
-
 <template>
     <Teleport to="body">
         <div
@@ -161,6 +100,7 @@
                         class="overflow-auto"
                         :class="{
                             'mt-2': variant !== 'blank' && !$slots.description,
+                            'px-4 pb-4': variant === 'modal' || variant === 'drawer',
                             'max-h-[60vh]': (variant === 'modal' || variant === 'blank') && size !== 'large',
                             'max-h-[80vh]': (variant === 'modal' || variant === 'blank') && size === 'large',
                             'flex-1 min-h-0': variant === 'drawer'
@@ -202,13 +142,11 @@ import Button from "./Button.vue";
 import Keybind from "./internal/Keybind.vue";
 import { isTopModalLayer, popModalLayer, pushModalLayer } from "@shared/frontend/keybinds";
 
-const DRAWER_MOVE_LISTENER_OPTS: AddEventListenerOptions = { passive: false, capture: true };
-const DRAWER_UP_LISTENER_OPTS: AddEventListenerOptions = { capture: true };
+const DRAWER_MOVE_LISTENER_OPTS = { passive: false, capture: true };
+const DRAWER_UP_LISTENER_OPTS = { capture: true };
 
 export default defineComponent({
     name: "Modal",
-
-    emits: ["update:value"],
 
     components: {
         Button,
@@ -246,6 +184,8 @@ export default defineComponent({
             required: true
         }
     },
+
+    emits: ["update:value"],
 
     data() {
         return {
@@ -654,3 +594,64 @@ export default defineComponent({
     }
 });
 </script>
+
+<style scoped>
+/* Backdrop / modal panel — mesma curva que o overlay da Sidebar (opacity 0.2s ease) */
+.fade-modal-enter-active,
+.fade-modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-modal-enter-from,
+.fade-modal-leave-to {
+  opacity: 0;
+}
+
+.fade-modal-enter-to,
+.fade-modal-leave-from {
+  opacity: 1;
+}
+
+/*
+ * Drawer: mesmo timing da Sidebar (`transition-transform duration-300 ease-out`).
+ * ease-out Tailwind ≈ cubic-bezier(0, 0, 0.2, 1)
+ */
+.drawer-slide-left-enter-active,
+.drawer-slide-left-leave-active,
+.drawer-slide-right-enter-active,
+.drawer-slide-right-leave-active,
+.drawer-slide-bottom-enter-active,
+.drawer-slide-bottom-leave-active {
+  transition: transform 300ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.drawer-slide-left-enter-from,
+.drawer-slide-left-leave-to {
+  transform: translateX(-100%);
+}
+
+.drawer-slide-left-enter-to,
+.drawer-slide-left-leave-from {
+  transform: translateX(0);
+}
+
+.drawer-slide-right-enter-from,
+.drawer-slide-right-leave-to {
+  transform: translateX(100%);
+}
+
+.drawer-slide-right-enter-to,
+.drawer-slide-right-leave-from {
+  transform: translateX(0);
+}
+
+.drawer-slide-bottom-enter-from,
+.drawer-slide-bottom-leave-to {
+  transform: translateY(100%);
+}
+
+.drawer-slide-bottom-enter-to,
+.drawer-slide-bottom-leave-from {
+  transform: translateY(0);
+}
+</style>

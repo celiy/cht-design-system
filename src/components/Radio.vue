@@ -1,51 +1,29 @@
-<style scoped>
-.custom-radio {
-    appearance: none;
-    vertical-align: middle;
-}
-
-.custom-radio:checked {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
-}
-
-.custom-radio:checked::after {
-    content: "";
-    display: block;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #fff;
-    transform: translate(-50%, -50%);
-}
-
-.custom-radio:disabled {
-    background-color: var(--color-input);
-    opacity: 50%;
-    cursor: not-allowed;
-}
-</style>
-
 <template>
     <div
         class="transition-all"
         :class="{
             'p-3 border rounded': variant === 'card',
             'border-primary/30! bg-primary/10': !disabled && variant === 'card' && isChecked,
-            'border-input bg-input/10': !disabled && variant === 'card' && !isChecked,
-            'bg-transparent border-border/50': disabled && variant === 'card'
+            'border-input bg-input/30': !disabled && variant === 'card' && !isChecked,
+            'bg-transparent border-border/50': disabled && variant === 'card',
+            'cursor-pointer': !disabled,
+            'cursor-not-allowed!': disabled
         }"
 
+
+        @mouseenter="hovered = true"
+        @mouseleave="hovered = false"
         @click="onClick"
     >
         <div class="flex">
             <input
-                type="radio"
-                class="custom-radio w-4 h-4 border border-input bg-input/30 transition-all rounded-full cursor-pointer relative shrink-0"
                 :id="id"
+                type="radio"
+                class="custom-radio w-4 h-4 border border-input bg-input/30 transition-all rounded-full cursor-pointer relative shrink-0 translate-y-0.75"
+
+                :class="{
+                    'ring-[3px] ring-ring/50 ring-offset-0' : hovered && !disabled
+                }"
                 :name="name"
                 :required="required"
                 :disabled="disabled"
@@ -57,9 +35,10 @@
             <div v-if="label || description">
                 <label
                     :for="id"
-                    class="ml-2 cursor-pointer select-none"
+                    class="ml-2 select-none"
                     :class="{
-                        'text-muted-foreground': disabled
+                        'text-muted-foreground! cursor-not-allowed!': disabled,
+                        'cursor-pointer': !disabled
                     }"
                 >
                     {{ label }}
@@ -78,8 +57,6 @@ import { defineComponent, type PropType } from "vue";
 
 export default defineComponent({
     name: 'Radio',
-
-    emits: ['click', 'update:modelValue'],
 
     props: {
         variant: {
@@ -132,6 +109,14 @@ export default defineComponent({
         }
     },
 
+    emits: ['click', 'update:modelValue'],
+
+    data() {
+        return {
+            hovered: false
+        }
+    },
+
     computed: {
         optionValue(): string | number {
             return this.value;
@@ -175,3 +160,34 @@ export default defineComponent({
     },
 });
 </script>
+
+<style scoped>
+.custom-radio {
+    appearance: none;
+    vertical-align: middle;
+}
+
+.custom-radio:checked {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.custom-radio:checked::after {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    transform: translate(-50%, -50%);
+}
+
+.custom-radio:disabled {
+    background-color: var(--color-input);
+    opacity: 50%;
+    cursor: not-allowed;
+}
+</style>

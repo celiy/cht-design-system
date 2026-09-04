@@ -1,23 +1,3 @@
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.2s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-}
-
-.sidebar-links-scroll-hidden {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-.sidebar-links-scroll-hidden::-webkit-scrollbar {
-    display: none;
-}
-</style>
-
 <template>
     <div class="relative flex w-full h-full min-h-0">
         <Transition name="fade">
@@ -148,16 +128,16 @@
                                         >
                                             <div class="relative self-stretch shrink-0 ml-4 mr-2 w-0.5">
                                                 <div
-                                                    class="absolute inset-0 z-0"
+                                                    class="absolute inset-0 z-0 bg-sidebar-border"
                                                     :class="[
                                                         (idx === link.links.length - 1)
-                                                            ? 'bg-linear-to-t from-transparent to-sidebar-border to-30%'
-                                                            : 'bg-sidebar-border'
+                                                            ? 'rounded-full'
+                                                            : ''
                                                     ]"
                                                 />
 
                                                 <div
-                                                    class="absolute inset-0 z-10 origin-center h-1/3 rounded-full my-auto bg-primary transition-transform duration-300 ease-out"
+                                                    class="absolute inset-0 z-10 origin-center h-full rounded-full my-auto bg-primary transition-transform duration-300 ease-out"
                                                     :class="isActive(sublink.link) ? 'scale-y-100' : 'scale-y-0'"
                                                 />
                                             </div>
@@ -197,7 +177,8 @@
             </nav>
         </Resizable>
 
-        <div 
+        <div
+            ref="mainContentScrollRef"
             class="flex-1 w-full h-full min-h-0 box-border flex flex-col overflow-y-auto"
             :class="{ 'transition-[margin-left] duration-300 ease-out': !isResizing }"
             :style="mainContentStyle"
@@ -263,8 +244,6 @@ import Resizable from "./Resizable.vue";
 export default defineComponent({
     name: "Sidebar",
 
-    emits: ["click"],
-
     components: {
         Button,
         Keybind,
@@ -309,6 +288,8 @@ export default defineComponent({
         }
     },
 
+    emits: ["click"],
+
     data() {
         return {
             open: true,
@@ -331,6 +312,8 @@ export default defineComponent({
             if (items && Array.isArray(items) && items.length > 0) {
                 return items;
             }
+
+            return [];
         },
 
         /**
@@ -364,6 +347,10 @@ export default defineComponent({
     watch: {
         sidebarWidth(value: number) {
             this.currentWidth = value;
+        },
+
+        "$route.path"() {
+            this.scrollMainContentToTop();
         }
     },
 
@@ -402,6 +389,18 @@ export default defineComponent({
          */
         navigateTo(link: string | null) {
             (this as any).$router?.push(link);
+        },
+
+        scrollMainContentToTop() {
+            this.$nextTick(() => {
+                const el = this.$refs.mainContentScrollRef as HTMLElement | undefined;
+
+                if (!el) {
+                    return;
+                }
+
+                el.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+            });
         },
 
         /**
@@ -503,3 +502,23 @@ export default defineComponent({
     }
 });
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.sidebar-links-scroll-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.sidebar-links-scroll-hidden::-webkit-scrollbar {
+    display: none;
+}
+</style>

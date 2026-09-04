@@ -52,8 +52,6 @@ export default defineComponent({
 
     inheritAttrs: true,
 
-    emits: ["update:width", "update:height", "resize-start", "resize-end"],
-
     props: {
         /**
          * Initial / controlled width in pixels. Omit to keep CSS width until the first drag.
@@ -118,6 +116,8 @@ export default defineComponent({
             default: false
         }
     },
+
+    emits: ["update:width", "update:height", "resize-start", "resize-end"],
 
     data() {
         return {

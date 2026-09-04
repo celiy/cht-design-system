@@ -88,8 +88,6 @@ export default defineComponent({
         Skeleton
     },
 
-    emits: ["click"],
-
     props: {
         status: {
             type: String as PropType<AvatarStatus>,
@@ -113,6 +111,8 @@ export default defineComponent({
             default: false
         }
     },
+
+    emits: ["click"],
 
     computed: {
         /**

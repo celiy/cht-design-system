@@ -8,8 +8,6 @@ import { defineComponent, type PropType } from "vue";
 export default defineComponent({
     name: "CustomAvatar",
 
-    emits: ["click"],
-
     props: {
         propType: {
             type: String as PropType<"normal" | "not-normal">,
@@ -18,13 +16,15 @@ export default defineComponent({
         }
     },
 
+    emits: ["click"],
+
     data() {
         return {
 
         };
     },
 
-    mounted() {
+    computed: {
 
     },
 
@@ -32,11 +32,11 @@ export default defineComponent({
 
     },
 
-    methods: {
+    mounted() {
 
     },
 
-    computed: {
+    methods: {
 
     }
 });

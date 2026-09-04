@@ -1,3 +1,420 @@
+<template>
+    <div class="flex flex-col w-full">
+        <!-- Label -->
+        <label 
+            v-if="label"
+
+            class="mb-2"
+            :for="id"
+        >
+            {{ label }}
+        </label>
+
+        <!-- Bar -->
+        <div
+            v-if="variant === 'bar'"
+            class="relative"
+            :class="{
+                'flex w-full justify-center': direction === 'vertical'
+            }"
+        >
+            <input
+                class="progress-range rounded relative transition-all"
+                :class="[
+                    direction === 'vertical' ? 'progress-range--vertical rotate-180' : 'h-2 w-full',
+                    {
+                        'opacity-70': disabled,
+                        'progress-range--readonly': readonly,
+                        'cursor-pointer disabled:cursor-not-allowed': !readonly,
+                        'pointer-events-none': readonly,
+                        'ring-[3px] ring-ring/50 ring-offset-0': isVisible
+                    }
+                ]"
+                :style="progressTrackStyle"
+                type="range"
+                :aria-readonly="readonly ? true : undefined"
+                :tabindex="readonly ? -1 : undefined"
+
+                :value="localValue"
+                :step="step"
+                :max="max"
+                :min="min"
+                :required="required"
+                :disabled="disabled"
+
+                @mousedown="handleMouseDown"
+                @mouseup="handleMouseUp"
+                @mouseleave="handleMouseUp"
+                @touchstart="handleMouseDown"
+                @touchend="handleMouseUp"
+                @touchleave="handleMouseUp"
+                @keydown="onRangeKeydown"
+                @input="onInput($event)"
+            />
+
+            <div 
+                v-if="showProgress"
+
+                class="absolute top-0 -translate-y-10 rounded transition-all"
+                :class="{
+                    'right-1/2': direction === 'horizontal',
+                    'opacity-100': isVisible,
+                    'opacity-0': !isVisible
+                }"
+            >
+                <div class="bg-popover border p-2 rounded select-none shadow-sm text-foreground!">
+                    {{ localValue }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Circular -->
+        <div
+            v-if="variant === 'circular'"
+            class="relative"
+        >
+            <svg 
+                fill="none" 
+                class="inset-0" 
+                
+                v-bind="circularProgressAtributes"
+            >
+                <circle 
+                    v-bind="circleAtributes"
+                    stroke="var(--color-muted)" 
+                    stroke-width="4" 
+                    fill="none" 
+                    class="text-gray-200">
+                </circle>
+
+                <circle
+                    v-if="!isCircularLoading"
+                    v-bind="circleAtributes"
+                    stroke="var(--color-primary)"
+                    stroke-width="4"
+                    fill="none"
+                    stroke-linecap="round"
+                    :stroke-dasharray="circularProgressArc.strokeDasharray"
+                    :stroke-dashoffset="circularProgressArc.strokeDashoffset"
+                    :transform="circularProgressArc.transform"
+                    class="transition-all duration-500 ease-out"
+                />
+
+                <g
+                    v-else
+                    :transform="circularSpinnerStageTransform"
+                >
+                    <g class="progress-circular__spin">
+                        <circle
+                            cx="0"
+                            cy="0"
+                            :r="circleAtributes.r"
+                            stroke="var(--color-primary)"
+                            stroke-width="4"
+                            fill="none"
+                            stroke-linecap="round"
+                            class="progress-circular__indeterminate-arc"
+                            :style="circularSpinnerArcStyle"
+                        />
+                    </g>
+                </g>
+            </svg>
+        </div>
+
+        <!-- Helper text -->
+        <small 
+            v-if="helperText"
+
+            class="mt-2 text-muted-foreground!"
+        >
+            {{ helperText }}
+        </small>
+    </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, type PropType } from "vue";
+
+export default defineComponent({
+    name: "ProgressBar",
+
+    props: {
+        variant: {
+            type: String as PropType<"circular" | "bar">,
+            default: "bar",
+            required: false
+        },
+
+        size: {
+            type: String as PropType<"small" | "medium" | "large">,
+            default: "medium",
+            required: false
+        },
+
+        direction: {
+            type: String as PropType<"horizontal" | "vertical">,
+            default: "horizontal",
+            required: false
+        },
+
+        /**
+         * Height used when direction prop is vertical
+         */
+        height: {
+            type: String,
+            default: '12rem',
+            required: false
+        },
+        
+        /**
+         * Value controlled by Vue's v-model pattern.
+         * When defined, it has priority over the value prop.
+         */
+        modelValue: {
+            type: Number,
+            required: false,
+            default: undefined
+        },
+
+        step: {
+            type: Number,
+            default: 1,
+            required: false
+        },
+
+        max: {
+            type: Number,
+            default: 100,
+            required: false
+        },
+
+        min: {
+            type: Number,
+            default: 0,
+            required: false
+        },
+
+        label: {
+            type: String,
+            required: false
+        },
+
+        helperText: {
+            type: String,
+            required: false
+        },
+
+        id: {
+            type: String,
+            required: false
+        },
+
+        /**
+         * Indicates whether the field is required.
+         */
+        required: {
+            type: Boolean,
+            required: false
+        },
+
+        /**
+         * Disables user interaction with the field.
+         */
+        disabled: {
+            type: Boolean,
+            required: false
+        },
+
+        readonly: {
+            type: Boolean,
+            required: false
+        },
+
+        showProgress: {
+            type: Boolean,
+            required: false
+        },
+
+        loading: {
+            type: Boolean,
+            required: false,
+            default: false
+        }
+    },
+
+    emits: ["update:value", "update:modelValue"],
+
+    data() {
+        return {
+            localValue: 0 as number,
+            isVisible: false
+        };
+    }, 
+    
+    computed: {
+        /**
+         * Defines the single source of truth between modelValue and value.
+         *
+         * @Returns - Value prioritizing modelValue when it is defined.
+         */
+        sourceValue(): number | undefined {
+            if (this.modelValue !== undefined) {
+                return this.modelValue;
+            }
+
+            return undefined;
+        },
+
+        progressPercent(): number {
+            const min = Number(this.min ?? 0);
+            const max = Number(this.max ?? 100);
+            const value = Number(this.localValue ?? 0);
+            const safeMax = max <= min ? min + 1 : max;
+            const clamped = Math.min(Math.max(value, min), safeMax);
+
+            return ((clamped - min) * 100) / (safeMax - min);
+        },
+
+        progressTrackStyle(): Record<string, string> {
+            const style: Record<string, string> = {
+                "--progress-percent": `${this.progressPercent}%`
+            };
+
+            if (this.direction === "vertical") {
+                style["--progress-vertical-height"] = this.height;
+            }
+
+            return style;
+        },
+
+        circularProgressAtributes(): {
+            width: number;
+            height: number;
+            viewBox: string;
+        } {
+            switch (this.size) {
+                case "small":
+                    return { width: 32, height: 32, viewBox: "0 0 32 32" };
+                case "large":
+                    return { width: 128, height: 128, viewBox: "0 0 128 128" };
+                default:
+                    return { width: 64, height: 64, viewBox: "0 0 64 64" };
+            }
+        },
+
+        circleAtributes(): {
+            cx: number;
+            cy: number;
+            r: number;
+        } {
+            switch (this.size) {
+                case "small":
+                    return { cx: 16, cy: 16, r: 14 };
+                case "large":
+                    return { cx: 64, cy: 64, r: 62 };
+                case "medium":
+                default:
+                    return { cx: 32, cy: 32, r: 30 };
+            }
+        },
+
+        circularProgressArc(): {
+            strokeDasharray: number;
+            strokeDashoffset: number;
+            transform: string;
+        } {
+            const { cx, cy, r } = this.circleAtributes;
+            const circumference = 2 * Math.PI * r;
+            const fraction = Math.min(Math.max(this.progressPercent / 100, 0), 1);
+
+            return {
+                strokeDasharray: circumference,
+                strokeDashoffset: circumference * (1 - fraction),
+                transform: `rotate(-90 ${cx} ${cy})`
+            };
+        },
+
+        circularCircumference(): number {
+            return 2 * Math.PI * this.circleAtributes.r;
+        },
+
+        isCircularLoading(): boolean {
+            return this.variant === "circular" && Boolean(this.loading);
+        },
+
+        circularSpinnerStageTransform(): string {
+            const { cx, cy } = this.circleAtributes;
+
+            return `translate(${cx} ${cy})`;
+        },
+
+        circularSpinnerArcStyle(): Record<string, string> {
+            return {
+                "--progress-circ": `${this.circularCircumference}px`
+            };
+        }
+    },
+
+    watch: {
+        sourceValue: {
+            /**
+             * Synchronizes local state with the value coming from props.
+             */
+            handler(newVal: number | undefined) {
+                this.localValue = newVal ?? 0
+            },
+
+            immediate: true
+        }
+    },
+
+    mounted() {
+
+    },
+
+    methods: {
+        /**
+         * Handles typing, normalizes the value, and emits updates to the parent.
+         *
+         * @param event - Native input/textarea event.
+         */
+        onInput(event: Event) {
+            if (this.readonly) {
+                return;
+            }
+
+            let value = Number((event.target as HTMLInputElement).value);
+
+            this.localValue = value;
+
+            this.$emit("update:value", value);
+            this.$emit("update:modelValue", value);
+        },
+
+        handleMouseUp() {
+            this.isVisible = false;
+        },
+
+        handleMouseDown() {
+            if (this.readonly) {
+                return;
+            }
+
+            this.isVisible = true;
+        },
+
+        onRangeKeydown(event: KeyboardEvent) {
+            if (!this.readonly) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    }
+});
+</script>
+
 <style scoped lang="scss">
 .progress-range {
   -webkit-appearance: none;
@@ -38,7 +455,8 @@
   &::-moz-range-track {
     height: 0.5rem;
     border-radius: 9999px;
-    background: var(--color-muted);
+    background: var(--color-input);
+    opacity: 50%;
   }
 
   &::-moz-range-progress {
@@ -184,417 +602,3 @@
   }
 }
 </style>
-
-<template>
-    <div class="flex flex-col w-full">
-        <!-- Label -->
-        <label 
-            v-if="label"
-
-            class="mb-2"
-            :for="id"
-        >
-            {{ label }}
-        </label>
-
-        <!-- Bar -->
-        <div
-            v-if="variant === 'bar'"
-            class="relative"
-            :class="{
-                'flex w-full justify-center': direction === 'vertical'
-            }"
-        >
-            <input
-                class="progress-range rounded relative"
-                :class="[
-                    direction === 'vertical' ? 'progress-range--vertical rotate-180' : 'h-2 w-full',
-                    {
-                        'opacity-70': disabled,
-                        'progress-range--readonly': readonly,
-                        'cursor-pointer disabled:cursor-not-allowed': !readonly,
-                        'pointer-events-none': readonly
-                    }
-                ]"
-                :style="progressTrackStyle"
-                type="range"
-                :aria-readonly="readonly ? true : undefined"
-                :tabindex="readonly ? -1 : undefined"
-
-                :value="localValue"
-                :step="step"
-                :max="max"
-                :min="min"
-                :required="required"
-                :disabled="disabled"
-
-                @mousedown="handleMouseDown"
-                @mouseup="handleMouseUp"
-                @mouseleave="handleMouseUp"
-                @touchstart="handleMouseDown"
-                @touchend="handleMouseUp"
-                @touchleave="handleMouseUp"
-                @keydown="onRangeKeydown"
-                @input="onInput($event)"
-            />
-
-            <div 
-                v-if="showProgress"
-
-                class="absolute top-0 -translate-y-10 rounded transition-all"
-                :class="{
-                    'right-1/2': direction === 'horizontal',
-                    'opacity-100': isVisible,
-                    'opacity-0': !isVisible
-                }"
-            >
-                <div class="bg-popover border p-2 rounded select-none shadow-sm text-foreground!">
-                    {{ localValue }}
-                </div>
-            </div>
-        </div>
-
-        <!-- Circular -->
-        <div
-            v-if="variant === 'circular'"
-            class="relative"
-        >
-            <svg 
-                fill="none" 
-                class="inset-0" 
-                
-                v-bind="circularProgressAtributes"
-            >
-                <circle 
-                    v-bind="circleAtributes"
-                    stroke="var(--color-muted)" 
-                    stroke-width="4" 
-                    fill="none" 
-                    class="text-gray-200">
-                </circle>
-
-                <circle
-                    v-if="!isCircularLoading"
-                    v-bind="circleAtributes"
-                    stroke="var(--color-primary)"
-                    stroke-width="4"
-                    fill="none"
-                    stroke-linecap="round"
-                    :stroke-dasharray="circularProgressArc.strokeDasharray"
-                    :stroke-dashoffset="circularProgressArc.strokeDashoffset"
-                    :transform="circularProgressArc.transform"
-                    class="transition-all duration-500 ease-out"
-                />
-
-                <g
-                    v-else
-                    :transform="circularSpinnerStageTransform"
-                >
-                    <g class="progress-circular__spin">
-                        <circle
-                            cx="0"
-                            cy="0"
-                            :r="circleAtributes.r"
-                            stroke="var(--color-primary)"
-                            stroke-width="4"
-                            fill="none"
-                            stroke-linecap="round"
-                            class="progress-circular__indeterminate-arc"
-                            :style="circularSpinnerArcStyle"
-                        />
-                    </g>
-                </g>
-            </svg>
-        </div>
-
-        <!-- Helper text -->
-        <small 
-            v-if="helperText"
-
-            class="mt-2 text-muted-foreground!"
-        >
-            {{ helperText }}
-        </small>
-    </div>
-</template>
-
-<script lang="ts">
-import { defineComponent, type PropType } from "vue";
-
-export default defineComponent({
-    name: "ProgressBar",
-
-    emits: ["update:value", "update:modelValue"],
-
-    props: {
-        variant: {
-            type: String as PropType<"circular" | "bar">,
-            default: "bar",
-            required: false
-        },
-
-        size: {
-            type: String as PropType<"small" | "medium" | "large">,
-            default: "medium",
-            required: false
-        },
-
-        direction: {
-            type: String as PropType<"horizontal" | "vertical">,
-            default: "horizontal",
-            required: false
-        },
-
-        /**
-         * Height used when direction prop is vertical
-         */
-        height: {
-            type: String,
-            default: '12rem',
-            required: false
-        },
-        
-        /**
-         * Value controlled by Vue's v-model pattern.
-         * When defined, it has priority over the value prop.
-         */
-        modelValue: {
-            type: Number,
-            required: false,
-            default: undefined
-        },
-
-        step: {
-            type: Number,
-            default: 1,
-            required: false
-        },
-
-        max: {
-            type: Number,
-            default: 100,
-            required: false
-        },
-
-        min: {
-            type: Number,
-            default: 0,
-            required: false
-        },
-
-        label: {
-            type: String,
-            required: false
-        },
-
-        helperText: {
-            type: String,
-            required: false
-        },
-
-        id: {
-            type: String,
-            required: false
-        },
-
-        /**
-         * Indicates whether the field is required.
-         */
-        required: {
-            type: Boolean,
-            required: false
-        },
-
-        /**
-         * Disables user interaction with the field.
-         */
-        disabled: {
-            type: Boolean,
-            required: false
-        },
-
-        readonly: {
-            type: Boolean,
-            required: false
-        },
-
-        showProgress: {
-            type: Boolean,
-            required: false
-        },
-
-        loading: {
-            type: Boolean,
-            required: false,
-            default: false
-        }
-    },
-
-    data() {
-        return {
-            localValue: 0 as number,
-            isVisible: false
-        };
-    },
-
-    mounted() {
-
-    },
-
-    watch: {
-        sourceValue: {
-            /**
-             * Synchronizes local state with the value coming from props.
-             */
-            handler(newVal: number | undefined) {
-                this.localValue = newVal ?? 0
-            },
-
-            immediate: true
-        }
-    },
-
-    methods: {
-        /**
-         * Handles typing, normalizes the value, and emits updates to the parent.
-         *
-         * @param event - Native input/textarea event.
-         */
-        onInput(event: Event) {
-            if (this.readonly) {
-                return;
-            }
-
-            let value = Number((event.target as HTMLInputElement).value);
-
-            this.localValue = value;
-
-            this.$emit("update:value", value);
-            this.$emit("update:modelValue", value);
-        },
-
-        handleMouseUp() {
-            this.isVisible = false;
-        },
-
-        handleMouseDown() {
-            if (this.readonly) {
-                return;
-            }
-
-            this.isVisible = true;
-        },
-
-        onRangeKeydown(event: KeyboardEvent) {
-            if (!this.readonly) {
-                return;
-            }
-
-            event.preventDefault();
-            event.stopPropagation();
-        }
-    }, 
-    
-    computed: {
-        /**
-         * Defines the single source of truth between modelValue and value.
-         *
-         * @Returns - Value prioritizing modelValue when it is defined.
-         */
-        sourceValue(): number | undefined {
-            if (this.modelValue !== undefined) {
-                return this.modelValue;
-            }
-        },
-
-        progressPercent(): number {
-            const min = Number(this.min ?? 0);
-            const max = Number(this.max ?? 100);
-            const value = Number(this.localValue ?? 0);
-            const safeMax = max <= min ? min + 1 : max;
-            const clamped = Math.min(Math.max(value, min), safeMax);
-
-            return ((clamped - min) * 100) / (safeMax - min);
-        },
-
-        progressTrackStyle(): Record<string, string> {
-            const style: Record<string, string> = {
-                "--progress-percent": `${this.progressPercent}%`
-            };
-
-            if (this.direction === "vertical") {
-                style["--progress-vertical-height"] = this.height;
-            }
-
-            return style;
-        },
-
-        circularProgressAtributes(): {
-            width: number;
-            height: number;
-            viewBox: string;
-        } {
-            switch (this.size) {
-                case "small":
-                    return { width: 32, height: 32, viewBox: "0 0 32 32" };
-                case "large":
-                    return { width: 128, height: 128, viewBox: "0 0 128 128" };
-                default:
-                    return { width: 64, height: 64, viewBox: "0 0 64 64" };
-            }
-        },
-
-        circleAtributes(): {
-            cx: number;
-            cy: number;
-            r: number;
-        } {
-            switch (this.size) {
-                case "small":
-                    return { cx: 16, cy: 16, r: 14 };
-                case "large":
-                    return { cx: 64, cy: 64, r: 62 };
-                case "medium":
-                default:
-                    return { cx: 32, cy: 32, r: 30 };
-            }
-        },
-
-        circularProgressArc(): {
-            strokeDasharray: number;
-            strokeDashoffset: number;
-            transform: string;
-        } {
-            const { cx, cy, r } = this.circleAtributes;
-            const circumference = 2 * Math.PI * r;
-            const fraction = Math.min(Math.max(this.progressPercent / 100, 0), 1);
-
-            return {
-                strokeDasharray: circumference,
-                strokeDashoffset: circumference * (1 - fraction),
-                transform: `rotate(-90 ${cx} ${cy})`
-            };
-        },
-
-        circularCircumference(): number {
-            return 2 * Math.PI * this.circleAtributes.r;
-        },
-
-        isCircularLoading(): boolean {
-            return this.variant === "circular" && Boolean(this.loading);
-        },
-
-        circularSpinnerStageTransform(): string {
-            const { cx, cy } = this.circleAtributes;
-
-            return `translate(${cx} ${cy})`;
-        },
-
-        circularSpinnerArcStyle(): Record<string, string> {
-            return {
-                "--progress-circ": `${this.circularCircumference}px`
-            };
-        }
-    }
-});
-</script>

@@ -1,58 +1,36 @@
-<style scoped>
-.custom-checkbox {
-    appearance: none;
-    vertical-align: middle;
-}
-
-.custom-checkbox:checked {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
-}
-
-.custom-checkbox:checked::after {
-    content: "";
-    display: block;
-    position: absolute;
-    left: 5px;
-    top: 1px;
-    width: 4px;
-    height: 10px;
-    border: solid #fff;
-    border-width: 0 2.5px 2.5px 0;
-    transform: rotate(45deg);
-}
-
-.custom-checkbox:disabled {
-    background-color: var(--color-input);
-    opacity: 50%;
-    cursor: not-allowed;
-}
-</style>
-
 <template>
     <div
-        class="relative transition-colors cursor-pointer"
+        class="relative transition-colors"
         :class="{
             'p-3 border rounded': variant === 'card',
             'border-primary/30! bg-primary/10': !disabled && variant === 'card' && localChecked,
             'border-input/50 bg-input/20': !disabled && variant === 'card' && !localChecked,
-            'bg-transparent border-input/30': disabled && variant === 'card'
+            'bg-transparent border-input/30': disabled && variant === 'card',
+            'cursor-pointer': !disabled,
+            'cursor-not-allowed!': disabled
         }"
 
+        @mouseenter="hovered = true"
+        @mouseleave="hovered = false"
         @click="onClick"
     >
         <div class="flex">
             <!-- Input -->
             <input
-                type="checkbox"
+                :id="id"
 
+                type="checkbox"
+                class="hover:ring-[3px] ring-ring/50 ring-offset-0"
+                
                 :class="[
                     checkboxStyle === 'switch'
                         ? 'sr-only'
-                        : 'custom-checkbox w-4 h-4 border border-input bg-input/30 transition-all rounded-sm cursor-pointer relative shrink-0'
+                        : 'custom-checkbox w-4 h-4 border border-input bg-input/30 transition-all rounded-sm cursor-pointer relative shrink-0',
+                    {
+                        'translate-y-0.5': checkboxStyle !== 'switch',
+                        'ring-[3px] ring-ring/50 ring-offset-0': hovered && !disabled
+                    }
                 ]"
-                
-                :id="id"
                 :name="name"
                 :required="required"
                 :disabled="disabled"
@@ -79,7 +57,9 @@
                     :class="{
                         'ml-2': checkboxStyle !== 'switch',
                         'ml-3': checkboxStyle === 'switch',
-                        'text-muted-foreground': disabled
+                        'text-muted-foreground!': disabled,
+                        'cursor-pointer': !disabled,
+                        'cursor-not-allowed!': disabled
                     }"
                 >
                     {{ label }}
@@ -108,8 +88,6 @@ import CheckboxSwitch from "./CheckboxSwitch.vue";
 
 export default defineComponent({
     name: 'Checkbox',
-
-    emits: ['click', 'update:value'],
 
     components: {
         CheckboxSwitch
@@ -172,9 +150,12 @@ export default defineComponent({
         }
     },
 
+    emits: ['click', 'update:value'],
+
     data() {
         return {
             localChecked: false,
+            hovered: false
         };
     },
 
@@ -248,3 +229,34 @@ export default defineComponent({
     },
 });
 </script>
+
+<style scoped>
+.custom-checkbox {
+    appearance: none;
+    vertical-align: middle;
+}
+
+.custom-checkbox:checked {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.custom-checkbox:checked::after {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    width: 4px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+}
+
+.custom-checkbox:disabled {
+    background-color: var(--color-input);
+    opacity: 50%;
+    cursor: not-allowed;
+}
+</style>

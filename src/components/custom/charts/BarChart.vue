@@ -16,7 +16,6 @@
                     <div
                         v-for="item in dateGroups"
                         :key="item.dateShort + item.label"
-                        class="relative w-full h-full min-h-0 flex flex-col"
                         v-tooltip="{
                             content: `
                                 <div>
@@ -27,6 +26,7 @@
                             placement: 'center',
                             html: true
                         }"
+                        class="relative w-full h-full min-h-0 flex flex-col"
                     >
                         <div
                             v-if="hasNegativeValues"
@@ -129,24 +129,6 @@ export default defineComponent({
         }
     },
 
-    methods: {
-        positiveBarPercent(value: number) {
-            if (value <= 0 || this.globalScale <= 0) {
-                return 0;
-            }
-
-            return (value / this.globalScale) * 100;
-        },
-
-        negativeBarPercent(value: number) {
-            if (value >= 0 || this.globalScale <= 0) {
-                return 0;
-            }
-
-            return (Math.abs(value) / this.globalScale) * 100;
-        },
-    },
-
     computed: {
         positiveBarClass() {
             return chartColorBgClass(this.color);
@@ -177,6 +159,24 @@ export default defineComponent({
 
             return groupChartItemsByDate(this.data.items, this.data.label);
         }
+    },
+
+    methods: {
+        positiveBarPercent(value: number) {
+            if (value <= 0 || this.globalScale <= 0) {
+                return 0;
+            }
+
+            return (value / this.globalScale) * 100;
+        },
+
+        negativeBarPercent(value: number) {
+            if (value >= 0 || this.globalScale <= 0) {
+                return 0;
+            }
+
+            return (Math.abs(value) / this.globalScale) * 100;
+        },
     }
 });
 </script>

@@ -57,7 +57,7 @@
                 variant="outline"
                 size="medium"
                 shape="rounded"
-                :hoverEffect="false"
+                :hover-effect="false"
 
                 @click="prev"
             >
@@ -72,7 +72,7 @@
                 variant="outline"
                 size="medium"
                 shape="rounded"
-                :hoverEffect="false"
+                :hover-effect="false"
 
                 @click="next"
             >
@@ -154,8 +154,6 @@ export default defineComponent({
         Button
     },
 
-    emits: ["click:outside"],
-
     props: {
         /**
          * 0-based slide shown first (`#item-0` is 0). Clamped to the last slide.
@@ -184,6 +182,8 @@ export default defineComponent({
         }
     },
 
+    emits: ["click:outside"],
+
     data() {
         return {
             pos: this.startIndex as number,
@@ -193,6 +193,12 @@ export default defineComponent({
             isSwiping: false,
             itemCount: 0
         };
+    },
+
+    watch: {
+        startIndex(value: number) {
+            this.goTo(value);
+        }
     },
 
     mounted() {
@@ -297,12 +303,6 @@ export default defineComponent({
             }
 
             this.swipeOffset = 0;
-        }
-    },
-
-    watch: {
-        startIndex(value: number) {
-            this.goTo(value);
         }
     }
 });

@@ -19,11 +19,11 @@ import { defineComponent, type PropType } from "vue";
 import Button from "../Button.vue";
 
 export default defineComponent({
+
+    name: "Navigator",
     components: {
         Button
     },
-
-    name: "Navigator",
 
     props: {
         links: {

@@ -1,22 +1,3 @@
-<style scoped>
-.context-menu-enter-active,
-.context-menu-leave-active {
-    transition:
-        opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.context-menu-enter-from,
-.context-menu-leave-to {
-    opacity: 0;
-    transform: scale(0.98);
-}
-
-.context-menu-root {
-    -webkit-touch-callout: none;
-}
-</style>
-
 <template>
     <div
         ref="rootRef"
@@ -68,8 +49,6 @@ let openContextMenu: { close: () => void } | null = null;
 export default defineComponent({
     name: "ContextMenu",
 
-    emits: ["click:value"],
-
     components: {
         OptionsList
     },
@@ -95,6 +74,8 @@ export default defineComponent({
             default: 280
         }
     },
+
+    emits: ["click:value"],
 
     data() {
         return {
@@ -325,3 +306,22 @@ export default defineComponent({
     }
 });
 </script>
+
+<style scoped>
+.context-menu-enter-active,
+.context-menu-leave-active {
+    transition:
+        opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.context-menu-enter-from,
+.context-menu-leave-to {
+    opacity: 0;
+    transform: scale(0.98);
+}
+
+.context-menu-root {
+    -webkit-touch-callout: none;
+}
+</style>

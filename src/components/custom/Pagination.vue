@@ -20,9 +20,9 @@
             v-if="pagesHiddenBeforeOptions.length > 0"
             class="w-fit!"
             header="..."
-            panelClass="w-fit! p-1"
+            panel-class="w-fit! p-1"
 
-            closeOnContentClick
+            close-on-content-click
         >
             <div
                 class="inline-grid w-fit gap-1"
@@ -59,9 +59,9 @@
             v-if="pagesHiddenAfterOptions.length > 0"
             class="w-fit!"
             header="..."
-            panelClass="w-fit! p-1"
+            panel-class="w-fit! p-1"
 
-            closeOnContentClick
+            close-on-content-click
         >
             <div
                 class="inline-grid w-fit gap-1"
@@ -101,8 +101,6 @@ import Popover from "../Popover.vue";
 
 export default defineComponent({
     name: "Pagination",
-
-    emits: ["update:page"],
 
     components: {
         Button,
@@ -146,17 +144,83 @@ export default defineComponent({
         }
     },
 
+    emits: ["update:page"],
+
     data() {
         return {
             selectedPage: 1
         };
     },
 
-    mounted() {
-        const page = this.resolveInitialPage();
+    computed: {
+        /**
+         * Inclusive range of page numbers shown (length <= showMax, showMax is odd).
+         */
+        visiblePageRange(): { start: number; end: number } {
+            const amount = this.amount;
+            const showMax = this.showMax;
+            const selected = this.selectedPage;
 
-        this.selectedPage = page;
-        this.notifyPageChange(page);
+            if (amount <= 0) {
+                return { start: 1, end: 0 };
+            }
+
+            if (amount <= showMax) {
+                return { start: 1, end: amount };
+            }
+
+            const half = (showMax - 1) / 2;
+            let start = selected - half;
+            let end = start + showMax - 1;
+
+            if (start < 1) {
+                start = 1;
+                end = showMax;
+            }
+
+            if (end > amount) {
+                end = amount;
+                start = amount - showMax + 1;
+            }
+
+            return { start, end };
+        },
+
+        pagesToShow(): number[] {
+            const { start, end } = this.visiblePageRange;
+            const pages: number[] = [];
+
+            for (let p = start; p <= end; p++) {
+                pages.push(p);
+            }
+
+            return pages;
+        },
+
+        pagesHiddenBefore(): number[] {
+            return this.buildPagesHiddenBefore(this.visiblePageRange.start);
+        },
+
+        pagesHiddenAfter(): number[] {
+            return this.buildPagesHiddenAfter(this.visiblePageRange.end);
+        },
+
+        /**
+         * Options for Dropdown (value/label must be strings).
+         */
+        pagesHiddenBeforeOptions(): Array<{ value: string; label: string }> {
+            return this.pagesHiddenBefore.map(p => ({
+                value: String(p),
+                label: String(p)
+            }));
+        },
+
+        pagesHiddenAfterOptions(): Array<{ value: string; label: string }> {
+            return this.pagesHiddenAfter.map(p => ({
+                value: String(p),
+                label: String(p)
+            }));
+        }
     },
 
     watch: {
@@ -168,6 +232,13 @@ export default defineComponent({
                 this.notifyPageChange(cap);
             }
         }
+    },
+
+    mounted() {
+        const page = this.resolveInitialPage();
+
+        this.selectedPage = page;
+        this.notifyPageChange(page);
     },
 
     methods: {
@@ -277,77 +348,6 @@ export default defineComponent({
             }
 
             return out;
-        }
-    },
-
-    computed: {
-        /**
-         * Inclusive range of page numbers shown (length <= showMax, showMax is odd).
-         */
-        visiblePageRange(): { start: number; end: number } {
-            const amount = this.amount;
-            const showMax = this.showMax;
-            const selected = this.selectedPage;
-
-            if (amount <= 0) {
-                return { start: 1, end: 0 };
-            }
-
-            if (amount <= showMax) {
-                return { start: 1, end: amount };
-            }
-
-            const half = (showMax - 1) / 2;
-            let start = selected - half;
-            let end = start + showMax - 1;
-
-            if (start < 1) {
-                start = 1;
-                end = showMax;
-            }
-
-            if (end > amount) {
-                end = amount;
-                start = amount - showMax + 1;
-            }
-
-            return { start, end };
-        },
-
-        pagesToShow(): number[] {
-            const { start, end } = this.visiblePageRange;
-            const pages: number[] = [];
-
-            for (let p = start; p <= end; p++) {
-                pages.push(p);
-            }
-
-            return pages;
-        },
-
-        pagesHiddenBefore(): number[] {
-            return this.buildPagesHiddenBefore(this.visiblePageRange.start);
-        },
-
-        pagesHiddenAfter(): number[] {
-            return this.buildPagesHiddenAfter(this.visiblePageRange.end);
-        },
-
-        /**
-         * Options for Dropdown (value/label must be strings).
-         */
-        pagesHiddenBeforeOptions(): Array<{ value: string; label: string }> {
-            return this.pagesHiddenBefore.map(p => ({
-                value: String(p),
-                label: String(p)
-            }));
-        },
-
-        pagesHiddenAfterOptions(): Array<{ value: string; label: string }> {
-            return this.pagesHiddenAfter.map(p => ({
-                value: String(p),
-                label: String(p)
-            }));
         }
     }
 });

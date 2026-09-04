@@ -36,8 +36,6 @@ const PULSE_DURATION_MS = 2000;
 export default defineComponent({
     name: "Skeleton",
 
-    emits: ["click"],
-
     props: {
         type: {
             type: String as PropType<"text" | "card" | "avatar">,
@@ -55,6 +53,8 @@ export default defineComponent({
             default: "medium"
         }
     },
+
+    emits: ["click"],
 
     data() {
         return {

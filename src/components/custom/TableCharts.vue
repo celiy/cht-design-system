@@ -9,7 +9,7 @@
             <div v-if="variant === 'wave' && !usesGroups" class="flex w-full justify-end">
                 <Select
                     class="lg:max-w-1/2"
-                    :modelValue="filter"
+                    :model-value="filter"
                     :options="dateFilters"
                     @update:value="filter = String($event) as WaveFilter"
                 />
@@ -20,7 +20,7 @@
             <BarChart
                 v-if="variant === 'bars'"
                 :data="data"
-                :hideLabel="hideLabel"
+                :hide-label="hideLabel"
                 :color="color"
             />
 

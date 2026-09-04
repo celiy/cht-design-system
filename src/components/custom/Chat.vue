@@ -1,13 +1,15 @@
 <template>
     <div class="w-full">
+        <!-- Main chat message list -->
         <div class="flex flex-col gap-2 w-full">
+            <!-- Message section per bubble -->
             <section
                 v-for="(message, index) in messages"
                 :key="index"
-
                 class="flex w-full max-h-[75vh]"
                 :class="messageHasStatus(message) ? 'justify-end' : 'justify-start'"
             >
+                <!-- Chat bubble -->
                 <div
                     class="max-w-6/7 sm:max-w-3/4 md:max-w-2/3"
                     :class="[
@@ -16,13 +18,13 @@
                         message.text || (message.images?.length || 0) > 1 ? 'p-3' : '',
                         message.text! && message.images ? '' : ''
                     ]"
-                    
                 >
+                    <!-- Context menu for message actions -->
                     <ContextMenu
                         :options="messageActionOptions()"
-
                         @click:value="onMessageAction($event, message)"
                     >
+                        <!-- Message images grid -->
                         <div 
                             v-if="message.images"
                             class="grid gap-1"
@@ -32,53 +34,49 @@
                             ]"
                         >
                             <div
-                                v-for="index in maxImages(message.images?.length)"
+                                v-for="imageIndex in maxImages(message.images?.length)"
+                                :key="imageIndex"
                                 :class="(message.images?.length || 0) > 1 ? 'aspect-square min-w-0 overflow-hidden rounded' : ''"
-                            >  
+                            >
+                                <!-- Images (<= 4) -->
                                 <template v-if="message.images?.length <= 4">
                                     <ContextMenu
-                                        v-if="index <= 4 && message.images[index - 1]"
+                                        v-if="imageIndex <= 4 && message.images[imageIndex - 1]"
                                         :options="imageCopyOptions()"
-
-                                        @click:value="onMessageAction($event, message, message.images[index - 1])"
+                                        @click:value="onMessageAction($event, message, message.images[imageIndex - 1])"
                                     >
                                         <Image
                                             class="h-full w-full hover:brightness-120 transition-all cursor-pointer"
-                                            :imageClass="(message.images?.length || 0) > 1 ? 'size-full object-cover' : ''"
-                                            :src="message.images[index - 1]"
-
-                                            @click="openGallery(message.images, index - 1)"
+                                            :image-class="(message.images?.length || 0) > 1 ? 'size-full object-cover' : ''"
+                                            :src="message.images[imageIndex - 1]"
+                                            @click="openGallery(message.images, imageIndex - 1)"
                                         />
                                     </ContextMenu>
                                 </template>
-
+                                <!-- Images (> 4) with "see more" button -->
                                 <template v-else>
                                     <ContextMenu
-                                        v-if="index <= 3 && message.images[index - 1]"
+                                        v-if="imageIndex <= 3 && message.images[imageIndex - 1]"
                                         :options="imageCopyOptions()"
-
-                                        @click:value="onMessageAction($event, message, message.images[index - 1])"
+                                        @click:value="onMessageAction($event, message, message.images[imageIndex - 1])"
                                     >
                                         <Image
                                             class="h-full w-full hover:brightness-120 transition-all cursor-pointer"
-                                            imageClass="size-full object-cover"
-                                            :src="message.images[index - 1]"
-
-                                            @click="openGallery(message.images, index - 1)"
+                                            image-class="size-full object-cover"
+                                            :src="message.images[imageIndex - 1]"
+                                            @click="openGallery(message.images, imageIndex - 1)"
                                         />
                                     </ContextMenu>
-
                                     <ContextMenu
-                                        v-if="index === 4 && message.images[3]"
+                                        v-if="imageIndex === 4 && message.images[3]"
                                         :options="imageCopyOptions()"
-
                                         @click:value="onMessageAction($event, message, message.images[3])"
                                     >
+                                        <!-- See more images button -->
                                         <button
+                                            v-tooltip="{ content: 'Ver mais', placement: 'center' }"
                                             type="button"
                                             class="relative h-full w-full text-foreground cursor-pointer rounded hover:brightness-150 transition-all overflow-hidden"
-                                            v-tooltip="{ content: 'Ver mais', placement: 'center' }"
-
                                             @click="openGallery(message.images, 3)"
                                         >
                                             <img
@@ -88,27 +86,23 @@
                                                 style="filter: blur(4px);"
                                                 draggable="false"
                                             />
-                                            
-                                            <span
-                                                class="absolute inset-0 bg-card opacity-80 pointer-events-none rounded"
-                                            />
-
+                                            <span class="absolute inset-0 bg-card opacity-80 pointer-events-none rounded" />
                                             <span class="relative z-10">
                                                 +{{ message.images.length - 3 }}
                                             </span>
                                         </button>
                                     </ContextMenu>
-                                </template>               
+                                </template>
                             </div>
                         </div>
-
+                        <!-- Text-only message (no date/edit/status/reactions) -->
                         <ContextMenu
                             v-if="message.text && !message.date && !message.reactions && !message.edited && !messageHasStatus(message)"
                             :options="textCopyOptions()"
-
                             @click:value="onMessageAction($event, message)"
                         >
                             <small class="font-medium! wrap-break-word">
+                                <!-- Render (possibly linked) message text parts -->
                                 <template
                                     v-for="(part, partIdx) in messageTextParts(message.text)"
                                     :key="partIdx"
@@ -119,22 +113,21 @@
                                         :href="part.href"
                                         target="_blank"
                                         rel="noopener noreferrer"
-
                                         @click.stop
                                     >{{ part.text }}</a>
                                     <template v-else>{{ part.text }}</template>
                                 </template>
                             </small>
                         </ContextMenu>
-                        
+                        <!-- Message with meta: date, reactions, edited, or sent/read status -->
                         <span 
                             v-else-if="message.date || message.reactions || message.edited || messageHasStatus(message)"
                             class="flex flex-col gap-1"
                         >
+                            <!-- Message text with context menu -->
                             <ContextMenu
                                 v-if="message.text"
                                 :options="textCopyOptions()"
-
                                 @click:value="onMessageAction($event, message)"
                             >
                                 <small class="font-medium! wrap-break-word">
@@ -148,17 +141,15 @@
                                             :href="part.href"
                                             target="_blank"
                                             rel="noopener noreferrer"
-
                                             @click.stop
                                         >
                                             {{ part.text }}
                                         </a>
-
                                         <template v-else>{{ part.text }}</template>
                                     </template>
                                 </small>
                             </ContextMenu>
-
+                            <!-- Meta row: reactions | edited | date | status -->
                             <div 
                                 class="flex gap-1 items-center"
                                 :class="{
@@ -166,6 +157,7 @@
                                     'justify-end': !message.reactions
                                 }"
                             >
+                                <!-- Reactions -->
                                 <div 
                                     v-if="message.reactions"
                                     class="flex select-none bg-card/50 font-medium rounded-full px-2 gap-2"
@@ -179,31 +171,30 @@
                                             {{ reaction.reaction }}
                                             <span v-if="reaction.amount > 1" class="text-muted-foreground">x{{ reaction.amount }}</span>
                                         </span>
-                                        
+                                        <!-- +N for more reactions -->
                                         <span
                                             v-if="message.reactions.length > 3"
-                                            class="py-1 text-xs hover:brightness-150 transition-all cursor-pointer relative text-muted-foreground"
                                             v-tooltip="{ 
                                                 content: message.reactions.slice(3).map(
                                                     r => `${r.reaction}${r.amount > 1 ? ' x' + r.amount : ''}`
                                                 ).join(' - '), placement: 'bottom' 
                                             }"
+                                            class="py-1 text-xs hover:brightness-150 transition-all cursor-pointer relative text-muted-foreground"
                                         >
                                             +{{ message.reactions.length - 3 }}
                                         </span>
                                     </template>
-                        
                                 </div>
-
                                 <div class="flex gap-1">
+                                    <!-- Edited label -->
                                     <span 
                                         v-if="message.edited"
-                                        class="text-xs text-muted-foreground font-medium select-none"
                                         v-tooltip="{ content: `Editado em ${message.editedAt ? formatDate(message.editedAt) : ''}`, placement: 'bottom' }"
+                                        class="text-xs text-muted-foreground font-medium select-none"
                                     >
                                         Editado
                                     </span>
-
+                                    <!-- Message date -->
                                     <span 
                                         v-if="message.date"
                                         class="text-xs text-muted-foreground font-medium"
@@ -214,11 +205,11 @@
                                     >
                                         {{ formatDate(message.date) }}
                                     </span>
-
+                                    <!-- Message sent/read/fail status icon -->
                                     <span
                                         v-if="messageStatus(message)"
-                                        class="text-xs font-medium flex items-center select-none"
                                         v-tooltip="{ content: messageStatusLabel(message), placement: 'bottom' }"
+                                        class="text-xs font-medium flex items-center select-none"
                                     >
                                         <i :class="messageStatusIconClass(message)" />
                                     </span>
@@ -229,34 +220,31 @@
                 </div>
             </section>
         </div>
-
+        <!-- Image gallery modal -->
         <Modal
             variant="preview"
-            :isOpen="galleryOpen"
-
+            :is-open="galleryOpen"
             @update:value="galleryOpen = $event"
         >
             <template #body>
+                <!-- Carousel inside modal -->
                 <Carousel
                     v-if="galleryOpen"
-
                     class="w-[min(90vw,56rem)]"
-                    :showArrows="!$project.device.isMobile"
-                    :startIndex="galleryStartIndex"
+                    :show-arrows="!$project.device.isMobile"
+                    :start-index="galleryStartIndex"
                     :edge-click="$project.device.isMobile"
                     steps-viewer="advanced"
-
                     @click:outside="galleryOpen = false"
                 >
+                    <!-- Carousel items for gallery images -->
                     <template
                         v-for="(src, idx) in galleryImages"
                         :key="idx"
-
                         #[`item-${idx}`]
                     >
                         <img
                             class="max-h-[90vh] max-w-[90vw] object-contain"
-
                             :src="src"
                             alt=""
                             draggable="false"

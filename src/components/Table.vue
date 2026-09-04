@@ -1,51 +1,42 @@
 <template>
-    <div class="w-full overflow-x-auto rounded border-border border p-2 h-fit shadow-md">
-        <div 
-            v-if="selectCols" 
-            class="flex items-center w-full mb-2"
-        >
+    <div class="h-fit w-full overflow-x-auto rounded border border-border p-2 shadow-md">
+        <div v-if="selectCols" class="mb-2 flex w-full items-center">
             <h4 class="ml-2">{{ title }}</h4>
 
-            <div class="w-full flex justify-end">
+            <div class="flex w-full justify-end">
                 <Select
                     v-if="!loading"
+                    id="table-select-cols"
                     header="Colunas"
                     class="w-fit!"
-                    panelClass="w-fit!"
-
-                    id="table-select-cols"
-                    useMemo
-
+                    panel-class="w-fit!"
+                    use-memo
                     :options="selectTableHeaders"
-                    :selectMultiple="{ min: 2, allSelected: true }"
-
-                    @update:value="(value) => selectedHeaders = value"
+                    :select-multiple="{ min: 2, allSelected: true }"
+                    @update:value="(value) => (selectedHeaders = value)"
                 />
             </div>
         </div>
 
         <table class="w-full text-foreground">
+            <!-- Header -->
             <thead class="rounded-t">
-                <tr class="hover:bg-accent transition-all w-full">
-                    <th 
-                        v-if="selectable"
-                        class="font-semibold p-2 text-sm text-left w-1"
-                    >
+                <tr class="w-full bg-accent/20 transition-all hover:bg-accent/60">
+                    <!-- Left-side checkbox -->
+                    <th v-if="selectable" class="w-1 p-2 text-left text-sm font-semibold">
                         <Checkbox
+                            id="selectable"
                             :checked="isAllSelected"
                             name="selectable"
-                            id="selectable"
                             :disabled="loading"
-
                             @click="selectAll()"
                         />
                     </th>
 
-                    <th 
+                    <th
                         v-for="head in displayHeaders"
                         :key="head.label"
-
-                        class="font-semibold p-2 text-sm"
+                        class="p-2 text-sm font-semibold"
                         :class="{
                             'text-left': head.position === 'start',
                             'text-center': head.position === 'center',
@@ -64,119 +55,116 @@
                         </span>
                     </th>
 
-                    <th
-                        v-if="hasActions"
-                        scope="col"
-                        class="font-semibold p-2 text-sm text-right"
-                    >
+                    <!-- Actions Header -->
+                    <th v-if="hasActions" scope="col" class="p-2 text-right text-sm font-semibold">
                         <span>Ações</span>
                     </th>
                 </tr>
             </thead>
 
             <tbody>
-                <tr v-if="loading" v-for="i in 4" :key="'skeleton-row-' + i" class="border-t border-border/50">
-                    <td v-if="selectable" class="p-2 flex justify-start">
-                        <Skeleton type="card" class="w-5 h-4" />
-                    </td>
+                <!-- Loading state -->
+                <template v-if="loading">
+                    <tr v-for="i in 5" :key="'skeleton-row-' + i" class="border-t border-border/50">
+                        <td v-if="selectable" class="flex justify-start p-2">
+                            <Skeleton type="card" class="h-4 w-5" />
+                        </td>
 
-                    <td
-                        v-for="head in displayHeaders"
-                        :key="'skeleton-cell-' + i + '-' + head.label"
-                        class="p-2"
-                    >
-                        <Skeleton type="text" class="w-full" />
-                    </td>
-
-                    <td v-if="hasActions" class="p-2 flex justify-end">
-                        <Skeleton type="card" class="w-10 h-4" />
-                    </td>
-                </tr>
-
-                <tr 
-                    v-for="(item, index) in data"
-                    class="hover:bg-accent/50 transition-all border-t border-border/50 text-sm"
-                >
-                    <td v-if="selectable" class="p-2">
-                        <Checkbox
-                            :checked="selectedRows.includes(index)"
-                            :name="'row-' + index"
-                            :id="'row-' + index"
-
-                            @click="selectRow(index)"
-                        />
-                    </td>
-
-                    <td 
-                        v-for="cell in getRowDisplayCells(item)"
-                        :key="cell.head.label"
-                        class="p-2"
-                    >
-                        <div 
-                            class="flex w-full"
-                            :class="{
-                                'justify-start': cell.head.position === 'start',
-                                'justify-center': cell.head.position === 'center',
-                                'justify-end': cell.head.position === 'end'
-                            }"
+                        <td
+                            v-for="head in displayHeaders"
+                            :key="'skeleton-cell-' + i + '-' + head.label"
+                            class="p-2"
                         >
-                            <div v-if="isTextCellValue(cell.value)">
-                                {{ cell.value }}
-                            </div>
+                            <Skeleton type="text" class="w-full" />
+                        </td>
 
-                            <div 
-                                v-if="isBadgeCellValue(cell.value)"
+                        <td v-if="hasActions" class="flex justify-end p-2">
+                            <Skeleton type="card" class="h-4 w-10" />
+                        </td>
+                    </tr>
+                </template>
 
+                <!-- Normal table rows -->
+                <template v-else>
+                    <tr
+                        v-for="(item, index) in data"
+                        :key="'row-' + index"
+                        class="border-t border-border/50 text-sm transition-all hover:bg-accent/60"
+                        :class="{
+                            'bg-accent/20': index % 2 !== 0
+                        }"
+                    >
+                        <!-- Checkbox -->
+                        <td v-if="selectable" class="p-2">
+                            <Checkbox
+                                :id="'row-' + index"
+                                :checked="selectedRows.includes(index)"
+                                :name="'row-' + index"
+                                @click="selectRow(index)"
+                            />
+                        </td>
+
+                        <!-- Data-->
+                        <td
+                            v-for="cell in getRowDisplayCells(item)"
+                            :key="cell.head.label"
+                            class="p-2"
+                        >
+                            <div
+                                class="flex w-full"
                                 :class="{
-                                    'flex justify-start': cell.head.position === 'start',
-                                    'flex justify-center': cell.head.position === 'center',
-                                    'flex justify-end': cell.head.position === 'end'
+                                    'justify-start': cell.head.position === 'start',
+                                    'justify-center': cell.head.position === 'center',
+                                    'justify-end': cell.head.position === 'end'
                                 }"
                             >
-                                <Badge :variant="badgeVariant(cell.value)">
-                                    {{ badgeLabel(cell.value) }}
-                                </Badge>
+                                <div v-if="isTextCellValue(cell.value)">
+                                    {{ cell.value }}
+                                </div>
+
+                                <div
+                                    v-if="isBadgeCellValue(cell.value)"
+                                    :class="{
+                                        'flex justify-start': cell.head.position === 'start',
+                                        'flex justify-center': cell.head.position === 'center',
+                                        'flex justify-end': cell.head.position === 'end'
+                                    }"
+                                >
+                                    <Badge :variant="badgeVariant(cell.value)">
+                                        {{ badgeLabel(cell.value) }}
+                                    </Badge>
+                                </div>
                             </div>
-                        </div>
-                    </td>
+                        </td>
 
-                    <td
-                        v-if="hasActions"
-                        class="px-2 text-right align-middle"
-                    >
-                        <div class="flex w-full justify-end">
-                            <Dropdown
-                                class="w-fit!"
-                                header="..."
-
-                                :hideDropdownArrow="true"
-                                :buttonAtributes="{ variant: 'transparent' }"
-                                :options="actions"
-
-                                @click:value="onActionClick($event, item)"
-                            />
-                        </div>
-                    </td>
-                </tr>
+                        <!-- Actions -->
+                        <td v-if="hasActions" class="px-2 text-right align-middle">
+                            <div class="flex w-full justify-end">
+                                <Dropdown
+                                    class="w-fit!"
+                                    header="..."
+                                    :hide-dropdown-arrow="true"
+                                    :button-atributes="{ variant: 'transparent' }"
+                                    :options="actions"
+                                    @click:value="onActionClick($event, item)"
+                                />
+                            </div>
+                        </td>
+                    </tr>
+                </template>
             </tbody>
         </table>
 
-        <div 
-            v-if="selectedRows.length > 0"
-            class="flex border-t mt-2 pt-2 justify-between w-full"
-        >
-            <span class="text-muted-foreground text-sm place-self-center pl-2">
+        <div v-if="selectedRows.length > 0" class="mt-2 flex w-full justify-between border-t pt-2">
+            <span class="place-self-center pl-2 text-sm text-muted-foreground">
                 Itens selecionados: {{ selectedRows.length }}
             </span>
 
             <Dropdown
                 v-if="hasSelectableActions"
-
                 class="w-fit!"
                 header="Ações"
-
                 :options="selectableActions"
-
                 @click:value="onSelectableActionClick"
             />
         </div>
@@ -199,9 +187,7 @@ type TableHeader = Record<string, unknown> & {
 };
 
 export default defineComponent({
-    name: 'Table',
-
-    emits: ["click:action", "click:selectableAction"],
+    name: "Table",
 
     components: {
         Select,
@@ -265,29 +251,83 @@ export default defineComponent({
         }
     },
 
+    emits: ["click:action", "click:selectableAction"],
+
     data() {
         return {
-            atributeFields: [
-                "isCard",
-                "isActions",
-                "actions"
-            ],
+            atributeFields: ["isCard", "isActions", "actions"],
             selectedHeaders: [] as string[],
 
             selectedRows: [] as number[]
         };
     },
 
-    mounted() {
+    computed: {
+        hasActions(): boolean {
+            return Array.isArray(this.actions) && this.actions.length > 0;
+        },
 
+        hasSelectableActions(): boolean {
+            return Array.isArray(this.selectableActions) && this.selectableActions.length > 0;
+        },
+
+        selectedItems(): Record<string, any>[] {
+            const rows = this.data ?? [];
+
+            return this.selectedRows
+                .map((index) => rows[index])
+                .filter((item): item is Record<string, any> => item != null);
+        },
+
+        isAllSelected() {
+            const rows = this.data ?? [];
+            const n = rows.length;
+
+            if (n === 0) {
+                return false;
+            }
+
+            if (this.selectedRows.length !== n) {
+                return false;
+            }
+
+            return rows.every((_: unknown, i: number) => this.selectedRows.includes(i));
+        },
+
+        selectTableHeaders() {
+            return this.headers.map((header) => ({
+                label: header.label,
+                value: header.label
+            }));
+        },
+
+        displayHeaders(): TableHeader[] {
+            if (!this.selectCols) {
+                return [...this.headers];
+            }
+
+            if (this.selectedHeaders.length === 0) {
+                return [...this.headers];
+            }
+
+            const headersToDisplay: TableHeader[] = [];
+
+            for (const head of this.headers) {
+                if (this.selectedHeaders.includes(head.label)) {
+                    headersToDisplay.push(head);
+                }
+            }
+
+            return headersToDisplay;
+        }
     },
 
-    watch: {
+    watch: {},
 
-    },
+    mounted() {},
 
     methods: {
-        convertObjToArr(obj: Object) {
+        convertObjToArr(obj: object) {
             const array: unknown[] = [];
 
             for (const [key, value] of Object.entries(obj)) {
@@ -323,7 +363,7 @@ export default defineComponent({
         },
 
         getRowDisplayCells(item: Record<string, unknown>) {
-            return this.displayHeaders.map(head => ({
+            return this.displayHeaders.map((head) => ({
                 head,
                 value: this.getCellValueForHeader(item, head)
             }));
@@ -331,9 +371,7 @@ export default defineComponent({
 
         isTextCellValue(value: unknown): value is string | number | boolean {
             return (
-                typeof value === "string"
-                || typeof value === "number"
-                || typeof value === "boolean"
+                typeof value === "string" || typeof value === "number" || typeof value === "boolean"
             );
         },
 
@@ -343,9 +381,9 @@ export default defineComponent({
             }
 
             if (
-                "badge" in value
-                && typeof (value as { badge?: unknown }).badge === "object"
-                && (value as { badge?: unknown }).badge !== null
+                "badge" in value &&
+                typeof (value as { badge?: unknown }).badge === "object" &&
+                (value as { badge?: unknown }).badge !== null
             ) {
                 return (value as { badge: { label?: string; variant?: string } }).badge;
             }
@@ -365,7 +403,9 @@ export default defineComponent({
             return this.resolveBadgeValue(value)?.label;
         },
 
-        badgeVariant(value: unknown):
+        badgeVariant(
+            value: unknown
+        ):
             | "primary"
             | "secondary"
             | "destructive"
@@ -376,8 +416,7 @@ export default defineComponent({
             | "chart-2"
             | "chart-3"
             | "chart-4"
-            | "chart-5"
-        {
+            | "chart-5" {
             const v = this.resolveBadgeValue(value)?.variant;
             const allowed = [
                 "primary",
@@ -401,7 +440,7 @@ export default defineComponent({
         },
 
         selectRow(row: number) {
-            for (let n=0; n < this.selectedRows.length; n++) {
+            for (let n = 0; n < this.selectedRows.length; n++) {
                 if (this.selectedRows[n] === row) {
                     this.selectedRows.splice(n, 1);
 
@@ -428,66 +467,6 @@ export default defineComponent({
 
         onSelectableActionClick(value: string) {
             this.$emit("click:selectableAction", value, this.selectedItems);
-        }
-    }, 
-    
-    computed: {
-        hasActions(): boolean {
-            return Array.isArray(this.actions) && this.actions.length > 0;
-        },
-
-        hasSelectableActions(): boolean {
-            return Array.isArray(this.selectableActions) && this.selectableActions.length > 0;
-        },
-
-        selectedItems(): Record<string, any>[] {
-            const rows = this.data ?? [];
-
-            return this.selectedRows
-                .map((index) => rows[index])
-                .filter((item): item is Record<string, any> => item != null);
-        },
-
-        isAllSelected() {
-            const rows = this.data ?? [];
-            const n = rows.length;
-
-            if (n === 0) {
-                return false;
-            }
-
-            if (this.selectedRows.length !== n) {
-                return false;
-            }
-
-            return rows.every((_: unknown, i: number) => this.selectedRows.includes(i));
-        },
-
-        selectTableHeaders() {
-            return this.headers.map(header => ({
-                label: header.label,
-                value: header.label
-            }));
-        },
-
-        displayHeaders(): TableHeader[] {
-            if (!this.selectCols) {
-                return [...this.headers];
-            }
-
-            if (this.selectedHeaders.length === 0) {
-                return [...this.headers];
-            }
-
-            const headersToDisplay: TableHeader[] = [];
-
-            for (const head of this.headers) {
-                if (this.selectedHeaders.includes(head.label)) {
-                    headersToDisplay.push(head);
-                }
-            }
-
-            return headersToDisplay;
         }
     }
 });

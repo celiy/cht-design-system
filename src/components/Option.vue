@@ -65,8 +65,6 @@ export default defineComponent({
 
     inheritAttrs: false,
 
-    emits: ["click", "mouseenter"],
-
     props: {
         label: {
             type: String,
@@ -121,6 +119,8 @@ export default defineComponent({
             default: false
         }
     },
+
+    emits: ["click", "mouseenter"],
 
     computed: {
         isSelectable(): boolean {
