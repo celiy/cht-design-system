@@ -1,6 +1,6 @@
 <template>
     <div
-        class="block select-none rounded bg-popover text-sm"
+        class="block select-none rounded bg-popover text-sm transition-all"
         :class="{
             'text-destructive!': isDestructive,
             'text-popover-foreground': !isDestructive,
@@ -12,11 +12,11 @@
         }"
     >
         <div class="flex flex-nowrap items-center justify-between gap-4">
-            <div class="w-full flex flex-nowrap">
+            <div class="w-full flex flex-nowrap items-center">
                 <i
                     v-if="icon"
 
-                    :class="[`fa-solid ${icon} mr-2 text-sm`]"
+                    :class="`fa-solid ${icon} mr-2 text-sm`"
                 />
 
                 <div

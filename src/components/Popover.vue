@@ -4,12 +4,13 @@
 
         :header="header"
         :buttonAtributes="buttonAtributes"
-        :buttonVariant="buttonVariant"
         :hideDropdownArrow="hideDropdownArrow"
         :openOnHover="openOnHover"
         :closeOnContentClick="closeOnContentClick"
         :maxHeightPx="maxHeightPx"
         :minWidthPx="minWidthPx"
+        :mobileModal="mobileModal"
+        :forceModal="forceModal"
 
         :panelClass="panelClass"
     >
@@ -78,12 +79,6 @@ export default defineComponent({
             required: false
         },
 
-        buttonVariant: {
-            type: String,
-            default: "secondary",
-            required: false
-        },
-
         maxHeightPx: {
             type: Number,
             default: 280
@@ -102,6 +97,23 @@ export default defineComponent({
             type: String,
             default: "text-popover-foreground p-2",
             required: false
+        },
+
+        /**
+         * When true, narrow viewports open a blank modal instead of the floating panel.
+         * Off by default for Popover.
+         */
+        mobileModal: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * Always open a blank modal, including on desktop.
+         */
+        forceModal: {
+            type: Boolean,
+            default: false
         }
     },
 

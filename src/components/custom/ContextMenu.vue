@@ -63,6 +63,8 @@ const LONG_PRESS_MS = 500;
 const MOVE_CANCEL_PX = 10;
 const VIEWPORT_PAD = 8;
 
+let openContextMenu: { close: () => void } | null = null;
+
 export default defineComponent({
     name: "ContextMenu",
 
@@ -125,14 +127,31 @@ export default defineComponent({
     beforeUnmount() {
         this.clearLongPress();
         this.detachListeners();
+
+        if (openContextMenu === this) {
+            openContextMenu = null;
+        }
     },
 
     methods: {
         /**
+         * Links keep native click / context menu; the custom menu does not open.
+         */
+        isLinkTarget(event: Event): boolean {
+            const target = event.target;
+
+            if (!(target instanceof Element)) {
+                return false;
+            }
+
+            return target.closest("a[href]") != null;
+        },
+
+        /**
          * Opens the menu at the cursor on right-click.
          */
         onContextMenu(event: MouseEvent) {
-            if (this.disabled) {
+            if (this.disabled || this.isLinkTarget(event)) {
                 return;
             }
 
@@ -142,7 +161,7 @@ export default defineComponent({
         },
 
         onTouchStart(event: TouchEvent) {
-            if (this.disabled) {
+            if (this.disabled || this.isLinkTarget(event)) {
                 return;
             }
 
@@ -193,12 +212,21 @@ export default defineComponent({
         },
 
         openAt(x: number, y: number) {
+            if (openContextMenu && openContextMenu !== this) {
+                openContextMenu.close();
+            }
+
+            openContextMenu = this;
             this.anchorX = x;
             this.anchorY = y;
             this.isOpen = true;
         },
 
         close() {
+            if (openContextMenu === this) {
+                openContextMenu = null;
+            }
+
             this.isOpen = false;
         },
 

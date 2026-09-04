@@ -5,13 +5,18 @@
             'cursor-pointer': !disabled,
             'cursor-not-allowed opacity-60': disabled
         }"
+
+        @mouseenter="onFocus"
+        @mouseleave="onBlur"
     >
         <span
-            class="relative inline-flex h-4 w-8 items-center rounded-full transition-colors"
+            class="relative inline-flex h-4 w-8 items-center rounded-full transition-all"
             :class="{
                 'bg-primary': checked,
                 'bg-input/70': !checked && !disabled,
-                'bg-input': disabled
+                'bg-input': disabled,
+                'rounded ring-[3px] ring-transparent ring-offset-0': !isFocused,
+                'rounded ring-[3px] ring-ring/50 ring-offset-0': isFocused
             }"
         >
             <span
@@ -43,6 +48,22 @@ export default defineComponent({
             type: Boolean,
             default: false,
             required: false
+        }
+    },
+
+    data() {
+        return {
+            isFocused: false,
+        }
+    },
+
+    methods: {
+        onFocus() {
+            this.isFocused = true;
+        }, 
+
+        onBlur() {
+            this.isFocused = false;
         }
     }
 });

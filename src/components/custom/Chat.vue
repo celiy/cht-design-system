@@ -46,6 +46,8 @@
                                             class="h-full w-full hover:brightness-120 transition-all cursor-pointer"
                                             :imageClass="(message.images?.length || 0) > 1 ? 'size-full object-cover' : ''"
                                             :src="message.images[index - 1]"
+
+                                            @click="openGallery(message.images, index - 1)"
                                         />
                                     </ContextMenu>
                                 </template>
@@ -61,6 +63,8 @@
                                             class="h-full w-full hover:brightness-120 transition-all cursor-pointer"
                                             imageClass="size-full object-cover"
                                             :src="message.images[index - 1]"
+
+                                            @click="openGallery(message.images, index - 1)"
                                         />
                                     </ContextMenu>
 
@@ -75,7 +79,7 @@
                                             class="relative h-full w-full text-foreground cursor-pointer rounded hover:brightness-150 transition-all overflow-hidden"
                                             v-tooltip="{ content: 'Ver mais', placement: 'center' }"
 
-                                            @click="openGallery(message.images)"
+                                            @click="openGallery(message.images, 3)"
                                         >
                                             <img
                                                 :src="message.images[3]"
@@ -111,8 +115,7 @@
                                 >
                                     <a
                                         v-if="part.href"
-                                        class="underline underline-offset-2"
-                                        :class="messageHasStatus(message) ? 'text-primary-foreground hover:opacity-80' : 'text-info hover:brightness-125'"
+                                        class="text-contrast underline underline-offset-2 hover:opacity-80"
                                         :href="part.href"
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -141,8 +144,7 @@
                                     >
                                         <a
                                             v-if="part.href"
-                                            class="underline underline-offset-2"
-                                            :class="messageHasStatus(message) ? 'text-primary-foreground hover:opacity-80' : 'text-info hover:brightness-125'"
+                                            class="text-contrast underline underline-offset-2 hover:opacity-80"
                                             :href="part.href"
                                             target="_blank"
                                             rel="noopener noreferrer"
@@ -239,7 +241,12 @@
                     v-if="galleryOpen"
 
                     class="w-[min(90vw,56rem)]"
-                    :startIndex="3"
+                    :showArrows="!$project.device.isMobile"
+                    :startIndex="galleryStartIndex"
+                    :edge-click="$project.device.isMobile"
+                    steps-viewer="advanced"
+
+                    @click:outside="galleryOpen = false"
                 >
                     <template
                         v-for="(src, idx) in galleryImages"
@@ -332,7 +339,8 @@ export default defineComponent({
     data() {
         return {
             galleryOpen: false,
-            galleryImages: [] as string[]
+            galleryImages: [] as string[],
+            galleryStartIndex: 0
         };
     },
 
@@ -521,12 +529,13 @@ export default defineComponent({
         /**
          * Opens a preview modal with a carousel of every image in the message.
          */
-        openGallery(images?: string[]) {
+        openGallery(images?: string[], startIndex = 0) {
             if (!images?.length) {
                 return;
             }
 
             this.galleryImages = images;
+            this.galleryStartIndex = Math.min(Math.max(startIndex, 0), images.length - 1);
             this.galleryOpen = true;
         },
 

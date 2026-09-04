@@ -4,10 +4,11 @@
 
         :header="header"
         :buttonAtributes="buttonAtributes"
-        :buttonVariant="buttonVariant"
         :hideDropdownArrow="hideDropdownArrow"
         :maxHeightPx="maxHeightPx"
         :minWidthPx="minWidthPx"
+        :mobileModal="mobileModal"
+        :forceModal="forceModal"
     >
         <template
             v-if="$slots.button"
@@ -73,12 +74,6 @@ export default defineComponent({
             required: false
         },
 
-        buttonVariant: {
-            type: String,
-            default: "secondary",
-            required: false
-        },
-
         hideDropdownArrow: {
             type: Boolean,
             default: false
@@ -103,6 +98,16 @@ export default defineComponent({
         minWidthPx: {
             type: Number,
             default: 192
+        },
+
+        mobileModal: {
+            type: Boolean,
+            default: true
+        },
+
+        forceModal: {
+            type: Boolean,
+            default: false
         }
     },
 

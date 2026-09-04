@@ -7,7 +7,7 @@
             :alt="alt"
             :draggable="isDraggable"
 
-            @click="modalOpen = true"
+            @click="onImageClick"
         />
 
         <Modal
@@ -85,6 +85,18 @@ export default defineComponent({
             }
 
             return false;
+        }
+    },
+
+    emits: ["click"],
+
+    methods: {
+        onImageClick(event: MouseEvent) {
+            this.$emit("click", event);
+
+            if (this.openModal) {
+                this.modalOpen = true;
+            }
         }
     }
 });

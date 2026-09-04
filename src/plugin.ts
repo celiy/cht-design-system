@@ -1,4 +1,5 @@
 import type { App, Component } from "vue";
+import { startTextContrastObserver } from "./textContrast";
 
 function fileNameFromPath(path: string): string {
     const file = path.split("/").pop() ?? "";
@@ -33,5 +34,7 @@ export const designSystemPlugin = {
 
             app.component(resolveComponentName(path, component), component);
         }
+
+        startTextContrastObserver();
     }
 };

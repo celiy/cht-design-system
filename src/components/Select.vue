@@ -7,10 +7,11 @@
         :helperText="helperText"
         :header="header"
         :buttonAtributes="buttonAtributes"
-        :buttonVariant="buttonVariant"
         :hideDropdownArrow="hideDropdownArrow"
         :maxHeightPx="maxHeightPx"
         :panelClass="panelClass"
+        :mobileModal="mobileModal"
+        :forceModal="forceModal"
     >
         <template #triggerLabel>
             <span
@@ -114,12 +115,6 @@ export default defineComponent({
             required: false
         },
 
-        buttonVariant: {
-            type: String,
-            default: "secondary",
-            required: false
-        },
-
         /**
          * Persists the selected value in localStorage under `id`.
          */
@@ -150,6 +145,16 @@ export default defineComponent({
             type: String,
             default: "",
             required: false
+        },
+
+        mobileModal: {
+            type: Boolean,
+            default: true
+        },
+
+        forceModal: {
+            type: Boolean,
+            default: false
         }
     },
 

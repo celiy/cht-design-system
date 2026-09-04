@@ -121,16 +121,18 @@
                     </div>
 
                     <div
-                        class="rounded-t px-4 pt-4shrink-0 pt-3"
+                        v-if="variant !== 'blank'"
+
+                        class="rounded-t px-4 pt-4 shrink-0"
                         :class="{
                             'cursor-grab active:cursor-grabbing': variant === 'drawer'
                         }"
                     >
                         <div class="flex items-center justify-between">
                             <!-- Header -->
-                            <h4>
+                            <h5>
                                 <slot name="header" />
-                            </h4>
+                            </h5>
 
                             <Button
                                 variant="transparent"
@@ -143,7 +145,7 @@
                     </div>
 
                     <div
-                        v-if="$slots.description"
+                        v-if="$slots.description && variant !== 'blank'"
 
                         class="px-4 pb-4 shrink-0"
                     >
@@ -156,11 +158,11 @@
                     <div
                         v-if="$slots.body"
 
-                        class="px-4 pb-4 overflow-auto"
+                        class="overflow-auto"
                         :class="{
-                            'mt-2': !$slots.description,
-                            'max-h-[60vh]': variant === 'modal' && size !== 'large',
-                            'max-h-[80vh]': variant === 'modal' && size === 'large',
+                            'mt-2': variant !== 'blank' && !$slots.description,
+                            'max-h-[60vh]': (variant === 'modal' || variant === 'blank') && size !== 'large',
+                            'max-h-[80vh]': (variant === 'modal' || variant === 'blank') && size === 'large',
                             'flex-1 min-h-0': variant === 'drawer'
                         }"
                     >
@@ -169,7 +171,7 @@
                     </div>
 
                     <div
-                        v-if="$slots.footer"
+                        v-if="$slots.footer && variant !== 'blank'"
 
                         class="bg-muted/50 p-4 border-t shrink-0 rounded-b"
                         :class="{
@@ -215,7 +217,7 @@ export default defineComponent({
 
     props: {
         variant: {
-            type: String as PropType<"modal" | "drawer" | "preview">,
+            type: String as PropType<"modal" | "blank" | "drawer" | "preview">,
             default: "modal",
             required: false
         },
@@ -266,7 +268,7 @@ export default defineComponent({
          * @returns {string} The shell align class.
          */
         shellAlignClass(): string {
-            if (this.variant === "modal" || this.variant === "preview") {
+            if (this.variant === "modal" || this.variant === "preview" || this.variant === "blank") {
                 return "items-center justify-center p-4";
             }
 
@@ -286,7 +288,7 @@ export default defineComponent({
          * @returns {string} The panel transition name.
          */
         panelTransitionName(): string {
-            if (this.variant === "modal" || this.variant === "preview") {
+            if (this.variant === "modal" || this.variant === "preview" || this.variant === "blank") {
                 return "fade-modal";
             }
 
@@ -307,10 +309,10 @@ export default defineComponent({
          */
         panelSurfaceClass(): Record<string, boolean> {
             const c: Record<string, boolean> = {
-                "lg:w-[35%] md:w-[50%] sm:w-[70%] w-[90%]": this.size === "small" && this.variant === "modal",
-                "lg:w-[50%] md:w-[70%] sm:w-[80%] w-[94%]": this.size === "medium" && this.variant === "modal",
-                "lg:w-[70%] md:w-[80%] sm:w-[86%] w-[98%]": this.size === "large" && this.variant === "modal",
-                "rounded border": this.variant === "modal",
+                "lg:w-[35%] md:w-[50%] sm:w-[70%] w-[90%]": this.size === "small" && (this.variant === "modal" || this.variant === "blank"),
+                "lg:w-[50%] md:w-[70%] sm:w-[80%] w-[94%]": this.size === "medium" && (this.variant === "modal" || this.variant === "blank"),
+                "lg:w-[70%] md:w-[80%] sm:w-[86%] w-[98%]": this.size === "large" && (this.variant === "modal" || this.variant === "blank"),
+                "rounded border": this.variant === "modal" || this.variant === "blank",
 
                 "border-warning/50! border-2!": this.color === "warning",
                 "border-destructive/50! border-2!": this.color === "destructive",

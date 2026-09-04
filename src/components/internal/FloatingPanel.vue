@@ -84,7 +84,7 @@
                         class="w-full"
                         :hoverEffect="false"
 
-                        @click="toggleOpenClose"
+                        @click.stop="toggleOpenClose"
                     >
                         <div class="flex items-center justify-between w-full gap-2">
                             <div class="flex-1 min-w-0 text-left">
@@ -128,7 +128,7 @@
         <Teleport to="body">
             <Transition :name="panelTransitionName">
                 <div
-                    v-if="isOpen"
+                    v-if="isOpen && !useSheetModal"
                     ref="panelRef"
 
                     data-dropdown-floating-panel
@@ -152,12 +152,38 @@
                 </div>
             </Transition>
         </Teleport>
+
+        <Modal
+            variant="blank"
+            :isOpen="isOpen && useSheetModal"
+
+            @update:value="onSheetModalUpdate"
+        >
+            <template #body>
+                <div
+                    class="overflow-y-auto mt-1"
+                    :style="{ maxHeight: maxHeightPx + 'px' }"
+
+                    @click.stop="onPanelClick"
+                >
+                    <slot
+                        :isOpen="isOpen"
+                        :close="close"
+                    />
+
+                    <slot name="helperText" />
+                </div>
+            </template>
+        </Modal>
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Button from "../Button.vue";
+import Modal from "../Modal.vue";
+
+const NARROW_VIEWPORT = "(max-width: 767px)";
 
 export default defineComponent({
     name: "FloatingPanel",
@@ -165,7 +191,8 @@ export default defineComponent({
     emits: ["open", "close", "panel-click"],
 
     components: {
-        Button
+        Button,
+        Modal
     },
 
     props: {
@@ -226,15 +253,6 @@ export default defineComponent({
         },
 
         /**
-         * Variant forwarded to the built-in Button trigger when `buttonAtributes.variant` is absent.
-         */
-        buttonVariant: {
-            type: String,
-            default: "secondary",
-            required: false
-        },
-
-        /**
          * Maximum panel height in pixels.
          */
         maxHeightPx: {
@@ -264,6 +282,22 @@ export default defineComponent({
         closeOnContentClick: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * On narrow viewports, open a blank modal instead of the floating panel.
+         */
+        mobileModal: {
+            type: Boolean,
+            default: true
+        },
+
+        /**
+         * Always open a blank modal, including on desktop.
+         */
+        forceModal: {
+            type: Boolean,
+            default: false
         }
     },
 
@@ -271,41 +305,46 @@ export default defineComponent({
         return {
             isOpen: false,
             positionAbove: false,
-            panelStyle: {} as Record<string, string>
+            panelStyle: {} as Record<string, string>,
+            isNarrow: false
         };
+    },
+
+    mounted() {
+        this.syncNarrowViewport();
+        window.matchMedia(NARROW_VIEWPORT).addEventListener("change", this.syncNarrowViewport);
     },
 
     watch: {
         isOpen(open: boolean) {
             if (open) {
-                this.$nextTick(() => this.updatePosition());
-                window.addEventListener("scroll", this.updatePosition, true);
-                window.addEventListener("resize", this.updatePosition);
-                document.addEventListener("click", this.handleClickOutside);
-                document.addEventListener("keydown", this.handleKeydown);
+                if (!this.useSheetModal) {
+                    this.$nextTick(() => this.updatePosition());
+                    window.addEventListener("scroll", this.updatePosition, true);
+                    window.addEventListener("resize", this.updatePosition);
+                    document.addEventListener("click", this.handleClickOutside);
+                    document.addEventListener("keydown", this.handleKeydown);
+                }
 
                 this.$emit("open");
             } else {
-                window.removeEventListener("scroll", this.updatePosition, true);
-                window.removeEventListener("resize", this.updatePosition);
-                document.removeEventListener("click", this.handleClickOutside);
-                document.removeEventListener("keydown", this.handleKeydown);
-
+                this.detachFloatingListeners();
                 this.$emit("close");
             }
         }
     },
 
     beforeUnmount() {
-        document.removeEventListener("click", this.handleClickOutside);
-        document.removeEventListener("keydown", this.handleKeydown);
-        window.removeEventListener("scroll", this.updatePosition, true);
-        window.removeEventListener("resize", this.updatePosition);
+        this.detachFloatingListeners();
+        window.matchMedia(NARROW_VIEWPORT).removeEventListener("change", this.syncNarrowViewport);
     },
 
     methods: {
         open() {
-            this.syncPlacementForPanel();
+            if (!this.useSheetModal) {
+                this.syncPlacementForPanel();
+            }
+
             this.isOpen = true;
         },
 
@@ -316,11 +355,28 @@ export default defineComponent({
         toggleOpenClose() {
             const opening = !this.isOpen;
 
-            if (opening) {
+            if (opening && !this.useSheetModal) {
                 this.syncPlacementForPanel();
             }
 
             this.isOpen = opening;
+        },
+
+        onSheetModalUpdate(open: boolean) {
+            if (!open) {
+                this.close();
+            }
+        },
+
+        syncNarrowViewport() {
+            this.isNarrow = window.matchMedia(NARROW_VIEWPORT).matches;
+        },
+
+        detachFloatingListeners() {
+            window.removeEventListener("scroll", this.updatePosition, true);
+            window.removeEventListener("resize", this.updatePosition);
+            document.removeEventListener("click", this.handleClickOutside);
+            document.removeEventListener("keydown", this.handleKeydown);
         },
 
         onPanelClick(event: MouseEvent) {
@@ -415,6 +471,10 @@ export default defineComponent({
     },
 
     computed: {
+        useSheetModal(): boolean {
+            return this.forceModal || (this.mobileModal && this.isNarrow);
+        },
+
         panelTransitionName(): "dropdown-up" | "dropdown-down" {
             return this.positionAbove ? "dropdown-up" : "dropdown-down";
         }
