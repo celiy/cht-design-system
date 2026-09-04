@@ -131,8 +131,6 @@
                     v-if="isOpen && !useSheetModal"
                     ref="panelRef"
 
-                    data-dropdown-floating-panel
-
                     class="absolute left-0 border border-border rounded bg-popover shadow-md z-50 overflow-y-auto min-w-fit"
                     :class="[
                         panelClass,

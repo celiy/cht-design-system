@@ -8,6 +8,7 @@
             <span class="fa fa-search text-muted-foreground! text-sm" />
 
             <Input
+                id="options-list-search"
                 v-model="localSearchQuery"
 
                 class="my-1"
@@ -25,27 +26,30 @@
         />
 
         <!-- Options list -->
-        <Option
+        <div
             v-if="visibleOptions.length > 0"
             v-for="(item, idx) of visibleOptions"
             :key="item.value ?? item.label"
-            v-tooltip="optionTooltip(item)"
+            :ref="(el) => setOptionRef(idx, el)"
+        >
+            <Option
+                v-tooltip="optionTooltip(item)"
 
-            :label="item.label"
-            :icon="item.icon"
-            :separator="item.separator"
-            :value="item.value"
-            :variant="item.variant"
-            :showCheckmark="showCheckmark"
-            :selected="Boolean(isOptionSelected?.(item.value))"
-            :highlighted="isItemHighlighted(idx, item)"
-            :first="idx === 0"
-            :last="idx === visibleOptions.length - 1"
-            :data-option-highlighted="isItemHighlighted(idx, item) ? 'true' : undefined"
+                :label="item.label"
+                :icon="item.icon"
+                :separator="item.separator"
+                :value="item.value"
+                :variant="item.variant"
+                :showCheckmark="showCheckmark"
+                :selected="Boolean(isOptionSelected?.(item.value))"
+                :highlighted="isItemHighlighted(idx, item)"
+                :first="idx === 0"
+                :last="idx === visibleOptions.length - 1"
 
-            @click="onItemClick(item)"
-            @mouseenter="onItemMouseEnter(idx, item)"
-        />
+                @click="onItemClick(item)"
+                @mouseenter="onItemMouseEnter(idx, item)"
+            />
+        </div>
 
         <!-- No options found -->
         <div
@@ -138,7 +142,8 @@ export default defineComponent({
     data() {
         return {
             localSearchQuery: this.searchQuery,
-            highlightedIndex: -1
+            highlightedIndex: -1,
+            optionRefs: [] as (HTMLElement | null)[]
         };
     },
 
@@ -165,6 +170,16 @@ export default defineComponent({
     },
 
     methods: {
+        setOptionRef(idx: number, el: unknown) {
+            if (el instanceof HTMLElement) {
+                this.optionRefs[idx] = el;
+
+                return;
+            }
+
+            this.optionRefs[idx] = null;
+        },
+
         onSearchQueryUpdate(value: string) {
             this.localSearchQuery = value;
             this.$emit("update:searchQuery", value);
@@ -221,8 +236,7 @@ export default defineComponent({
 
         scrollHighlightedIntoView() {
             this.$nextTick(() => {
-                const root = this.$el as HTMLElement | undefined;
-                const el = root?.querySelector("[data-option-highlighted='true']");
+                const el = this.optionRefs[this.highlightedIndex];
 
                 el?.scrollIntoView({ block: "nearest" });
             });

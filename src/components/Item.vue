@@ -147,6 +147,10 @@ export default defineComponent({
          * Font Awesome icon class.
          */
         iconClass(): string {
+            if (!this.icon) {
+                return "";
+            }
+
             const icon = this.icon.trim();
 
             if (icon.includes(" ")) {
@@ -197,13 +201,13 @@ export default defineComponent({
             }
 
             return {
-                "border-primary/40! bg-primary/10": this.variant === "primary",
-                "bg-muted/40": this.variant === "secondary",
-                "border-success/30! bg-success/10!": this.variant === "success",
-                "border-warning/30! bg-warning/10!": this.variant === "warning",
-                "border-destructive/30! bg-destructive/10!": this.variant === "destructive",
-                "border-info/30! bg-info/10!": this.variant === "info",
-                "border-input bg-input/10": true
+                "border-primary/40! border-2 bg-muted/40": this.variant === "primary",
+                "border-secondary! bg-muted/40 border-2": this.variant === "secondary",
+                "border-success/30! border-2 bg-muted/40": this.variant === "success",
+                "border-warning/30! border-2 bg-muted/40": this.variant === "warning",
+                "border-destructive/30! border-2 bg-muted/40": this.variant === "destructive",
+                "border-info/30! border-2 bg-muted/40": this.variant === "info",
+                "border-input bg-muted/40": true
             };
         },
 

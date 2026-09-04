@@ -1,5 +1,9 @@
-import type { App, Component } from "vue";
+import type { Component } from "vue";
 import { startTextContrastObserver } from "./textContrast";
+
+type DesignSystemApp = {
+    component: (name: string, component: Component) => void;
+};
 
 function fileNameFromPath(path: string): string {
     const file = path.split("/").pop() ?? "";
@@ -21,20 +25,18 @@ function resolveComponentName(path: string, component: Component): string {
  * Registers primitive and custom design-system components globally.
  * Internal helpers (`components/internal`) stay local imports.
  */
-export const designSystemPlugin = {
-    install(app: App) {
-        const modules = {
-            ...import.meta.glob("./components/*.vue", { eager: true }),
-            ...import.meta.glob("./components/custom/*.vue", { eager: true }),
-            ...import.meta.glob("./components/custom/charts/*.vue", { eager: true })
-        };
+export function designSystemPlugin(app: DesignSystemApp) {
+    const modules = {
+        ...import.meta.glob("./components/*.vue", { eager: true }),
+        ...import.meta.glob("./components/custom/*.vue", { eager: true }),
+        ...import.meta.glob("./components/custom/charts/*.vue", { eager: true })
+    };
 
-        for (const [path, mod] of Object.entries(modules)) {
-            const component = (mod as { default: Component }).default;
+    for (const [path, mod] of Object.entries(modules)) {
+        const component = (mod as { default: Component }).default;
 
-            app.component(resolveComponentName(path, component), component);
-        }
-
-        startTextContrastObserver();
+        app.component(resolveComponentName(path, component), component);
     }
-};
+
+    startTextContrastObserver();
+}

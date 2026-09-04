@@ -241,7 +241,7 @@ export default defineComponent({
          */
         id: {
             type: String,
-            required: true
+            required: false
         },
 
         /**
@@ -679,7 +679,7 @@ export default defineComponent({
          * @Returns - Field label when available; otherwise uses the id.
          */
         fieldLabel(): string {
-            return this.label ?? this.id;
+            return this.label ?? this.id ?? "";
         },
 
         /**
@@ -710,7 +710,7 @@ export default defineComponent({
          * @Returns - Field identifier.
          */
         inputId(): string {
-            return this.id;
+            return this.id ?? `cht-input-${this.$.uid}`;
         },
 
         isTextarea(): boolean {

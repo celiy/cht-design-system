@@ -104,13 +104,6 @@ export type WaveChartData = ChartSeries;
 
 export type WaveFilter = "3m" | "1m" | "2s" | "7d";
 
-const FILTER_LABELS: Record<WaveFilter, string> = {
-    "3m": "3 meses",
-    "1m": "1 mês",
-    "2s": "2 semanas",
-    "7d": "7 dias",
-};
-
 export default defineComponent({
     name: "WaveChart",
 

@@ -1,15 +1,21 @@
 <template>
     <div
         class="block select-none rounded bg-popover text-sm transition-all"
+        v-bind="$attrs"
+
         :class="{
             'text-destructive!': isDestructive,
             'text-popover-foreground': !isDestructive,
-            'bg-accent!': showCheckmark && selected || (highlighted && !$project.device.isMobile),
+            'bg-accent/50!': showCheckmark && selected,
+            'bg-accent!': (highlighted && !$project.device.isMobile),
             'hover:bg-accent! cursor-pointer px-2.5 py-1.5 mx-1': isSelectable,
             'p-1 px-2.5 m-1 text-muted-foreground! text-sm font-semibold': isHeading,
             'mt-1': first,
             'mb-1': last
         }"
+
+        @click="$emit('click', $event)"
+        @mouseenter="$emit('mouseenter', $event)"
     >
         <div class="flex flex-nowrap items-center justify-between gap-4">
             <div class="w-full flex flex-nowrap items-center">
@@ -56,6 +62,10 @@ import { defineComponent, type PropType } from "vue";
 
 export default defineComponent({
     name: "Option",
+
+    inheritAttrs: false,
+
+    emits: ["click", "mouseenter"],
 
     props: {
         label: {

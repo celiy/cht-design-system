@@ -5,10 +5,7 @@
 
             :class="positionClass"
         >
-            <TransitionGroup
-                name="toast-item"
-                tag="div"
-
+            <div
                 class="pointer-events-auto relative flex flex-col toast-stack"
 
                 :class="stackAlignClass"
@@ -17,54 +14,60 @@
                 @mouseenter="onStackEnter"
                 @mouseleave="onStackLeave"
             >
-                <div
-                    v-for="(item, index) in visibleItems"
-                    :key="item.id"
-                    :ref="(el) => bindPanel(item.id, el)"
-
-                    class="w-full touch-pan-y toast-item-panel"
-
-                    :class="stackItemClass"
-                    :style="itemWrapperStyle(index, item.id)"
-
-                    @mouseenter="onToastEnter(item.id)"
-                    @mouseleave="onToastLeave(item.id)"
-                    @touchstart="onTouchStart($event, item.id)"
-                    @touchmove="onTouchMove($event, item.id)"
-                    @touchend="onTouchEnd(item.id)"
-                    @touchcancel="onTouchCancel"
+                <TransitionGroup
+                    name="toast-item"
+                    tag="div"
+                    class="contents"
                 >
-                    <div class="relative w-full rounded border bg-background shadow-sm overflow-hidden">
-                        <div
-                            class="relative flex items-center gap-2 py-2 px-3 text-xs font-medium"
+                    <div
+                        v-for="(item, index) in visibleItems"
+                        :key="item.id"
+                        :ref="(el) => bindPanel(item.id, el)"
 
-                            :class="variantClass(item.type)"
-                        >
-                            <i
-                                class="fa-solid shrink-0 text-sm"
+                        class="w-full touch-pan-y toast-item-panel"
 
-                                :class="iconClass(item.type)"
-                            />
+                        :class="stackItemClass"
+                        :style="itemWrapperStyle(index, item.id)"
 
-                            <span class="flex-1 min-w-0 wrap-break-words">
-                                {{ item.message }}
-                            </span>
+                        @mouseenter="onToastEnter(item.id)"
+                        @mouseleave="onToastLeave(item.id)"
+                        @touchstart="onTouchStart($event, item.id)"
+                        @touchmove="onTouchMove($event, item.id)"
+                        @touchend="onTouchEnd(item.id)"
+                        @touchcancel="onTouchCancel"
+                    >
+                        <div class="relative w-full rounded border bg-card shadow-sm overflow-hidden">
+                            <div
+                                class="relative flex items-center gap-2 py-2 px-3 text-xs font-medium"
 
-                            <Button
-                                v-if="item.closeButton"
+                                :class="variantClass(item.type)"
+                            >
+                                <i
+                                    class="fa-solid shrink-0 text-sm"
 
-                                class="shrink-0"
+                                    :class="iconClass(item.type)"
+                                />
 
-                                size="small"
-                                :label="item.closeButton"
-                                :hover-effect="false"
+                                <span class="flex-1 min-w-0 wrap-break-words">
+                                    {{ item.message }}
+                                </span>
 
-                                @click.stop="closeItem(item.id)"
-                            />
+                                <Button
+                                    v-if="item.closeButton"
+
+                                    class="shrink-0"
+
+                                    size="small"
+                                    :label="item.closeButton"
+                                    :hover-effect="false"
+
+                                    @click.stop="closeItem(item.id)"
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
-            </TransitionGroup>
+                </TransitionGroup>
+            </div>
         </div>
     </Teleport>
 </template>

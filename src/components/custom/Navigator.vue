@@ -7,7 +7,6 @@
                 <Button
                     variant="transparent"
                     :label="link.label"
-                    :link="link.path"
                     @click="navigateTo(link.path)"
                 />
             </div>
@@ -38,7 +37,13 @@ export default defineComponent({
 
     methods: {
         navigateTo(path: string) {
-            this.$router.push(path);
+            if (this.$router) {
+                this.$router.push(path);
+
+                return;
+            }
+
+            window.location.assign(path);
         }
     }
 });

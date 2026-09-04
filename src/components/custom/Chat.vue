@@ -172,7 +172,7 @@
                                 >
                                     <template v-if="message.reactions && message.reactions.length > 0">
                                         <span
-                                            v-for="(reaction, idx) in message.reactions.slice(0, 3)"
+                                            v-for="reaction in message.reactions.slice(0, 3)"
                                             :key="reaction.reaction"
                                             class="py-1 text-xs hover:brightness-150 transition-all cursor-pointer"
                                         >
