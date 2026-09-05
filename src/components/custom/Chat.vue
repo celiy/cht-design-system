@@ -1,12 +1,13 @@
 <template>
     <div class="w-full">
         <!-- Main chat message list -->
-        <div class="flex flex-col gap-2 w-full">
+        <div class="flex w-full flex-col gap-1">
             <!-- Message section per bubble -->
             <section
                 v-for="(message, index) in messages"
                 :key="index"
-                class="flex w-full max-h-[75vh]"
+
+                class="flex max-h-[75vh] w-full"
                 :class="messageHasStatus(message) ? 'justify-end' : 'justify-start'"
             >
                 <!-- Chat bubble -->
@@ -22,11 +23,13 @@
                     <!-- Context menu for message actions -->
                     <ContextMenu
                         :options="messageActionOptions()"
+
                         @click:value="onMessageAction($event, message)"
                     >
                         <!-- Message images grid -->
-                        <div 
+                        <div
                             v-if="message.images"
+
                             class="grid gap-1"
                             :class="[
                                 message.text ? 'mb-2' : '',
@@ -36,57 +39,93 @@
                             <div
                                 v-for="imageIndex in maxImages(message.images?.length)"
                                 :key="imageIndex"
-                                :class="(message.images?.length || 0) > 1 ? 'aspect-square min-w-0 overflow-hidden rounded' : ''"
+
+                                :class="
+                                    (message.images?.length || 0) > 1
+                                        ? 'aspect-square min-w-0 overflow-hidden rounded'
+                                        : ''
+                                "
                             >
                                 <!-- Images (<= 4) -->
                                 <template v-if="message.images?.length <= 4">
                                     <ContextMenu
                                         v-if="imageIndex <= 4 && message.images[imageIndex - 1]"
+
                                         :options="imageCopyOptions()"
-                                        @click:value="onMessageAction($event, message, message.images[imageIndex - 1])"
+
+                                        @click:value="
+                                            onMessageAction(
+                                                $event,
+                                                message,
+                                                message.images[imageIndex - 1]
+                                            )
+                                        "
                                     >
                                         <Image
-                                            class="h-full w-full hover:brightness-120 transition-all cursor-pointer"
-                                            :image-class="(message.images?.length || 0) > 1 ? 'size-full object-cover' : ''"
+                                            class="h-full w-full cursor-pointer transition-all hover:brightness-120"
+                                            :image-class="
+                                                (message.images?.length || 0) > 1
+                                                    ? 'size-full object-cover'
+                                                    : ''
+                                            "
                                             :src="message.images[imageIndex - 1]"
+
                                             @click="openGallery(message.images, imageIndex - 1)"
                                         />
                                     </ContextMenu>
                                 </template>
+
                                 <!-- Images (> 4) with "see more" button -->
                                 <template v-else>
                                     <ContextMenu
                                         v-if="imageIndex <= 3 && message.images[imageIndex - 1]"
+
                                         :options="imageCopyOptions()"
-                                        @click:value="onMessageAction($event, message, message.images[imageIndex - 1])"
+
+                                        @click:value="
+                                            onMessageAction(
+                                                $event,
+                                                message,
+                                                message.images[imageIndex - 1]
+                                            )
+                                        "
                                     >
                                         <Image
-                                            class="h-full w-full hover:brightness-120 transition-all cursor-pointer"
+                                            class="h-full w-full cursor-pointer transition-all hover:brightness-120"
                                             image-class="size-full object-cover"
                                             :src="message.images[imageIndex - 1]"
+
                                             @click="openGallery(message.images, imageIndex - 1)"
                                         />
                                     </ContextMenu>
+
                                     <ContextMenu
                                         v-if="imageIndex === 4 && message.images[3]"
+
                                         :options="imageCopyOptions()"
-                                        @click:value="onMessageAction($event, message, message.images[3])"
+
+                                        @click:value="
+                                            onMessageAction($event, message, message.images[3])
+                                        "
                                     >
                                         <!-- See more images button -->
                                         <button
                                             v-tooltip="{ content: 'Ver mais', placement: 'center' }"
                                             type="button"
-                                            class="relative h-full w-full text-foreground cursor-pointer rounded hover:brightness-150 transition-all overflow-hidden"
+                                            class="relative h-full w-full cursor-pointer overflow-hidden rounded text-foreground transition-all hover:brightness-150"
+
                                             @click="openGallery(message.images, 3)"
                                         >
                                             <img
                                                 :src="message.images[3]"
                                                 alt=""
-                                                class="absolute inset-0 w-full h-full object-cover rounded"
-                                                style="filter: blur(4px);"
+                                                class="absolute inset-0 h-full w-full rounded object-cover"
+                                                style="filter: blur(4px)"
                                                 draggable="false"
                                             />
-                                            <span class="absolute inset-0 bg-card opacity-80 pointer-events-none rounded" />
+                                            <span
+                                                class="pointer-events-none absolute inset-0 rounded bg-card opacity-80"
+                                            />
                                             <span class="relative z-10">
                                                 +{{ message.images.length - 3 }}
                                             </span>
@@ -95,10 +134,19 @@
                                 </template>
                             </div>
                         </div>
+
                         <!-- Text-only message (no date/edit/status/reactions) -->
                         <ContextMenu
-                            v-if="message.text && !message.date && !message.reactions && !message.edited && !messageHasStatus(message)"
+                            v-if="
+                                message.text &&
+                                !message.date &&
+                                !message.reactions &&
+                                !message.edited &&
+                                !messageHasStatus(message)
+                            "
+
                             :options="textCopyOptions()"
+
                             @click:value="onMessageAction($event, message)"
                         >
                             <small class="font-medium! wrap-break-word">
@@ -109,25 +157,37 @@
                                 >
                                     <a
                                         v-if="part.href"
+
                                         class="text-contrast underline underline-offset-2 hover:opacity-80"
                                         :href="part.href"
                                         target="_blank"
                                         rel="noopener noreferrer"
+
                                         @click.stop
-                                    >{{ part.text }}</a>
+                                        >{{ part.text }}</a
+                                    >
                                     <template v-else>{{ part.text }}</template>
                                 </template>
                             </small>
                         </ContextMenu>
+
                         <!-- Message with meta: date, reactions, edited, or sent/read status -->
-                        <span 
-                            v-else-if="message.date || message.reactions || message.edited || messageHasStatus(message)"
+                        <span
+                            v-else-if="
+                                message.date ||
+                                message.reactions ||
+                                message.edited ||
+                                messageHasStatus(message)
+                            "
+
                             class="flex flex-col gap-1"
                         >
                             <!-- Message text with context menu -->
                             <ContextMenu
                                 v-if="message.text"
+
                                 :options="textCopyOptions()"
+
                                 @click:value="onMessageAction($event, message)"
                             >
                                 <small class="font-medium! wrap-break-word">
@@ -137,49 +197,69 @@
                                     >
                                         <a
                                             v-if="part.href"
+
                                             class="text-contrast underline underline-offset-2 hover:opacity-80"
                                             :href="part.href"
                                             target="_blank"
                                             rel="noopener noreferrer"
+
                                             @click.stop
                                         >
                                             {{ part.text }}
                                         </a>
+
                                         <template v-else>{{ part.text }}</template>
                                     </template>
                                 </small>
                             </ContextMenu>
+
                             <!-- Meta row: reactions | edited | date | status -->
-                            <div 
-                                class="flex gap-1 items-center"
+                            <div
+                                class="flex items-center gap-1"
                                 :class="{
                                     'justify-between': message.reactions,
                                     'justify-end': !message.reactions
                                 }"
                             >
                                 <!-- Reactions -->
-                                <div 
+                                <div
                                     v-if="message.reactions"
-                                    class="flex select-none bg-card/50 font-medium rounded-full px-2 gap-2"
+
+                                    class="flex gap-2 rounded-full bg-card/50 px-2 font-medium select-none"
                                 >
-                                    <template v-if="message.reactions && message.reactions.length > 0">
+                                    <template
+                                        v-if="message.reactions && message.reactions.length > 0"
+                                    >
                                         <span
                                             v-for="reaction in message.reactions.slice(0, 3)"
                                             :key="reaction.reaction"
-                                            class="py-1 text-xs hover:brightness-150 transition-all cursor-pointer"
+
+                                            class="cursor-pointer py-1 text-xs transition-all hover:brightness-150"
                                         >
                                             {{ reaction.reaction }}
-                                            <span v-if="reaction.amount > 1" class="text-muted-foreground">x{{ reaction.amount }}</span>
+                                            <span
+                                                v-if="reaction.amount > 1"
+
+                                                class="text-muted-foreground"
+                                                >x{{ reaction.amount }}</span
+                                            >
                                         </span>
+
                                         <!-- +N for more reactions -->
                                         <span
                                             v-if="message.reactions.length > 3"
-                                            v-tooltip="{ 
-                                                content: message.reactions.slice(3).map(
-                                                    r => `${r.reaction}${r.amount > 1 ? ' x' + r.amount : ''}`
-                                                ).join(' - '), placement: 'bottom' 
+
+                                            v-tooltip="{
+                                                content: message.reactions
+                                                    .slice(3)
+                                                    .map(
+                                                        (r) =>
+                                                            `${r.reaction}${r.amount > 1 ? ' x' + r.amount : ''}`
+                                                    )
+                                                    .join(' - '),
+                                                placement: 'bottom'
                                             }"
-                                            class="py-1 text-xs hover:brightness-150 transition-all cursor-pointer relative text-muted-foreground"
+                                            class="relative cursor-pointer py-1 text-xs text-muted-foreground transition-all hover:brightness-150"
                                         >
                                             +{{ message.reactions.length - 3 }}
                                         </span>
@@ -187,29 +267,41 @@
                                 </div>
                                 <div class="flex gap-1">
                                     <!-- Edited label -->
-                                    <span 
+                                    <span
                                         v-if="message.edited"
-                                        v-tooltip="{ content: `Editado em ${message.editedAt ? formatDate(message.editedAt) : ''}`, placement: 'bottom' }"
-                                        class="text-xs text-muted-foreground font-medium select-none"
+
+                                        v-tooltip="{
+                                            content: `Editado em ${message.editedAt ? formatDate(message.editedAt) : ''}`,
+                                            placement: 'bottom'
+                                        }"
+                                        class="text-xs font-medium text-muted-foreground select-none"
                                     >
                                         Editado
                                     </span>
+
                                     <!-- Message date -->
-                                    <span 
+                                    <span
                                         v-if="message.date"
-                                        class="text-xs text-muted-foreground font-medium"
+
+                                        class="text-xs font-medium text-muted-foreground"
                                         :class="{
                                             'p-3': message.images?.length === 1 && !message.text,
-                                            'pt-3': (message.images?.length || 0) > 1 && !message.text
+                                            'pt-3':
+                                                (message.images?.length || 0) > 1 && !message.text
                                         }"
                                     >
                                         {{ formatDate(message.date) }}
                                     </span>
+
                                     <!-- Message sent/read/fail status icon -->
                                     <span
                                         v-if="messageStatus(message)"
-                                        v-tooltip="{ content: messageStatusLabel(message), placement: 'bottom' }"
-                                        class="text-xs font-medium flex items-center select-none"
+
+                                        v-tooltip="{
+                                            content: messageStatusLabel(message),
+                                            placement: 'bottom'
+                                        }"
+                                        class="flex items-center text-xs font-medium select-none"
                                     >
                                         <i :class="messageStatusIconClass(message)" />
                                     </span>
@@ -220,21 +312,25 @@
                 </div>
             </section>
         </div>
+
         <!-- Image gallery modal -->
         <Modal
             variant="preview"
             :is-open="galleryOpen"
+
             @update:value="galleryOpen = $event"
         >
             <template #body>
                 <!-- Carousel inside modal -->
                 <Carousel
                     v-if="galleryOpen"
+
                     class="w-[min(90vw,56rem)]"
                     :show-arrows="!$project.device.isMobile"
                     :start-index="galleryStartIndex"
                     :edge-click="$project.device.isMobile"
                     steps-viewer="advanced"
+
                     @click:outside="galleryOpen = false"
                 >
                     <!-- Carousel items for gallery images -->
@@ -568,7 +664,7 @@ export default defineComponent({
          * If the date is today, it will return the time.
          * If the date is yesterday, it will return "Ontem".
          * If the date is more than 2 days ago, it will return the date.
-         * @param date 
+         * @param date
          */
         formatDate(date: Date) {
             const today = new Date();
@@ -580,7 +676,7 @@ export default defineComponent({
 
             if (date.toDateString() === todayString) {
                 // Return time as hh:mm
-                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
             }
 
             if (date.toDateString() === yesterdayString) {
@@ -588,13 +684,13 @@ export default defineComponent({
             }
 
             // Return date as dd/mm/yyyy hh:mm
-            const d = date.getDate().toString().padStart(2, '0');
-            const m = (date.getMonth() + 1).toString().padStart(2, '0');
+            const d = date.getDate().toString().padStart(2, "0");
+            const m = (date.getMonth() + 1).toString().padStart(2, "0");
             const y = date.getFullYear();
-            const h = date.getHours().toString().padStart(2, '0');
-            const min = date.getMinutes().toString().padStart(2, '0');
+            const h = date.getHours().toString().padStart(2, "0");
+            const min = date.getMinutes().toString().padStart(2, "0");
             return `${d}/${m}/${y} ${h}:${min}`;
-        },
+        }
     }
 });
 </script>

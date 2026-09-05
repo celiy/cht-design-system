@@ -2,10 +2,10 @@
     <div
         class="relative transition-colors"
         :class="{
-            'p-3 border rounded': variant === 'card',
+            'rounded border p-3': variant === 'card',
             'border-primary/30! bg-primary/10': !disabled && variant === 'card' && localChecked,
             'border-input/50 bg-input/20': !disabled && variant === 'card' && !localChecked,
-            'bg-transparent border-input/30': disabled && variant === 'card',
+            'border-input/30 bg-transparent': disabled && variant === 'card',
             'cursor-pointer': !disabled,
             'cursor-not-allowed!': disabled
         }"
@@ -18,14 +18,11 @@
             <!-- Input -->
             <input
                 :id="id"
-
                 type="checkbox"
-                class="hover:ring-[3px] ring-ring/50 ring-offset-0"
-                
                 :class="[
                     checkboxStyle === 'switch'
                         ? 'sr-only'
-                        : 'custom-checkbox w-4 h-4 border border-input bg-input/30 transition-all rounded-sm cursor-pointer relative shrink-0',
+                        : 'custom-checkbox relative h-4 w-4 shrink-0 cursor-pointer rounded-sm border border-input bg-input/30 transition-all',
                     {
                         'translate-y-0.5': checkboxStyle !== 'switch',
                         'ring-[3px] ring-ring/50 ring-offset-0': hovered && !disabled
@@ -43,6 +40,7 @@
             <!-- Switch -->
             <CheckboxSwitch
                 v-if="checkboxStyle === 'switch'"
+
                 :input-id="id"
                 :checked="localChecked"
                 :disabled="disabled"
@@ -51,9 +49,8 @@
 
             <!-- Label -->
             <div v-if="label || description">
-                <label 
+                <label
                     :for="id"
-
                     :class="{
                         'ml-2': checkboxStyle !== 'switch',
                         'ml-3': checkboxStyle === 'switch',
@@ -69,7 +66,7 @@
                 <small
                     v-if="description"
 
-                    class="text-sm! mt-1 select-none text-muted-foreground!"
+                    class="mt-1 text-sm! text-muted-foreground! select-none"
                     :class="{
                         'ml-2': checkboxStyle !== 'switch',
                         'ml-3': checkboxStyle === 'switch'
@@ -87,7 +84,7 @@ import { defineComponent, type PropType } from "vue";
 import CheckboxSwitch from "./CheckboxSwitch.vue";
 
 export default defineComponent({
-    name: 'Checkbox',
+    name: "Checkbox",
 
     components: {
         CheckboxSwitch
@@ -101,7 +98,7 @@ export default defineComponent({
         },
 
         checkboxStyle: {
-            type: String as PropType<'normal' | 'switch'>,
+            type: String as PropType<"normal" | "switch">,
             default: "normal",
             required: false
         },
@@ -150,7 +147,7 @@ export default defineComponent({
         }
     },
 
-    emits: ['click', 'update:value'],
+    emits: ["click", "update:value"],
 
     data() {
         return {
@@ -166,17 +163,17 @@ export default defineComponent({
                     this.localChecked = Boolean(val);
                 }
             },
-            immediate: true,
+            immediate: true
         },
 
         checked: {
             handler(val: boolean) {
-                if (typeof val === 'boolean') {
+                if (typeof val === "boolean") {
                     this.localChecked = val;
                 }
             },
-            immediate: true,
-        },
+            immediate: true
+        }
     },
 
     methods: {
@@ -225,8 +222,8 @@ export default defineComponent({
             this.localChecked = target.checked;
 
             this.$emit("update:value", this.localChecked);
-        },
-    },
+        }
+    }
 });
 </script>
 

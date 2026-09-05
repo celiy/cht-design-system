@@ -1,6 +1,6 @@
 <template>
     <div 
-        class="border border-border rounded w-full shadow-md"
+        class="border border-border/50! rounded w-full shadow-md"
         :class="{
             'bg-card': variant === 'default',
             'bg-transparent': variant === 'transparent'
@@ -48,7 +48,7 @@
 
         <!-- Footer -->
         <template v-if="$slots.footer">
-            <div class="p-4 bg-muted/50 border-t">
+            <div class="p-4 bg-muted/50 border-t rounded-b">
                 <slot name="footer" />
             </div>
         </template>

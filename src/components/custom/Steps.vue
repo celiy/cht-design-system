@@ -16,7 +16,10 @@
                 </template>
             </Marker>
 
-            <div class="flex">
+            <div
+                v-if="$slots[`step-${index}`]"
+                class="flex"
+            >
                 <Marker class="ml-3 mr-6 mb-2 mt-2" separator orientation="vertical"/>
                 
                 <div class="mb-4 mt-2">

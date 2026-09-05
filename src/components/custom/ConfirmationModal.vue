@@ -22,7 +22,7 @@
         </template>
 
         <template #body>
-            <p class="px-4 pb-4">{{ body }}</p>
+            <p>{{ body }}</p>
 
             <slot name="body" />
         </template>

@@ -1,23 +1,15 @@
 <template>
-    <div
-        class="flex flex-col"
-        :class="[
-            fit ? 'w-fit' : 'w-full'
-        ]"
-    >
+    <div class="flex flex-col" :class="[fit ? 'w-fit' : 'w-full']">
         <!-- Label -->
-        <label 
-            v-if="label"
+        <label v-if="label"
 
-            class="mb-2"
-            :for="inputId"
-        >
-            {{ label }} {{ required ? '*' : '' }}
+class="mb-2" :for="inputId">
+            {{ label }} {{ required ? "*" : "" }}
         </label>
 
         <!-- Input container -->
         <div
-            class="transition-shadow box-border"
+            class="box-border transition-shadow"
             :class="{
                 'rounded ring-[3px] ring-transparent ring-offset-0':
                     variant === 'secondary' && !isFocused,
@@ -31,27 +23,24 @@
         >
             <!-- Input/textarea -->
             <div
-                :class=" [
+                :class="[
                     borderClass,
-                    'text-foreground/90 text-sm font-normal',
+                    'text-sm font-normal text-foreground/90',
                     {
                         'p-1.5 px-2.5': !isTextarea,
                         'rounded bg-input/30': variant === 'secondary'
-                    },
+                    }
                 ]"
             >
                 <textarea
                     v-if="isTextarea"
+
                     :id="inputId"
-
                     ref="textareaEl"
-                    class="focus:outline-none focus:ring-0 pl-2.5 pt-2"
-                    :class="[
-                        fit ? 'w-fit' : 'w-full',
-                        inputClass
-                    ]"
-                    :style="textareaStyle"
 
+                    class="pt-2 pl-2.5 focus:ring-0 focus:outline-none"
+                    :class="[fit ? 'w-fit' : 'w-full', inputClass]"
+                    :style="textareaStyle"
                     :rows="expandOnTyping ? 1 : undefined"
                     :value="localValue"
                     :placeholder="placeholder"
@@ -66,22 +55,16 @@
                 <!-- Input/textarea content -->
                 <div
                     v-else
+
                     class="flex min-w-0 items-center gap-2"
-                    :class="[
-                        fit ? 'w-fit' : 'w-full',
-                        inputClass
-                    ]"
+                    :class="[fit ? 'w-fit' : 'w-full', inputClass]"
                 >
                     <!-- Input -->
                     <input
                         :id="inputId"
                         v-maska="mask"
-
-                        class="focus:outline-none focus:ring-0 bg-transparent"
-                        :class="[
-                            inputClass,
-                            'min-w-0 w-full flex-1'
-                        ]"
+                        class="bg-transparent focus:ring-0 focus:outline-none"
+                        :class="[inputClass, 'w-full min-w-0 flex-1']"
                         :value="localValue"
                         :type="htmlInputType"
                         :name="id"
@@ -96,15 +79,15 @@
                     />
 
                     <!-- Password toggle -->
-                    <div 
-                        v-if="showPasswordToggle"
-                        class="flex shrink-0 self-center"
-                    >
+                    <div v-if="showPasswordToggle"
+
+class="flex shrink-0 self-center">
                         <button
                             type="button"
-                            class="text-muted-foreground hover:text-foreground rounded-md transition-colors"
+                            class="rounded-md text-muted-foreground transition-colors hover:text-foreground"
                             :aria-label="passwordRevealed ? 'Ocultar senha' : 'Mostrar senha'"
                             :disabled="disabled"
+
                             @click="togglePasswordVisibility"
                         >
                             <i
@@ -115,15 +98,15 @@
                     </div>
 
                     <!-- Copy button -->
-                    <div 
-                        v-if="showCopyButton"
-                        class="flex shrink-0 self-center"
-                    >
+                    <div v-if="showCopyButton"
+
+class="flex shrink-0 self-center">
                         <button
                             type="button"
-                            class="text-muted-foreground hover:text-foreground rounded-md transition-colors"
+                            class="rounded-md text-muted-foreground transition-colors hover:text-foreground"
                             aria-label="Copiar conteúdo"
                             :disabled="disabled"
+
                             @click="copyValueToClipboard"
                         >
                             <i class="fa-solid fa-copy text-sm" />
@@ -137,15 +120,14 @@
 
         <!-- Error message -->
         <transition name="expand-error">
-            <span 
+            <span
                 v-if="error || errorsMessage.length > 0"
-                
-                class="text-destructive/90 mt-2 block bg-destructive/10 p-1 px-1.5 rounded border-destructive/20! border"
-                
+
+                class="mt-2 block rounded border border-destructive/20! bg-destructive/10 p-1 px-1.5 text-destructive/90"
                 :class="{ 'error-active': isFocused }"
             >
-                <i class="fa-solid fa-warning mr-2 text-sm"/>
-                
+                <i class="fa-solid fa-warning mr-2 text-sm" />
+
                 <span v-if="error">
                     {{ error }}
                 </span>
@@ -159,17 +141,15 @@
                 >
                     {{ errorMessage }}
 
-                    <br v-if="index > 1"/>
+                    <br v-if="index > 1" />
                 </span>
             </span>
         </transition>
 
         <!-- Helper text -->
-        <small 
-            v-if="helperText"
+        <small v-if="helperText"
 
-            class="mt-2 text-sm! text-muted-foreground!"
-        >
+class="mt-2 text-sm! text-muted-foreground!">
             {{ helperText }}
         </small>
     </div>
@@ -207,7 +187,7 @@ const MONEY_MASK: MaskInputOptions = {
 };
 
 export default defineComponent({
-    name: 'Input',
+    name: "Input",
 
     directives: { maska: vMaska },
 
@@ -293,7 +273,7 @@ export default defineComponent({
             type: String,
             required: false
         },
-        
+
         /**
          * External error message with priority over internal validation.
          */
@@ -364,7 +344,7 @@ export default defineComponent({
         /**
          * Custom text mask for the maska directive.
          */
-        textMask:{
+        textMask: {
             type: String,
             required: false
         },
@@ -417,7 +397,7 @@ export default defineComponent({
         }
     },
 
-    emits: ['update:value', 'update:modelValue'],
+    emits: ["update:value", "update:modelValue"],
 
     data() {
         return {
@@ -428,8 +408,8 @@ export default defineComponent({
             hasValueEver: false,
             passwordRevealed: false
         };
-    }, 
-    
+    },
+
     computed: {
         /**
          * Resolves the name displayed in validation messages.
@@ -446,7 +426,11 @@ export default defineComponent({
          * @Returns - true when empty; false when it contains content.
          */
         isEmptyValue(): boolean {
-            return this.sourceValue === '' || this.sourceValue === null || this.sourceValue === undefined;
+            return (
+                this.sourceValue === "" ||
+                this.sourceValue === null ||
+                this.sourceValue === undefined
+            );
         },
 
         /**
@@ -558,7 +542,9 @@ export default defineComponent({
             }
 
             if (this.minSize && valStr.length < this.minSize) {
-                errors.push(`${this.fieldLabel} precisa ter pelo menos ${this.minSize} caracteres.`);
+                errors.push(
+                    `${this.fieldLabel} precisa ter pelo menos ${this.minSize} caracteres.`
+                );
             }
 
             return errors;
@@ -575,7 +561,7 @@ export default defineComponent({
             }
 
             if (this.variant === "display") {
-                return "border-b"
+                return "border-b";
             }
 
             let color = {
@@ -614,19 +600,19 @@ export default defineComponent({
             }
 
             if (this.type === "phone") {
-                return "(##) #########"
+                return "(##) #########";
             }
 
             if (this.type === "cpf") {
-                return "###.###.###-##"
+                return "###.###.###-##";
             }
 
             if (this.type === "cnpj") {
-                return "##.###.###/####.##"
+                return "##.###.###/####.##";
             }
 
             if (this.type === "cep") {
-                return "#####-###"
+                return "#####-###";
             }
 
             return undefined;
@@ -766,7 +752,7 @@ export default defineComponent({
          */
         onFocus() {
             this.isFocused = true;
-        }, 
+        },
 
         /**
          * Clears the focused state when the user leaves the field.
@@ -789,7 +775,11 @@ export default defineComponent({
             }
 
             const text = String(this.localValue ?? "");
-            const toast = (this as unknown as { $toast?: { success: (m: string) => void; error: (m: string) => void } }).$toast;
+            const toast = (
+                this as unknown as {
+                    $toast?: { success: (m: string) => void; error: (m: string) => void };
+                }
+            ).$toast;
 
             try {
                 await navigator.clipboard.writeText(text);
@@ -857,23 +847,26 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.expand-error-enter-active, .expand-error-leave-active {
-    transition: all 0.3s cubic-bezier(.4,0,.2,1);
+.expand-error-enter-active,
+.expand-error-leave-active {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.expand-error-enter-from, .expand-error-leave-to {
+.expand-error-enter-from,
+.expand-error-leave-to {
     max-height: 0;
     opacity: 0;
     margin-top: 0;
 }
 
-.expand-error-enter-to, .expand-error-leave-from {
+.expand-error-enter-to,
+.expand-error-leave-from {
     max-height: 40px;
     opacity: 1;
     margin-top: 0.5rem;
 }
 
 input {
-  color-scheme: dark;
+    color-scheme: dark;
 }
 </style>

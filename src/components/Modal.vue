@@ -252,7 +252,7 @@ export default defineComponent({
                 "lg:w-[35%] md:w-[50%] sm:w-[70%] w-[90%]": this.size === "small" && (this.variant === "modal" || this.variant === "blank"),
                 "lg:w-[50%] md:w-[70%] sm:w-[80%] w-[94%]": this.size === "medium" && (this.variant === "modal" || this.variant === "blank"),
                 "lg:w-[70%] md:w-[80%] sm:w-[86%] w-[98%]": this.size === "large" && (this.variant === "modal" || this.variant === "blank"),
-                "rounded border": this.variant === "modal" || this.variant === "blank",
+                "rounded border border-border/60!": this.variant === "modal" || this.variant === "blank",
 
                 "border-warning/50! border-2!": this.color === "warning",
                 "border-destructive/50! border-2!": this.color === "destructive",

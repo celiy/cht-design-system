@@ -16,7 +16,7 @@
                 'bg-input/70': !checked && !disabled,
                 'bg-input': disabled,
                 'rounded ring-[3px] ring-transparent ring-offset-0': !isFocused,
-                'rounded ring-[3px] ring-ring/50 ring-offset-0': isFocused
+                'rounded ring-[3px] ring-ring/50 ring-offset-0': isFocused && !disabled
             }"
         >
             <span
@@ -53,14 +53,14 @@ export default defineComponent({
 
     data() {
         return {
-            isFocused: false,
-        }
+            isFocused: false
+        };
     },
 
     methods: {
         onFocus() {
             this.isFocused = true;
-        }, 
+        },
 
         onBlur() {
             this.isFocused = false;
