@@ -19,10 +19,11 @@
             <input
                 :id="id"
                 type="radio"
-                class="custom-radio w-4 h-4 border border-input bg-input/30 transition-all rounded-full cursor-pointer relative shrink-0 translate-y-0.75"
+                class="custom-radio w-4 h-4 border border-input bg-input/30 transition-all rounded-full cursor-pointer relative shrink-0"
 
                 :class="{
-                    'ring-[3px] ring-ring/50 ring-offset-0' : hovered && !disabled
+                    'ring-[3px] ring-ring/50 ring-offset-0' : hovered && !disabled,
+                    'translate-y-0.75': label || description
                 }"
                 :name="name"
                 :required="required"

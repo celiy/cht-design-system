@@ -24,7 +24,7 @@
                         ? 'sr-only'
                         : 'custom-checkbox relative h-4 w-4 shrink-0 cursor-pointer rounded-sm border border-input bg-input/30 transition-all',
                     {
-                        'translate-y-0.5': checkboxStyle !== 'switch',
+                        'translate-y-0.5': checkboxStyle !== 'switch' && (label || description),
                         'ring-[3px] ring-ring/50 ring-offset-0': hovered && !disabled
                     }
                 ]"
