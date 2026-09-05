@@ -30,7 +30,7 @@
                         <div
                             v-if="message.images"
 
-                            class="grid gap-1"
+                            class="grid gap-2"
                             :class="[
                                 message.text ? 'mb-2' : '',
                                 (message.images?.length || 0) > 1 ? 'grid-cols-2' : ''
@@ -62,7 +62,7 @@
                                         "
                                     >
                                         <Image
-                                            class="h-full w-full cursor-pointer transition-all hover:brightness-120"
+                                            class="h-full w-full cursor-pointer transition-all light:hover:brightness-80 dark:hover:brightness-120"
                                             :image-class="
                                                 (message.images?.length || 0) > 1
                                                     ? 'size-full object-cover'
@@ -91,7 +91,7 @@
                                         "
                                     >
                                         <Image
-                                            class="h-full w-full cursor-pointer transition-all hover:brightness-120"
+                                            class="h-full w-full cursor-pointer transition-all light:hover:brightness-80 dark:hover:brightness-120"
                                             image-class="size-full object-cover"
                                             :src="message.images[imageIndex - 1]"
 
@@ -112,7 +112,7 @@
                                         <button
                                             v-tooltip="{ content: 'Ver mais', placement: 'center' }"
                                             type="button"
-                                            class="relative h-full w-full cursor-pointer overflow-hidden rounded text-foreground transition-all hover:brightness-150"
+                                            class="relative h-full w-full cursor-pointer overflow-hidden rounded text-foreground transition-all light:hover:brightness-80 dark:hover:brightness-120"
 
                                             @click="openGallery(message.images, 3)"
                                         >
@@ -123,9 +123,11 @@
                                                 style="filter: blur(4px)"
                                                 draggable="false"
                                             />
+
                                             <span
-                                                class="pointer-events-none absolute inset-0 rounded bg-card opacity-80"
+                                                class="pointer-events-none absolute inset-0 rounded bg-card opacity-50"
                                             />
+                                            
                                             <span class="relative z-10">
                                                 +{{ message.images.length - 3 }}
                                             </span>
@@ -208,7 +210,12 @@
                                             {{ part.text }}
                                         </a>
 
-                                        <template v-else>{{ part.text }}</template>
+                                        
+                                        <template v-else>
+                                            <span class="text-contrast">
+                                                {{ part.text }}
+                                            </span>
+                                        </template>
                                     </template>
                                 </small>
                             </ContextMenu>
@@ -234,7 +241,7 @@
                                             v-for="reaction in message.reactions.slice(0, 3)"
                                             :key="reaction.reaction"
 
-                                            class="cursor-pointer py-1 text-xs transition-all hover:brightness-150"
+                                            class="cursor-pointer py-1 text-xs transition-all light:hover:brightness-80 dark:hover:brightness-120"
                                         >
                                             {{ reaction.reaction }}
                                             <span
@@ -259,7 +266,7 @@
                                                     .join(' - '),
                                                 placement: 'bottom'
                                             }"
-                                            class="relative cursor-pointer py-1 text-xs text-muted-foreground transition-all hover:brightness-150"
+                                            class="relative cursor-pointer py-1 text-xs text-muted-foreground transition-all light:hover:brightness-50 dark:hover:brightness-120"
                                         >
                                             +{{ message.reactions.length - 3 }}
                                         </span>
@@ -274,7 +281,7 @@
                                             content: `Editado em ${message.editedAt ? formatDate(message.editedAt) : ''}`,
                                             placement: 'bottom'
                                         }"
-                                        class="text-xs font-medium text-muted-foreground select-none"
+                                        class="text-xs font-medium text-contrast opacity-50 select-none"
                                     >
                                         Editado
                                     </span>
@@ -283,7 +290,7 @@
                                     <span
                                         v-if="message.date"
 
-                                        class="text-xs font-medium text-muted-foreground"
+                                        class="text-xs font-medium text-contrast opacity-50"
                                         :class="{
                                             'p-3': message.images?.length === 1 && !message.text,
                                             'pt-3':
@@ -390,10 +397,10 @@ const messageStatusIcons: Record<MessageStatus, string> = {
 };
 
 const messageStatusColors: Record<MessageStatus, string> = {
-    sent: "text-muted-foreground",
-    read: "text-foreground",
-    pending: "text-muted-foreground",
-    failed: "text-destructive"
+    sent: "text-contrast opacity-50",
+    read: "text-contrast opacity-50",
+    pending: "text-contrast opacity-50",
+    failed: "text-contrast opacity-50"
 };
 
 const messageStatusLabels: Record<MessageStatus, string> = {

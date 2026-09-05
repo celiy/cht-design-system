@@ -9,11 +9,11 @@
             'bg-warning text-warning-foreground': variant === 'warning',
             'bg-info text-info-foreground': variant === 'info',
             'bg-success text-success-foreground': variant === 'success',
-            'bg-chart-1 text-foreground': variant === 'chart-1',
-            'bg-chart-2 text-foreground': variant === 'chart-2',
-            'bg-chart-3 text-foreground': variant === 'chart-3',
-            'bg-chart-4 text-foreground': variant === 'chart-4',
-            'bg-chart-5 text-foreground': variant === 'chart-5',
+            'bg-chart-1 text-contrast': variant === 'chart-1',
+            'bg-chart-2 text-contrast': variant === 'chart-2',
+            'bg-chart-3 text-contrast': variant === 'chart-3',
+            'bg-chart-4 text-contrast': variant === 'chart-4',
+            'bg-chart-5 text-contrast': variant === 'chart-5',
             'hover:underline cursor-pointer': type === 'link'
         }"
 

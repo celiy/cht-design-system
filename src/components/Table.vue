@@ -21,7 +21,7 @@
         <table class="w-full text-foreground">
             <!-- Header -->
             <thead class="rounded-t">
-                <tr class="w-full bg-accent/20 transition-all hover:bg-accent/60">
+                <tr class="w-full bg-accent/30 transition-all hover:bg-accent/60">
                     <!-- Left-side checkbox -->
                     <th v-if="selectable" class="w-1 p-2 text-left text-sm font-semibold">
                         <Checkbox
@@ -91,7 +91,7 @@
                         :key="'row-' + index"
                         class="border-t border-border/50 text-sm transition-all hover:bg-accent/60"
                         :class="{
-                            'bg-accent/20': index % 2 !== 0
+                            'bg-accent/30': index % 2 !== 0
                         }"
                     >
                         <!-- Checkbox -->

@@ -466,12 +466,8 @@ export default defineComponent({
   }
 
   &::-moz-range-thumb {
-    width: 1rem;
-    height: 1rem;
-    border-radius: 9999px;
-    background: var(--color-background);
-    border: 2px solid var(--color-primary);
-    box-shadow: 0 0 0 1px var(--color-border);
+    width: 0.9rem;
+    height: 0.9rem;
     cursor: pointer;
   }
 
@@ -493,7 +489,7 @@ export default defineComponent({
     height: 0;
     margin: 0;
     border: 0;
-    background: transparent;
+    background: var(--color-primary-foreground);
     box-shadow: none;
   }
 
@@ -502,7 +498,7 @@ export default defineComponent({
     height: 0;
     margin: 0;
     border: 0;
-    background: transparent;
+    background: var(--color-primary-foreground);
     box-shadow: none;
   }
 }
@@ -536,6 +532,7 @@ export default defineComponent({
     margin: 0;
     margin-left: -0.3rem;
     box-sizing: border-box;
+    background: var(--color-primary-foreground);
   }
 
   &::-moz-range-track {
@@ -557,6 +554,7 @@ export default defineComponent({
     margin: 0;
     margin-left: -0.3rem;
     box-sizing: border-box;
+    background: var(--color-primary-foreground);
   }
 
   &.progress-range--readonly {

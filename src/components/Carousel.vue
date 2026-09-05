@@ -54,7 +54,7 @@
 
                 class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 z-10"
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="medium"
                 shape="rounded"
                 :hover-effect="false"
@@ -69,7 +69,7 @@
 
                 class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 z-10"
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="medium"
                 shape="rounded"
                 :hover-effect="false"

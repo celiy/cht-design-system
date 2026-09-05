@@ -12,6 +12,8 @@ export type ToastItem = {
     message: string;
     closeButton: string | false;
     event?: ToastEventPayload;
+    /** Total auto-dismiss duration in ms; omitted when the toast is persistent. */
+    timeoutMs?: number;
 };
 
 export type ToastShowOptions = {
@@ -39,16 +41,75 @@ export type ToastApi = {
 type ToastTimer = {
     handle: ReturnType<typeof setTimeout> | null;
     remainingMs: number;
+    totalMs: number;
     startedAt: number;
 };
 
 const items = reactive<ToastItem[]>([]);
 const timers = new Map<number, ToastTimer>();
 const closeListeners = new Set<ToastCloseHandler>();
+const progressTick = reactive({ n: 0 });
 
 let nextId = 1;
 let defaultTimeout = 4000;
 let allPaused = false;
+let progressInterval: ReturnType<typeof setInterval> | null = null;
+
+function startProgressTicker() {
+    if (progressInterval !== null) {
+        return;
+    }
+
+    progressInterval = setInterval(() => {
+        if (timers.size === 0) {
+            if (progressInterval !== null) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+
+            return;
+        }
+
+        progressTick.n += 1;
+    }, 50);
+}
+
+function stopProgressTicker() {
+    if (progressInterval === null) {
+        return;
+    }
+
+    clearInterval(progressInterval);
+    progressInterval = null;
+}
+
+function remainingMsFor(id: number) {
+    const timer = timers.get(id);
+
+    if (timer === undefined) {
+        return 0;
+    }
+
+    if (timer.handle === null) {
+        return timer.remainingMs;
+    }
+
+    return Math.max(0, timer.remainingMs - (Date.now() - timer.startedAt));
+}
+
+export function getToastProgress(id: number) {
+    void progressTick.n;
+
+    const timer = timers.get(id);
+
+    if (timer === undefined || timer.totalMs <= 0) {
+        return 0;
+    }
+
+    const remaining = remainingMsFor(id);
+
+    return Math.min(1, Math.max(0, 1 - remaining / timer.totalMs));
+}
 
 function clearTimer(id: number) {
     const timer = timers.get(id);
@@ -62,6 +123,10 @@ function clearTimer(id: number) {
     }
 
     timers.delete(id);
+
+    if (timers.size === 0) {
+        stopProgressTicker();
+    }
 }
 
 function emitClose(item: ToastItem) {
@@ -173,15 +238,16 @@ function resolveCloseButton(options?: ToastShowOptions) {
 function show(message: string, type: ToastType, options?: ToastShowOptions) {
     const id = nextId++;
 
+    const timeout = options?.timeout ?? defaultTimeout;
+
     items.push({
         id,
         type,
         message,
         closeButton: resolveCloseButton(options),
-        event: options?.event
+        event: options?.event,
+        timeoutMs: timeout > 0 ? timeout : undefined
     });
-
-    const timeout = options?.timeout ?? defaultTimeout;
 
     if (timeout > 0) {
         timers.set(id, {
@@ -189,8 +255,10 @@ function show(message: string, type: ToastType, options?: ToastShowOptions) {
                 dismiss(id);
             }, timeout),
             remainingMs: timeout,
+            totalMs: timeout,
             startedAt: Date.now()
         });
+        startProgressTicker();
 
         if (allPaused) {
             pause(id);
@@ -239,6 +307,7 @@ export const toast: ToastApi = {
             clearTimer(id);
         }
 
+        stopProgressTicker();
         items.splice(0, items.length);
     }
 };

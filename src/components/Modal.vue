@@ -161,7 +161,7 @@ export default defineComponent({
         },
 
         color: {
-            type: String as PropType<"destructive" | "success" | "warning" | "primary">,
+            type: String as PropType<"destructive" | "success" | "warning" | "info">,
             default: "secondary",
             required: false
         },
@@ -257,6 +257,7 @@ export default defineComponent({
                 "border-warning/50! border-2!": this.color === "warning",
                 "border-destructive/50! border-2!": this.color === "destructive",
                 "border-success/50! border-2!": this.color === "success",
+                "border-info/50! border-2!": this.color === "info",
 
                 "lg:w-[30%] md:w-[50%] sm:w-[80%] w-[90%]": this.variant === "drawer" && this.side !== "bottom" && this.size === "small",
                 "lg:w-[30%] md:w-[55%] sm:w-[85%] w-[90%]": this.variant === "drawer" && this.side !== "bottom" && this.size === "medium",
@@ -268,9 +269,9 @@ export default defineComponent({
                 "w-full self-stretch max-h-[58vh] sm:max-h-[68vh] md:max-h-[72vh]": this.variant === "drawer" && this.side === "bottom" && this.size === "medium",
                 "w-full self-stretch max-h-[78vh] sm:max-h-[85vh] md:max-h-[88vh]": this.variant === "drawer" && this.side === "bottom" && this.size === "large",
 
-                "border rounded-r border-r": this.variant === "drawer" && this.side === "left",
-                "border rounded-l border-l":this.variant === "drawer" && this.side === "right",
-                "border rounded-t border-t border-x": this.variant === "drawer" && this.side === "bottom"
+                "rounded-r border-r border-border/60!": this.variant === "drawer" && this.side === "left",
+                "rounded-l border-l border-border/60!":this.variant === "drawer" && this.side === "right",
+                "rounded-t border-t border-border/60!": this.variant === "drawer" && this.side === "bottom"
             };
 
             return c;

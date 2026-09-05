@@ -68,7 +68,7 @@ export default defineComponent({
 
     props: {
         variant: {
-            type: String as PropType<"destructive" | "success" | "warning" | "primary">,
+            type: String as PropType<"destructive" | "success" | "warning" | "info">,
             default: "secondary",
             required: false
         },

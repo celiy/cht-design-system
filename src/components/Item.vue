@@ -4,7 +4,7 @@
         :class="[
             cardClass,
             {
-                'hover:brightness-125 cursor-pointer': hoverEffect
+                'dark:hover:brightness-125 light:hover:brightness-90  cursor-pointer': hoverEffect && !disabled
             }
         ]"
 

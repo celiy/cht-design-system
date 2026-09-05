@@ -20,8 +20,8 @@
             }"
         >
             <span
-                class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                :class="checked ? 'translate-x-4' : 'translate-x-0.5'"
+                class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
+                :class="checked ? 'translate-x-4.25' : 'translate-x-px'"
             />
         </span>
     </span>

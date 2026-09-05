@@ -36,12 +36,8 @@
                         @touchend="onTouchEnd(item.id)"
                         @touchcancel="onTouchCancel"
                     >
-                        <div class="relative w-full rounded border bg-card shadow-sm overflow-hidden">
-                            <div
-                                class="relative flex items-center gap-2 py-2 px-3 text-xs font-medium"
-
-                                :class="variantClass(item.type)"
-                            >
+                        <div class="relative w-full rounded border bg-card shadow-sm overflow-hidden" :class="variantClass(item.type)">
+                            <div class="relative flex items-center gap-2 py-2 px-3 text-xs font-medium">
                                 <i
                                     class="fa-solid shrink-0 text-sm"
 
@@ -64,6 +60,19 @@
                                     @click.stop="closeItem(item.id)"
                                 />
                             </div>
+
+                            <div
+                                v-if="item.timeoutMs"
+
+                                class="h-0.5 w-full bg-border/40"
+                            >
+                                <div
+                                    class="h-full origin-left"
+
+                                    :class="progressBarClass(item.type)"
+                                    :style="{ width: `${toastProgress(item.id) * 100}%` }"
+                                />
+                            </div>
                         </div>
                     </div>
                 </TransitionGroup>
@@ -75,7 +84,7 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Button from "./Button.vue";
-import { toast, useToastItems, type ToastType } from "../toast/toast";
+import { toast, useToastItems, getToastProgress, type ToastType } from "../toast/toast";
 
 export type ToastPosition =
     | "top"
@@ -262,6 +271,19 @@ export default defineComponent({
                 "fa-circle-exclamation": type === "error",
                 "fa-triangle-exclamation": type === "warning"
             };
+        },
+
+        progressBarClass(type: ToastType) {
+            return {
+                "bg-success": type === "success",
+                "bg-info": type === "info",
+                "bg-destructive": type === "error",
+                "bg-warning": type === "warning"
+            };
+        },
+
+        toastProgress(id: number) {
+            return getToastProgress(id);
         },
 
         heightOf(id: number) {
