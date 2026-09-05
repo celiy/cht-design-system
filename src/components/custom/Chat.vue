@@ -232,7 +232,7 @@
                                 <div
                                     v-if="message.reactions"
 
-                                    class="flex gap-2 rounded-full bg-card/50 px-2 font-medium select-none"
+                                    class="flex gap-2 rounded-full bg-black/10 px-2 font-medium select-none"
                                 >
                                     <template
                                         v-if="message.reactions && message.reactions.length > 0"
@@ -247,7 +247,7 @@
                                             <span
                                                 v-if="reaction.amount > 1"
 
-                                                class="text-muted-foreground"
+                                                class="text-contrast"
                                                 >x{{ reaction.amount }}</span
                                             >
                                         </span>
@@ -266,7 +266,7 @@
                                                     .join(' - '),
                                                 placement: 'bottom'
                                             }"
-                                            class="relative cursor-pointer py-1 text-xs text-muted-foreground transition-all light:hover:brightness-50 dark:hover:brightness-120"
+                                            class="relative cursor-pointer py-1 text-xs text-contrast transition-all light:hover:brightness-50 dark:hover:brightness-120"
                                         >
                                             +{{ message.reactions.length - 3 }}
                                         </span>
