@@ -336,7 +336,6 @@
                     :show-arrows="!$project.device.isMobile"
                     :start-index="galleryStartIndex"
                     :edge-click="$project.device.isMobile"
-                    steps-viewer="advanced"
 
                     @click:outside="galleryOpen = false"
                 >
