@@ -69,7 +69,7 @@ export default defineComponent({
     props: {
         variant: {
             type: String as PropType<"destructive" | "success" | "warning" | "info">,
-            default: "secondary",
+            default: "info",
             required: false
         },
 
@@ -117,22 +117,6 @@ export default defineComponent({
     },
 
     emits: ["cancel", "confirm", "update:isOpen"],
-
-    computed: {
-        toneVariant(): "destructive" | "success" | "warning" | "secondary" | "primary" {
-            const v = this.variant;
-
-            if (v === "destructive" || v === "success" || v === "warning") {
-                return v;
-            }
-
-            if (v === "primary") {
-                return "primary";
-            }
-
-            return "primary";
-        }
-    },
 
     methods: {
         setOpen(next: boolean) {
