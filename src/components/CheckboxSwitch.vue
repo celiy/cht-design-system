@@ -10,13 +10,13 @@
         @mouseleave="onBlur"
     >
         <span
-            class="relative inline-flex h-4 w-8 items-center rounded-full transition-all"
+            class="relative inline-flex h-4 w-8 items-center rounded-full ring-[3px] ring-offset-0 transition-all"
             :class="{
                 'bg-primary': checked,
                 'bg-input/70': !checked && !disabled,
                 'bg-input': disabled,
-                'rounded ring-[3px] ring-transparent ring-offset-0': !isFocused,
-                'rounded ring-[3px] ring-ring/50 ring-offset-0': isFocused && !disabled
+                'ring-transparent': !isFocused,
+                'ring-ring/50': isFocused && !disabled
             }"
         >
             <span

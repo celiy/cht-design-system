@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full border-b bg-background">
+    <div class="w-full border-b bg-background shadow-sm">
         <slot />
     </div>
 </template>
@@ -8,6 +8,6 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
-    name: "Navigator",
+    name: "Navigator"
 });
 </script>

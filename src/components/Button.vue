@@ -1,6 +1,6 @@
 <template>
     <button
-        class="transition-all w-fit cursor-pointer font-semibold select-none light:hover:brightness-90 dark:hover:brightness-125 shadow-sm"
+        class="transition-all w-fit cursor-pointer font-semibold select-none light:hover:brightness-90 dark:hover:brightness-125 shadow-sm hover:shadow-md!"
         :class="[
             {
                 'bg-primary/95 text-primary-foreground': variant === 'primary',

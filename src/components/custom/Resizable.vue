@@ -2,11 +2,13 @@
     <div
         ref="box"
 
-        class="resizable box-border"
+        class="resizable box-border flex min-h-0 flex-col overflow-hidden"
         :class="hoverBorderClass"
         :style="boxStyle"
     >
-        <slot />
+        <div class="min-h-0 min-w-0 flex-1 overflow-auto">
+            <slot />
+        </div>
 
         <div
             v-for="handle in handles"
@@ -20,6 +22,20 @@
 
             @pointerdown="onPointerDown(handle.edge, $event)"
         />
+
+        <div
+            v-if="dragging"
+
+            class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
+            aria-hidden="true"
+        >
+            <div
+                class="rounded border bg-popover p-2 text-sm text-foreground shadow-sm select-none"
+            >
+                <b>{{ currentWidth }}</b> <span v-if="currentHeight && currentWidth">x</span>
+                <b>{{ currentHeight }}</b>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -37,14 +53,54 @@ type HandleDef = {
 };
 
 const HANDLE_CLASS: Record<ResizeEdge, HandleDef> = {
-    n: { edge: "n", cursor: "ns-resize", className: "left-2 right-2 top-0 h-2", label: "Resize top" },
-    s: { edge: "s", cursor: "ns-resize", className: "left-2 right-2 bottom-0 h-2", label: "Resize bottom" },
-    e: { edge: "e", cursor: "ew-resize", className: "top-2 bottom-2 right-0 w-2", label: "Resize right" },
-    w: { edge: "w", cursor: "ew-resize", className: "top-2 bottom-2 left-0 w-2", label: "Resize left" },
-    ne: { edge: "ne", cursor: "nesw-resize", className: "top-0 right-0 w-3 h-3", label: "Resize top-right" },
-    nw: { edge: "nw", cursor: "nwse-resize", className: "top-0 left-0 w-3 h-3", label: "Resize top-left" },
-    se: { edge: "se", cursor: "nwse-resize", className: "bottom-0 right-0 w-3 h-3", label: "Resize bottom-right" },
-    sw: { edge: "sw", cursor: "nesw-resize", className: "bottom-0 left-0 w-3 h-3", label: "Resize bottom-left" }
+    n: {
+        edge: "n",
+        cursor: "ns-resize",
+        className: "left-2 right-2 top-0 h-2",
+        label: "Resize top"
+    },
+    s: {
+        edge: "s",
+        cursor: "ns-resize",
+        className: "left-2 right-2 bottom-0 h-2",
+        label: "Resize bottom"
+    },
+    e: {
+        edge: "e",
+        cursor: "ew-resize",
+        className: "top-2 bottom-2 right-0 w-2",
+        label: "Resize right"
+    },
+    w: {
+        edge: "w",
+        cursor: "ew-resize",
+        className: "top-2 bottom-2 left-0 w-2",
+        label: "Resize left"
+    },
+    ne: {
+        edge: "ne",
+        cursor: "nesw-resize",
+        className: "top-0 right-0 w-3 h-3",
+        label: "Resize top-right"
+    },
+    nw: {
+        edge: "nw",
+        cursor: "nwse-resize",
+        className: "top-0 left-0 w-3 h-3",
+        label: "Resize top-left"
+    },
+    se: {
+        edge: "se",
+        cursor: "nwse-resize",
+        className: "bottom-0 right-0 w-3 h-3",
+        label: "Resize bottom-right"
+    },
+    sw: {
+        edge: "sw",
+        cursor: "nesw-resize",
+        className: "bottom-0 left-0 w-3 h-3",
+        label: "Resize bottom-left"
+    }
 };
 
 export default defineComponent({
@@ -173,35 +229,17 @@ export default defineComponent({
 
             switch (this.resize) {
                 case "horizontal":
-                    return [
-                        "border-x",
-                        active ? "border-x-ring!" : "hover:border-x-ring!"
-                    ];
+                    return ["border-x", active ? "border-x-ring!" : "hover:border-x-ring!"];
                 case "vertical":
-                    return [
-                        "border-y",
-                        active ? "border-y-ring!" : "hover:border-y-ring!"
-                    ];
+                    return ["border-y", active ? "border-y-ring!" : "hover:border-y-ring!"];
                 case "left":
-                    return [
-                        "border-l",
-                        active ? "border-l-ring!" : "hover:border-l-ring!"
-                    ];
+                    return ["border-l", active ? "border-l-ring!" : "hover:border-l-ring!"];
                 case "right":
-                    return [
-                        "border-r",
-                        active ? "border-r-ring!" : "hover:border-r-ring!"
-                    ];
+                    return ["border-r", active ? "border-r-ring!" : "hover:border-r-ring!"];
                 case "top":
-                    return [
-                        "border-t",
-                        active ? "border-t-ring!" : "hover:border-t-ring!"
-                    ];
+                    return ["border-t", active ? "border-t-ring!" : "hover:border-t-ring!"];
                 case "bottom":
-                    return [
-                        "border-b",
-                        active ? "border-b-ring!" : "hover:border-b-ring!"
-                    ];
+                    return ["border-b", active ? "border-b-ring!" : "hover:border-b-ring!"];
                 default:
                     return [
                         "border",
@@ -293,8 +331,9 @@ export default defineComponent({
             let node = el.parentElement;
 
             while (node && node !== document.documentElement) {
-                const wrapsChild = Math.abs(node.clientWidth - el.offsetWidth) <= 1
-                    && Math.abs(node.clientHeight - el.offsetHeight) <= 1;
+                const wrapsChild =
+                    Math.abs(node.clientWidth - el.offsetWidth) <= 1 &&
+                    Math.abs(node.clientHeight - el.offsetHeight) <= 1;
                 const hasBox = node.clientWidth > 0 && node.clientHeight > 0;
 
                 if (hasBox && !wrapsChild) {
@@ -405,17 +444,21 @@ export default defineComponent({
         },
 
         allowsHorizontal(): boolean {
-            return this.resize === "all"
-                || this.resize === "horizontal"
-                || this.resize === "left"
-                || this.resize === "right";
+            return (
+                this.resize === "all" ||
+                this.resize === "horizontal" ||
+                this.resize === "left" ||
+                this.resize === "right"
+            );
         },
 
         allowsVertical(): boolean {
-            return this.resize === "all"
-                || this.resize === "vertical"
-                || this.resize === "top"
-                || this.resize === "bottom";
+            return (
+                this.resize === "all" ||
+                this.resize === "vertical" ||
+                this.resize === "top" ||
+                this.resize === "bottom"
+            );
         },
 
         onPointerMove(event: PointerEvent) {

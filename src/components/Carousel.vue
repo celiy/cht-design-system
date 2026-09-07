@@ -10,14 +10,13 @@
             <div
                 class="flex"
                 :class="{ 'transition-transform duration-500 ease-in-out': !isSwiping }"
-
                 :style="{ transform: `translateX(calc(-${pos * 100}% + ${swipeOffset}px))` }"
             >
                 <div
                     v-for="(_, index) in itemCount"
                     :key="index"
 
-                    class="w-full shrink-0 flex justify-center items-center p-4"
+                    class="flex w-full shrink-0 items-center justify-center p-4"
 
                     @click.self="onOutsideClick"
                 >
@@ -31,8 +30,7 @@
                 v-if="edgeClick && itemCount > 1"
 
                 type="button"
-                class="absolute inset-y-0 left-0 z-[5] w-[18%] cursor-pointer bg-transparent p-0 border-0"
-
+                class="absolute inset-y-0 left-0 z-5 w-[18%] cursor-pointer border-0 bg-transparent p-0"
                 aria-label="Item anterior"
 
                 @click.stop="prev"
@@ -42,8 +40,7 @@
                 v-if="edgeClick && itemCount > 1"
 
                 type="button"
-                class="absolute inset-y-0 right-0 z-[5] w-[18%] cursor-pointer bg-transparent p-0 border-0"
-
+                class="absolute inset-y-0 right-0 z-5 w-[18%] cursor-pointer border-0 bg-transparent p-0"
                 aria-label="Item seguinte"
 
                 @click.stop="next"
@@ -52,7 +49,7 @@
             <Button
                 v-if="showArrows && itemCount > 1"
 
-                class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 z-10"
+                class="absolute top-1/2 left-2 z-10 h-10 w-10 -translate-y-1/2"
                 type="button"
                 variant="secondary"
                 size="medium"
@@ -67,7 +64,7 @@
             <Button
                 v-if="showArrows && itemCount > 1"
 
-                class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 z-10"
+                class="absolute top-1/2 right-2 z-10 h-10 w-10 -translate-y-1/2"
                 type="button"
                 variant="secondary"
                 size="medium"
@@ -82,26 +79,26 @@
             <div
                 v-if="stepsViewer === 'simplified' && itemCount > 1"
 
-                class="w-full absolute bottom-6 flex justify-center z-10"
+                class="absolute bottom-6 z-10 flex w-full justify-center"
 
                 @mouseenter="hoverSelector = true"
                 @mouseleave="hoverSelector = false"
             >
-                <div class="flex justify-center gap-1.5 bg-black/20 w-fit p-1 rounded">
+                <div class="flex w-fit justify-center gap-1.5 rounded bg-black/20 p-1">
                     <div
                         v-for="(_, index) in itemCount"
                         :key="index"
 
-                        class="h-2 rounded-full cursor-pointer transition-all"
+                        class="h-2 cursor-pointer rounded-full transition-all"
                         :class="{
-                            'w-2 bg-foreground/40 hover:bg-foreground/60': index !== pos && !hoverSelector,
-                            'w-4 bg-foreground/50 hover:bg-foreground/60': index !== pos && hoverSelector,
-                            'w-4 bg-foreground/60 hover:bg-foreground/80': index === pos && !hoverSelector,
-                            'w-8 bg-foreground/90 hover:bg-foreground/80': index === pos && hoverSelector,
+                            'w-2 bg-white/40 hover:bg-white/60': index !== pos && !hoverSelector,
+                            'w-4 bg-white/50 hover:bg-white/60': index !== pos && hoverSelector,
+                            'w-4 bg-white/60 hover:bg-white/80': index === pos && !hoverSelector,
+                            'w-8 bg-white/90 hover:bg-white/80': index === pos && hoverSelector,
                             'h-4': hoverSelector
                         }"
 
-                        @click="goTo(index)"
+                        @click.stop="goTo(index)"
                     />
                 </div>
             </div>
@@ -110,13 +107,14 @@
         <div
             v-if="stepsViewer === 'advanced' && itemCount > 1"
 
-            class="flex justify-center mt-2"
+            class="mt-2 flex justify-center"
         >
-            <div class="inline-flex items-center rounded border border-input bg-input/30 text-sm text-foreground/90">
+            <div
+                class="inline-flex items-center rounded border border-input bg-input/30 text-sm text-foreground/90"
+            >
                 <button
                     type="button"
-                    class="px-2.5 py-1.5 cursor-pointer hover:bg-input/50 rounded-l"
-
+                    class="cursor-pointer rounded-l px-2.5 py-1.5 hover:bg-input/50"
                     aria-label="Item anterior"
 
                     @click.stop="prev"
@@ -124,14 +122,15 @@
                     <i class="fa-solid fa-chevron-left text-xs" />
                 </button>
 
-                <span class="px-2.5 py-1.5 border-x border-input min-w-16 text-center tabular-nums select-none">
+                <span
+                    class="min-w-16 border-x border-input px-2.5 py-1.5 text-center tabular-nums select-none"
+                >
                     {{ pos + 1 }} / {{ itemCount }}
                 </span>
 
                 <button
                     type="button"
-                    class="px-2.5 py-1.5 cursor-pointer hover:bg-input/50 rounded-r"
-
+                    class="cursor-pointer rounded-r px-2.5 py-1.5 hover:bg-input/50"
                     aria-label="Item seguinte"
 
                     @click.stop="next"

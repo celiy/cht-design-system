@@ -33,7 +33,7 @@ Example on how to use this component:
                 v-for="(_, index) in tabCount" 
                 :key="index" 
 
-                class="p-3 bg-transparent text-sm font-medium leading-1 rounded transition-all border hover:brightness-150"
+                class="p-3 bg-transparent text-sm font-medium leading-1 rounded transition-all border light:hover:brightness-50 dark:hover:brightness-150"
                 :class="{
                     'text-foreground': index === activeTab,
                     'text-muted-foreground': index !== activeTab,
@@ -51,7 +51,7 @@ Example on how to use this component:
             </button>
         </div>
         
-        <div class="rounded-b">
+        <div class="rounded shadow-sm">
             <slot :name="`tab-content-${activeTab}`" />
         </div>
     </div>

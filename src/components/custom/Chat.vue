@@ -648,21 +648,36 @@ export default defineComponent({
 
             // Lone bubble
             if (!prevSame && !nextSame) {
-                return "rounded-xl mb-4";
+                return "rounded mb-4";
             }
 
             // First bubble
             if (!prevSame && nextSame) {
-                return "rounded-t-xl rounded-b-md";
+                // Is right side bubble
+                if (side) {
+                    return "rounded-t rounded-bl rounded-br-sm"
+                }
+
+                return "rounded-t rounded-br rounded-bl-sm";
             }
 
             // Middle bubble
             if (prevSame && nextSame) {
-                return "rounded-md";
+                // Is right side bubble
+                if (side) {
+                    return "rounded-l rounded-r-sm"
+                }
+
+                return "rounded-r rounded-l-sm";
+            }
+
+            // Is right side bubble
+            if (side) {
+                return "rounded-l rounded-br rounded-tr-sm"
             }
 
             // Last bubble
-            return "rounded-t-md rounded-b-xl mb-4";
+            return "rounded-r rounded-bl rounded-tl-sm mb-4";
         },
 
         /**
