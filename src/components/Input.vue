@@ -1,9 +1,15 @@
 <template>
-    <div class="flex flex-col" :class="[fit ? 'w-fit' : 'w-full']">
+    <div
+        class="flex flex-col"
+        :class="[fit ? 'w-fit' : 'w-full']"
+    >
         <!-- Label -->
-        <label v-if="label"
+        <label
+            v-if="label"
 
-class="mb-2" :for="inputId">
+            class="mb-2"
+            :for="inputId"
+        >
             {{ label }} {{ required ? "*" : "" }}
         </label>
 
@@ -79,9 +85,11 @@ class="mb-2" :for="inputId">
                     />
 
                     <!-- Password toggle -->
-                    <div v-if="showPasswordToggle"
+                    <div
+                        v-if="showPasswordToggle"
 
-class="flex shrink-0 self-center">
+                        class="flex shrink-0 self-center"
+                    >
                         <button
                             type="button"
                             class="rounded-md text-muted-foreground transition-colors hover:text-foreground"
@@ -98,9 +106,11 @@ class="flex shrink-0 self-center">
                     </div>
 
                     <!-- Copy button -->
-                    <div v-if="showCopyButton"
+                    <div
+                        v-if="showCopyButton"
 
-class="flex shrink-0 self-center">
+                        class="flex shrink-0 self-center"
+                    >
                         <button
                             type="button"
                             class="rounded-md text-muted-foreground transition-colors hover:text-foreground"
@@ -147,9 +157,11 @@ class="flex shrink-0 self-center">
         </transition>
 
         <!-- Helper text -->
-        <small v-if="helperText"
+        <small
+            v-if="helperText"
 
-class="mt-2 text-sm! text-muted-foreground!">
+            class="mt-2 text-sm! text-muted-foreground!"
+        >
             {{ helperText }}
         </small>
     </div>
