@@ -10,7 +10,7 @@
         @mouseleave="onBlur"
     >
         <span
-            class="relative inline-flex h-4 w-8 items-center rounded-full ring-[3px] ring-offset-0 transition-all"
+            class="relative inline-flex h-4.5 w-8 items-center rounded-full ring-[3px] ring-offset-0 transition-all"
             :class="{
                 'bg-primary': checked,
                 'bg-input/70': !checked && !disabled,
@@ -21,7 +21,7 @@
         >
             <span
                 class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
-                :class="checked ? 'translate-x-4.25' : 'translate-x-px'"
+                :class="checked ? 'translate-x-4' : 'translate-x-0.5'"
             />
         </span>
     </span>
