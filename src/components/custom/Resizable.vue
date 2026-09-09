@@ -32,8 +32,9 @@
             <div
                 class="rounded border bg-popover p-2 text-sm text-foreground shadow-sm select-none"
             >
-                <b>{{ currentWidth }}</b> <span v-if="currentHeight && currentWidth">x</span>
-                <b>{{ currentHeight }}</b>
+                <b>{{ currentWidth?.toFixed(0) }}</b>
+                <span v-if="currentHeight && currentWidth">x</span>
+                <b>{{ currentHeight?.toFixed(0) }}</b>
             </div>
         </div>
     </div>
