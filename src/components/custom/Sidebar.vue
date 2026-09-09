@@ -1,22 +1,23 @@
 <template>
-    <div class="relative flex w-full h-full min-h-0">
+    <div class="relative flex h-full w-full">
         <Transition name="fade">
             <div
                 v-if="open && $project.device.isMobile"
-                class="absolute inset-0 bg-black/50 z-40 md:hidden"
+
+                class="absolute inset-0 z-40 bg-black/50 md:hidden"
                 aria-hidden="true"
+
                 @click="closeNav"
             />
         </Transition>
 
         <Resizable
-            class="absolute top-0 left-0 z-50 h-full flex flex-col overflow-hidden transition-transform duration-300 ease-out box-border border-r border-sidebar-border shadow-lg"
+            class="absolute top-0 left-0 z-50 box-border flex h-full flex-col overflow-hidden border-r border-sidebar-border shadow-lg transition-transform duration-300 ease-out"
             :class="[
                 open && $project.device.isMobile ? 'min-w-[80%] sm:min-w-[60%]' : '',
                 variant === 'minimalist' ? 'bg-background' : 'bg-sidebar'
             ]"
             resize="right"
-
             :style="sidebarMotionStyle"
             :hover-border="!$project.device.isMobile"
             :disabled="$project.device.isMobile || !open"
@@ -28,10 +29,10 @@
             @resize-start="isResizing = true"
             @resize-end="isResizing = false"
         >
-            <nav class="flex flex-col h-full min-h-0 pt-2 px-2 select-none box-border w-full">
+            <nav class="box-border flex h-full min-h-0 w-full flex-col px-2 pt-2 select-none">
                 <!-- Title and description -->
                 <div
-                    class="w-full shrink-0 bg-transparent hover:bg-sidebar-accent transition-all px-4 py-3 rounded"
+                    class="w-full shrink-0 rounded bg-transparent px-4 py-3 transition-all hover:bg-sidebar-accent"
                 >
                     <h4 class="mb-0!">
                         {{ title }}
@@ -44,7 +45,7 @@
 
                 <!-- Links -->
                 <div
-                    class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pb-6 pl-2 pr-1"
+                    class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-1 pb-6 pl-2"
                     :class="{ 'sidebar-links-scroll-hidden': variant === 'minimalist' }"
                 >
                     <div
@@ -57,7 +58,7 @@
                         <div
                             v-if="link.type === 'section'"
 
-                            class="w-full text-muted-foreground text-xs font-semibold pl-4 mt-6 mb-1"
+                            class="mt-6 mb-1 w-full pl-4 text-xs font-semibold text-muted-foreground"
                         >
                             {{ link.label }}
                         </div>
@@ -66,8 +67,12 @@
                         <div
                             v-if="link.type === 'link'"
 
-                            class="w-full transition-all px-4 py-2 rounded text-sm font-medium cursor-pointer"
-                            :class="[isActive(link.link) ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-transparent text-sidebar-foreground/90 hover:bg-sidebar-accent']"
+                            class="w-full cursor-pointer rounded px-4 py-2 text-sm font-medium transition-all"
+                            :class="[
+                                isActive(link.link)
+                                    ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                                    : 'bg-transparent text-sidebar-foreground/90 hover:bg-sidebar-accent'
+                            ]"
 
                             @mouseenter="hoverLink(link)"
                             @mouseleave="unhoverLink()"
@@ -84,7 +89,9 @@
                                 <i
                                     class="fa-solid fa-chevron-right text-xs transition-all duration-100 ease-out"
                                     :class="[
-                                        hoveredLink === link.link ? 'opacity-50 translate-y-0' : 'opacity-0 translate-y-4',
+                                        hoveredLink === link.link
+                                            ? 'translate-y-0 opacity-50'
+                                            : 'translate-y-4 opacity-0',
                                         isDown ? 'translate-x-1' : 'translate-x-0'
                                     ]"
                                 />
@@ -99,16 +106,23 @@
                         >
                             <!-- Group header -->
                             <div
-                                class="w-full flex items-center justify-between border-b-2 cursor-pointer bg-transparent hover:bg-sidebar-accent px-4 py-2 rounded text-sm font-medium"
-                                :class="[isGroupOpen(link, idx) ? 'border-border text-sidebar-foreground' : 'border-transparent text-sidebar-foreground/90']"
+                                class="flex w-full cursor-pointer items-center justify-between rounded border-b-2 bg-transparent px-4 py-2 text-sm font-medium hover:bg-sidebar-accent"
+                                :class="[
+                                    isGroupOpen(link, idx)
+                                        ? 'border-border text-sidebar-foreground'
+                                        : 'border-transparent text-sidebar-foreground/90'
+                                ]"
+
                                 @click="toggleGroup(link, idx)"
                             >
                                 <span>{{ link.label }}</span>
 
                                 <i
                                     :class="[
-                                        'fa-solid transition-transform duration-300 text-xs',
-                                        isGroupOpen(link, idx) ? 'fa-chevron-down rotate-180' : 'fa-chevron-down'
+                                        'fa-solid text-xs transition-transform duration-300',
+                                        isGroupOpen(link, idx)
+                                            ? 'fa-chevron-down rotate-180'
+                                            : 'fa-chevron-down'
                                     ]"
                                 />
                             </div>
@@ -116,37 +130,50 @@
                             <!-- Group content -->
                             <div
                                 class="grid w-full transition-[grid-template-rows] duration-300 ease-out"
-                                :class="isGroupOpen(link, idx) ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+                                :class="
+                                    isGroupOpen(link, idx) ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                                "
                             >
                                 <div class="min-h-0 overflow-hidden">
                                     <div class="flex flex-col">
                                         <!-- Sublink -->
-                                        <div 
-                                            v-for="(sublink, idx) in link.links" 
+                                        <div
+                                            v-for="(sublink, idx) in link.links"
                                             :key="sublink.label"
+
                                             class="flex"
                                         >
-                                            <div class="relative self-stretch shrink-0 ml-4 mr-2 w-0.5">
+                                            <div
+                                                class="relative mr-2 ml-4 w-0.5 shrink-0 self-stretch"
+                                            >
                                                 <div
                                                     class="absolute inset-0 z-0 bg-sidebar-border"
                                                     :class="[
-                                                        (idx === link.links.length - 1)
+                                                        idx === link.links.length - 1
                                                             ? 'rounded-full'
                                                             : ''
                                                     ]"
                                                 />
 
                                                 <div
-                                                    class="absolute inset-0 z-10 origin-center h-full rounded-full my-auto bg-primary transition-transform duration-300 ease-out"
-                                                    :class="isActive(sublink.link) ? 'scale-y-100' : 'scale-y-0'"
+                                                    class="absolute inset-0 z-10 my-auto h-full origin-center rounded-full bg-primary transition-transform duration-300 ease-out"
+                                                    :class="
+                                                        isActive(sublink.link)
+                                                            ? 'scale-y-100'
+                                                            : 'scale-y-0'
+                                                    "
                                                 />
                                             </div>
-                                   
+
                                             <div
                                                 :key="sublink.link"
 
-                                                class="flex justify-between w-full transition-all px-4 py-2 rounded text-sm font-medium cursor-pointer"
-                                                :class="[isActive(sublink.link) ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-transparent text-sidebar-foreground/90 hover:bg-sidebar-accent']"
+                                                class="flex w-full cursor-pointer justify-between rounded px-4 py-2 text-sm font-medium transition-all"
+                                                :class="[
+                                                    isActive(sublink.link)
+                                                        ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                                                        : 'bg-transparent text-sidebar-foreground/90 hover:bg-sidebar-accent'
+                                                ]"
 
                                                 @mouseenter="hoverLink(sublink)"
                                                 @mouseleave="unhoverLink()"
@@ -162,7 +189,9 @@
                                                 <i
                                                     class="fa-solid fa-chevron-right text-xs transition-all duration-100 ease-out"
                                                     :class="[
-                                                        hoveredLink === sublink.link ? 'opacity-50 translate-y-1' : 'opacity-0 translate-y-3',
+                                                        hoveredLink === sublink.link
+                                                            ? 'translate-y-1 opacity-50'
+                                                            : 'translate-y-3 opacity-0',
                                                         isDown ? 'translate-x-1' : 'translate-x-0'
                                                     ]"
                                                 />
@@ -179,17 +208,19 @@
 
         <div
             ref="mainContentScrollRef"
-            class="flex-1 w-full h-full min-h-0 box-border flex flex-col overflow-y-auto"
+
+            class="box-border flex h-full min-h-0 w-full flex-1 flex-col overflow-y-auto"
             :class="{ 'transition-[margin-left] duration-300 ease-out': !isResizing }"
             :style="mainContentStyle"
         >
             <div
                 v-if="variant === 'minimalist'"
 
-                class="sticky top-0 z-10 shrink-0 w-fit px-2 pt-2"
+                class="sticky top-0 z-10 w-fit shrink-0 px-2 pt-2"
             >
                 <Button
                     variant="transparent"
+
                     @click="toggleOpenClose"
                 >
                     <i class="fa-solid fa-bars" />
@@ -205,19 +236,20 @@
             <div
                 v-if="variant !== 'minimalist'"
 
-                class="sticky top-0 z-10 shrink-0 bg-background mb-6 shadow-lg"
+                class="sticky top-0 z-10 mb-6 shrink-0 bg-background shadow-lg"
             >
-                <div 
-                    class="px-2 pt-2 w-full flex"
-                    :class="{'justify-end': $project.device.isMobile}"
+                <div
+                    class="flex w-full px-2 pt-2"
+                    :class="{ 'justify-end': $project.device.isMobile }"
                 >
-                    <Button 
-                        variant="transparent" 
+                    <Button
+                        variant="transparent"
+
                         @click="toggleOpenClose"
                     >
                         <i class="fa-solid fa-bars" />
                     </Button>
-            
+
                     <Keybind
                         key-name="s"
 
@@ -228,7 +260,7 @@
                 <div class="separator mt-2" />
             </div>
 
-            <div>
+            <div class="min-h-0 flex-1 flex flex-col">
                 <slot />
             </div>
         </div>
@@ -279,7 +311,6 @@ export default defineComponent({
         navItems: {
             type: Array as PropType<any[]>,
             required: false
-       
         },
 
         variant: {
