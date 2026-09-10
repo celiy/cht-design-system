@@ -14,7 +14,7 @@
                 <label
                     v-if="label"
 
-                    class="text-foreground font-semibold text-sm mb-2 block"
+                    class="mb-2 block text-sm font-semibold text-foreground"
                     :for="id"
                 >
                     {{ label }}
@@ -38,13 +38,12 @@
                         :class="{
                             'ring-[3px]! ring-ring/50! ring-offset-0!': isOpen
                         }"
-
                         :hover-effect="false"
 
                         @click.stop="toggleOpenClose"
                     >
-                        <div class="flex items-center justify-between w-full gap-2">
-                            <div class="flex-1 min-w-0 text-left">
+                        <div class="flex w-full items-center justify-between gap-2">
+                            <div class="min-w-0 flex-1 text-left">
                                 <slot
                                     name="triggerLabel"
                                     :is-open="isOpen"
@@ -56,15 +55,14 @@
                             <i
                                 v-if="!hideDropdownArrow"
 
-                                class="fa-solid transition-all fa-chevron-down ml-2 text-xs"
-                                :class="{ 'rotate-180' : isOpen }"
+                                class="fa-solid fa-chevron-down ml-2 text-xs transition-all"
+                                :class="{ 'rotate-180': isOpen }"
                             />
                         </div>
                     </Button>
 
                     <slot
                         name="button"
-
                         :is-open="isOpen"
                         :toggle="toggleOpenClose"
                         :open="open"
@@ -88,12 +86,13 @@
                     v-if="isOpen && !useSheetModal"
                     ref="panelRef"
 
-                    class="absolute left-0 border border-border rounded bg-popover shadow-md z-50 overflow-y-auto min-w-fit"
+                    class="absolute left-0 z-50 min-w-fit overflow-y-auto rounded border border-border bg-popover shadow-md"
                     :class="[
                         panelClass,
-                        positionAbove ? 'bottom-full mb-1 dropdown-origin-bottom' : 'top-full mt-1 dropdown-origin-top'
+                        positionAbove
+                            ? 'dropdown-origin-bottom bottom-full mb-1'
+                            : 'dropdown-origin-top top-full mt-1'
                     ]"
-
                     :style="{ maxHeight: maxHeightPx + 'px', ...panelStyle }"
 
                     @click.stop="onPanelClick"
@@ -110,13 +109,14 @@
 
         <Modal
             variant="blank"
+            size="small"
             :is-open="isOpen && useSheetModal"
 
             @update:value="onSheetModalUpdate"
         >
             <template #body>
                 <div
-                    class="overflow-y-auto mt-1"
+                    class="mt-1 overflow-y-auto"
                     :style="{ maxHeight: maxHeightPx + 'px' }"
 
                     @click.stop="onPanelClick"
@@ -391,12 +391,16 @@ export default defineComponent({
             const rect = trigger.getBoundingClientRect();
             const gap = 4;
             const viewportPadding = 8;
-            const estimatedPanelHeight = panel?.offsetHeight ?? Math.min(this.maxHeightPx + 24, 304);
+            const estimatedPanelHeight =
+                panel?.offsetHeight ?? Math.min(this.maxHeightPx + 24, 304);
             const spaceBelow = window.innerHeight - rect.bottom;
             const spaceAbove = rect.top;
             const anchorWidth = rect.width;
             const minWidth = Math.max(anchorWidth, this.minWidthPx ?? 0);
-            const maxLeft = Math.max(viewportPadding, window.innerWidth - minWidth - viewportPadding);
+            const maxLeft = Math.max(
+                viewportPadding,
+                window.innerWidth - minWidth - viewportPadding
+            );
             const clampedLeft = Math.min(Math.max(rect.left, viewportPadding), maxLeft);
 
             this.positionAbove = spaceAbove >= spaceBelow && spaceBelow < estimatedPanelHeight;
@@ -408,8 +412,7 @@ export default defineComponent({
                 maxWidth: `calc(100vw - ${viewportPadding * 2}px)`,
                 ...(this.positionAbove
                     ? { bottom: `${window.innerHeight - rect.top + gap}px` }
-                    : { top: `${rect.bottom + gap}px` }
-                )
+                    : { top: `${rect.bottom + gap}px` })
             };
         },
 

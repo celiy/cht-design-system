@@ -1,15 +1,20 @@
 <template>
     <div
-        class="block select-none rounded bg-popover text-sm transition-all"
+        class="block rounded bg-popover text-sm transition-all select-none"
         v-bind="$attrs"
-
         :class="{
             'text-destructive!': isDestructive,
+            'bg-destructive/20!': showCheckmark && selected && isDestructive,
+            'bg-destructive/30!': highlighted && !$project.device.isMobile && isDestructive,
+            'hover:bg-destructive/30!': isSelectable && isDestructive,
+
             'text-popover-foreground': !isDestructive,
-            'bg-accent/50!': showCheckmark && selected,
-            'bg-accent!': (highlighted && !$project.device.isMobile),
-            'hover:bg-accent! cursor-pointer px-2.5 py-1.5 mx-1': isSelectable,
-            'p-1 px-2.5 m-1 text-muted-foreground! text-sm font-semibold': isHeading,
+            'bg-accent/50!': showCheckmark && selected && !isDestructive,
+            'bg-accent!': highlighted && !$project.device.isMobile && !isDestructive,
+            'hover:bg-accent': isSelectable && !isDestructive,
+
+            'mx-1 cursor-pointer px-2.5 py-1.5': isSelectable,
+            'm-1 p-1 px-2.5 text-sm font-semibold text-muted-foreground!': isHeading,
             'mt-1': first,
             'mb-1': last
         }"
@@ -18,7 +23,7 @@
         @mouseenter="$emit('mouseenter', $event)"
     >
         <div class="flex flex-nowrap items-center justify-between gap-4">
-            <div class="w-full flex flex-nowrap items-center">
+            <div class="flex w-full flex-nowrap items-center">
                 <i
                     v-if="icon"
 
@@ -34,7 +39,7 @@
                 <span
                     v-if="label"
 
-                    class="font-medium truncate"
+                    class="truncate font-medium"
                     :class="{
                         'text-sm': value,
                         'text-xs': !value

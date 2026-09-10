@@ -45,7 +45,7 @@
 
                 <!-- Links -->
                 <div
-                    class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-1 pb-6 pl-2"
+                    class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-1 pb-2 pl-2"
                     :class="{ 'sidebar-links-scroll-hidden': variant === 'minimalist' }"
                 >
                     <div
@@ -64,15 +64,18 @@
                         </div>
 
                         <!-- Link -->
-                        <div
+                        <RouterLink
                             v-if="link.type === 'link'"
 
-                            class="w-full cursor-pointer rounded px-4 py-2 text-sm font-medium transition-all"
+                            class="flex w-full cursor-pointer items-center justify-between rounded px-4 py-2 text-sm! font-medium! text-inherit! no-underline! transition-all"
                             :class="[
                                 isActive(link.link)
-                                    ? 'bg-primary/10 text-primary hover:bg-primary/20'
-                                    : 'bg-transparent text-sidebar-foreground/90 hover:bg-sidebar-accent'
+                                    ? 'bg-primary/10! hover:bg-primary/20!'
+                                    : 'bg-transparent! hover:bg-sidebar-accent!'
                             ]"
+                            :to="link.link"
+                            active-class=""
+                            exact-active-class=""
 
                             @mouseenter="hoverLink(link)"
                             @mouseleave="unhoverLink()"
@@ -81,22 +84,28 @@
                             @mouseout="onOut()"
                             @touchstart="onDown()"
                             @touchend="onUp()"
-                            @click="link.link && navigateTo(link.link)"
                         >
-                            <div class="flex items-center justify-between">
-                                <span>{{ link.label }}</span>
+                            <span
+                                :class="
+                                    isActive(link.link)
+                                        ? 'text-primary!'
+                                        : 'text-sidebar-foreground/90!'
+                                "
+                            >
+                                {{ link.label }}
+                            </span>
 
-                                <i
-                                    class="fa-solid fa-chevron-right text-xs transition-all duration-100 ease-out"
-                                    :class="[
-                                        hoveredLink === link.link
-                                            ? 'translate-y-0 opacity-50'
-                                            : 'translate-y-4 opacity-0',
-                                        isDown ? 'translate-x-1' : 'translate-x-0'
-                                    ]"
-                                />
-                            </div>
-                        </div>
+                            <i
+                                class="fa-solid fa-chevron-right inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
+                                :class="[
+                                    isActive(link.link) ? 'text-primary' : 'text-white',
+                                    hoveredLink === link.link
+                                        ? 'translate-y-0 opacity-100'
+                                        : 'translate-y-3 opacity-0',
+                                    isDown ? 'translate-x-1' : 'translate-x-0'
+                                ]"
+                            />
+                        </RouterLink>
 
                         <!-- Group -->
                         <div
@@ -165,15 +174,16 @@
                                                 />
                                             </div>
 
-                                            <div
+                                            <RouterLink
                                                 :key="sublink.link"
 
-                                                class="flex w-full cursor-pointer justify-between rounded px-4 py-2 text-sm font-medium transition-all"
+                                                class="flex w-full cursor-pointer items-center justify-between rounded px-4 py-2 text-sm font-medium transition-all"
                                                 :class="[
                                                     isActive(sublink.link)
-                                                        ? 'bg-primary/10 text-primary hover:bg-primary/20'
-                                                        : 'bg-transparent text-sidebar-foreground/90 hover:bg-sidebar-accent'
+                                                        ? 'bg-primary/10 text-primary! hover:bg-primary/20'
+                                                        : 'bg-transparent text-sidebar-foreground/90! hover:bg-sidebar-accent'
                                                 ]"
+                                                :to="sublink.link"
 
                                                 @mouseenter="hoverLink(sublink)"
                                                 @mouseleave="unhoverLink()"
@@ -182,26 +192,36 @@
                                                 @mouseout="onOut()"
                                                 @touchstart="onDown()"
                                                 @touchend="onUp()"
-                                                @click="navigateTo(sublink.link)"
                                             >
                                                 <span>{{ sublink.label }}</span>
 
                                                 <i
-                                                    class="fa-solid fa-chevron-right text-xs transition-all duration-100 ease-out"
+                                                    class="fa-solid fa-chevron-right inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
                                                     :class="[
+                                                        isActive(sublink.link)
+                                                            ? 'text-primary!'
+                                                            : 'text-foreground!',
                                                         hoveredLink === sublink.link
-                                                            ? 'translate-y-1 opacity-50'
+                                                            ? 'translate-y-0 opacity-100'
                                                             : 'translate-y-3 opacity-0',
                                                         isDown ? 'translate-x-1' : 'translate-x-0'
                                                     ]"
                                                 />
-                                            </div>
+                                            </RouterLink>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div
+                    v-if="$slots.footer"
+
+                    class="w-full shrink-0"
+                >
+                    <slot name="footer" />
                 </div>
             </nav>
         </Resizable>
@@ -260,7 +280,7 @@
                 <div class="separator mt-2" />
             </div>
 
-            <div class="min-h-0 flex-1 flex flex-col">
+            <div class="flex min-h-0 flex-1 flex-col">
                 <slot />
             </div>
         </div>
@@ -456,11 +476,7 @@ export default defineComponent({
 
         /**
          * Whether a group is expanded.
-         * Uses local state; falls back to `link.open` from the nav config.
-         *
-         * @param link Nav group item
-         * @param idx Index in the nav list
-         * @returns True when the group content should show
+         * Uses local toggle state; otherwise `openByDefault` (or legacy `open`).
          */
         isGroupOpen(link: any, idx: number): boolean {
             if (link.links) {
@@ -477,7 +493,7 @@ export default defineComponent({
                 return this.openGroups[key] ?? false;
             }
 
-            return Boolean(link.open);
+            return Boolean(link.openByDefault ?? link.open);
         },
 
         /**
@@ -551,5 +567,10 @@ export default defineComponent({
 
 .sidebar-links-scroll-hidden::-webkit-scrollbar {
     display: none;
+}
+
+nav a {
+    color: inherit;
+    text-decoration: none;
 }
 </style>
