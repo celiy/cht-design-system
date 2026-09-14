@@ -1,5 +1,10 @@
 <template>
-    <form class="flex flex-col gap-6" @submit="onSubmit">
+    <form
+        :id="formId"
+        class="flex flex-col gap-6"
+
+        @submit="onSubmit"
+    >
         <div
             v-for="sectionObj in normalizedSections"
             v-show="isSectionVisible(sectionObj.fields)"
@@ -7,6 +12,7 @@
         >
             <h4
                 v-if="String(sectionObj.title)"
+
                 class="mb-3"
             >
                 {{ sectionObj.title }}
@@ -17,32 +23,40 @@
                     'flex flex-col gap-4': activeSectionColumns <= 1,
                     'grid gap-4': activeSectionColumns > 1
                 }"
-                :style="activeSectionColumns > 1 ? { gridTemplateColumns: `repeat(${activeSectionColumns}, minmax(0, 1fr))` } : undefined"
+                :style="
+                    activeSectionColumns > 1
+                        ? { gridTemplateColumns: `repeat(${activeSectionColumns}, minmax(0, 1fr))` }
+                        : undefined
+                "
             >
-                <template v-for="field in sectionObj.fields" :key="field.id">
+                <template
+                    v-for="field in sectionObj.fields"
+                    :key="field.id"
+                >
                     <div
                         v-if="isFieldVisible(field)"
 
                         class="min-w-0"
-
                         :style="getFieldStyle(field)"
                     >
                         <Input
                             v-if="isInputType(field.type)"
+
                             :id="field.id"
                             :type="field.type as any"
                             :label="field.label"
-                            :placeholder="field.placeholder"
+                            :placeholder="isViewMode ? undefined : field.placeholder"
                             :helper-text="field.helperText"
                             :error="fieldError(field)"
-                            :required="field.required"
+                            :required="!isViewMode && field.required"
                             :disabled="field.disabled"
-                            :readonly="field.readonly"
+                            :readonly="isFieldReadonly(field)"
+                            :variant="isFieldReadonly(field) ? 'display' : 'secondary'"
                             :max-size="field.maxSize"
                             :min-size="field.minSize"
                             :input-class="field.inputClass"
                             :text-mask="field.textMask"
-                            :copiable="field.copiable"
+                            :copiable="isFieldReadonly(field) || field.copiable"
                             :value="formValues[field.id] ?? ''"
 
                             @update:value="updateValue(field.id, $event)"
@@ -57,20 +71,37 @@
                             :description="field.description"
                             :variant="(field.variant as 'normal' | 'card') || 'normal'"
                             :checkbox-style="field.checkboxStyle ?? 'normal'"
-                            :required="field.required"
-                            :disabled="field.disabled"
+                            :required="!isViewMode && field.required"
+                            :disabled="isViewMode || field.disabled"
                             :checked="formValues[field.id] ?? false"
                             :value="formValues[field.id] ?? false"
 
                             @update:value="updateValue(field.id, $event)"
                         />
 
-                        <div v-else-if="field.type === 'radio'" class="flex flex-col gap-2">
+                        <Input
+                            v-else-if="field.type === 'radio' && isViewMode"
+
+                            :id="field.id"
+                            type="text"
+                            :label="field.label"
+                            variant="display"
+                            readonly
+                            copiable
+                            :value="selectDisplayValue(field)"
+                        />
+
+                        <div
+                            v-else-if="field.type === 'radio'"
+
+                            class="flex flex-col gap-2"
+                        >
                             <Radio
                                 v-for="option in field.options"
-                                :id="`${field.id}-${option.value}`"
 
+                                :id="`${field.id}-${option.value}`"
                                 :key="option.value"
+
                                 :name="field.name || field.id"
                                 :label="option.label"
                                 :value="option.value"
@@ -84,20 +115,43 @@
                             />
                         </div>
 
-                        <div v-else-if="field.type === 'select'" class="flex flex-col gap-2">
+                        <Input
+                            v-else-if="field.type === 'select' && isViewMode"
+
+                            :id="field.id"
+                            type="text"
+                            :label="field.label"
+                            variant="display"
+                            readonly
+                            copiable
+                            :value="selectDisplayValue(field)"
+                        />
+
+                        <div
+                            v-else-if="field.type === 'select'"
+
+                            class="flex flex-col items-center gap-2"
+                        >
                             <Select
+                                :id="field.id"
                                 :header="field.label"
+                                :helper-text="field.helperText"
                                 :options="field.options"
                                 :model-value="formValues[field.id]"
+                                :select-multiple="field.selectMultiple"
+                                :action-icon="isViewMode ? undefined : field.selectAction?.icon"
+                                :action-label="isViewMode ? undefined : field.selectAction?.label"
+                                :action-side="field.selectAction?.side ?? 'right'"
 
                                 @update:value="updateValue(field.id, $event)"
+                                @click:action="onSelectAction(field)"
                             />
                         </div>
 
                         <p
                             v-if="!isInputType(field.type) && fieldError(field)"
 
-                            class="text-destructive/90 mt-2 block bg-destructive/10 p-1 px-1.5 rounded border-destructive/20 border font-light leading-5 text-sm"
+                            class="mt-2 block rounded border border-destructive/20! bg-destructive/10! p-1 px-1.5 text-sm leading-5 font-light text-destructive/90!"
                         >
                             <i class="fa-solid fa-warning mr-2" />
                             {{ fieldError(field) }}
@@ -107,7 +161,15 @@
             </div>
         </div>
 
-        <slot name="submit" />
+        <div
+            v-if="$slots.actions || $slots.submit"
+
+            class="flex flex-wrap justify-end gap-2"
+        >
+            <slot name="actions">
+                <slot name="submit" />
+            </slot>
+        </div>
     </form>
 </template>
 
@@ -117,7 +179,6 @@ import Input from "../Input.vue";
 import Checkbox from "../Checkbox.vue";
 import Radio from "../Radio.vue";
 import Select from "../Select.vue";
-import Button from "../Button.vue";
 import validateEmail from "@shared/validators/email";
 import validatePhone from "@shared/validators/phone";
 import { validateCPF, validateCNPJ } from "@shared/validators/documents";
@@ -131,48 +192,68 @@ interface FormSection {
 }
 
 export default defineComponent({
-    name: 'FormRenderer',
+    name: "FormRenderer",
 
     components: {
         Input,
         Checkbox,
         Radio,
-        Select,
-        Button
+        Select
     },
 
     props: {
         fields: {
             type: Array as PropType<FormFieldType[]>,
             required: false,
-            default: () => [],
+            default: () => []
         },
 
         sections: {
             type: Array as PropType<FormSection[]>,
             required: false,
-            default: () => [],
+            default: () => []
+        },
+
+        /**
+         * When true, fields render in display style and submit is ignored.
+         */
+        readonly: {
+            type: Boolean,
+            default: false
+        },
+
+        values: {
+            type: Object as PropType<Record<string, unknown> | null>,
+            required: false,
+            default: null
+        },
+
+        formId: {
+            type: String,
+            required: false
         },
 
         submitLabel: {
             type: String,
-            default: 'Enviar'
+            default: "Enviar"
         },
 
         sectionColumns: {
-            type: [Number, Object] as PropType<number | { xs?: number; sm?: number; md?: number; lg?: number }>,
+            type: [Number, Object] as PropType<
+                number | { xs?: number; sm?: number; md?: number; lg?: number }
+            >,
             default: 1
         }
     },
 
-    emits: ['submit'],
+    emits: ["submit", "click:select-action"],
 
     data() {
         return {
             formValues: {} as Record<string, any>,
             fieldErrors: {} as Record<string, string>,
             activeSectionColumns: 1
-        }
+        };
     },
 
     computed: {
@@ -180,15 +261,15 @@ export default defineComponent({
             if (this.sections && this.sections.length > 0) {
                 return this.sections.map((sec, idx) => ({
                     key: sec.key ?? sec.title ?? `section-${idx}`,
-                    title: sec.title ?? '',
-                    fields: sec.fields ?? [],
+                    title: sec.title ?? "",
+                    fields: sec.fields ?? []
                 }));
             }
 
             const result: Record<string, FormFieldType[]> = {};
 
             for (const field of this.fields) {
-                const sectionTitle = field.section ?? '';
+                const sectionTitle = field.section ?? "";
 
                 if (!result[sectionTitle]) {
                     result[sectionTitle] = [];
@@ -200,34 +281,40 @@ export default defineComponent({
             return Object.entries(result).map(([title, fields]) => ({
                 key: title,
                 title,
-                fields,
+                fields
             }));
         },
 
         allFields(): FormFieldType[] {
             return this.normalizedSections.flatMap((s) => s.fields);
+        },
+
+        isViewMode(): boolean {
+            return this.readonly;
+        }
+    },
+
+    watch: {
+        values: {
+            handler() {
+                this.hydrateFormValues();
+            },
+
+            deep: true
         }
     },
 
     created() {
-        for (const field of this.allFields) {
-            if (field.value !== undefined) {
-                this.formValues[field.id] = field.value;
-            } else if (field.type === 'checkbox') {
-                this.formValues[field.id] = false;
-            } else {
-                this.formValues[field.id] = '';
-            }
-        }
+        this.hydrateFormValues();
     },
 
     mounted() {
         this.activeSectionColumns = this.resolveSectionColumns();
-        window.addEventListener('resize', this.onResize);
+        window.addEventListener("resize", this.onResize);
     },
 
     beforeUnmount() {
-        window.removeEventListener('resize', this.onResize);
+        window.removeEventListener("resize", this.onResize);
     },
 
     methods: {
@@ -235,14 +322,133 @@ export default defineComponent({
             this.activeSectionColumns = this.resolveSectionColumns();
         },
 
+        isFieldReadonly(field: FormFieldType): boolean {
+            return this.isViewMode || Boolean(field.readonly);
+        },
+
+        selectDisplayValue(field: FormFieldType): string {
+            const current = this.formValues[field.id];
+            const options = field.options ?? [];
+
+            if (Array.isArray(current)) {
+                const labels = current
+                    .map((item) => {
+                        const match = options.find((option) => {
+                            return option.value === item || option.value === String(item);
+                        });
+
+                        return match?.label ?? String(item);
+                    })
+                    .filter((label) => label !== "");
+
+                return labels.join(", ");
+            }
+
+            const match = options.find((option) => {
+                return option.value === current || option.value === String(current ?? "");
+            });
+
+            if (match) {
+                return match.label;
+            }
+
+            if (current === undefined || current === null) {
+                return "";
+            }
+
+            return String(current);
+        },
+
+        resolveIncomingValue(field: FormFieldType): unknown {
+            if (this.values && Object.prototype.hasOwnProperty.call(this.values, field.id)) {
+                return this.values[field.id];
+            }
+
+            if (this.formValues[field.id] !== undefined) {
+                return this.formValues[field.id];
+            }
+
+            if (field.value !== undefined) {
+                return field.value;
+            }
+
+            if (field.type === "checkbox") {
+                return false;
+            }
+
+            if (field.type === "select" && field.selectMultiple) {
+                return [];
+            }
+
+            return "";
+        },
+
+        hydrateFormValues() {
+            const next: Record<string, unknown> = { ...this.formValues };
+
+            for (const field of this.allFields) {
+                let value = this.resolveIncomingValue(field);
+
+                if (field.type === "select" && field.selectMultiple) {
+                    value = Array.isArray(value) ? value.map((item) => String(item)) : [];
+                } else if (
+                    field.type === "select" &&
+                    value !== undefined &&
+                    value !== null &&
+                    value !== ""
+                ) {
+                    value = String(value);
+                }
+
+                next[field.id] = value;
+            }
+
+            this.formValues = next;
+        },
+
+        /**
+         * Validates and emits `submit`. Used by actions rendered outside the form.
+         */
+        submitForm() {
+            const form = this.$el as HTMLFormElement | undefined;
+
+            if (form && typeof form.requestSubmit === "function") {
+                form.requestSubmit();
+                return;
+            }
+
+            this.onSubmit(new Event("submit", { cancelable: true }));
+        },
+
+        applyFieldErrors(errors: Record<string, string>) {
+            this.fieldErrors = { ...errors };
+        },
+
+        setFieldValue(fieldId: string, value: unknown) {
+            this.formValues[fieldId] = value;
+
+            if (this.fieldErrors[fieldId]) {
+                const nextErrors = { ...this.fieldErrors };
+                delete nextErrors[fieldId];
+                this.fieldErrors = nextErrors;
+            }
+        },
+
+        onSelectAction(field: FormFieldType) {
+            this.$emit("click:select-action", {
+                id: field.id,
+                field
+            });
+        },
+
         resolveSectionColumns(): number {
             const sc = this.sectionColumns;
 
-            if (typeof sc === 'number') {
+            if (typeof sc === "number") {
                 return sc;
             }
 
-            const width = typeof window !== 'undefined' ? window.innerWidth : 0;
+            const width = typeof window !== "undefined" ? window.innerWidth : 0;
 
             if (width >= 1024 && sc.lg != null) {
                 return sc.lg;
@@ -264,7 +470,13 @@ export default defineComponent({
             return sc.lg ?? sc.md ?? sc.sm ?? sc.xs ?? 1;
         },
 
-        updateValue(fieldId: string, value: any) {
+        updateValue(fieldId: string, value: unknown) {
+            const field = this.allFields.find((item) => item.id === fieldId);
+
+            if (field && this.isFieldReadonly(field)) {
+                return;
+            }
+
             this.formValues[fieldId] = value;
 
             if (this.fieldErrors[fieldId]) {
@@ -281,6 +493,10 @@ export default defineComponent({
         isEmptyValue(field: FormFieldType, value: any): boolean {
             if (field.type === "checkbox") {
                 return !value;
+            }
+
+            if (Array.isArray(value)) {
+                return value.length === 0;
             }
 
             if (field.type === "radio" || field.type === "select") {
@@ -304,6 +520,10 @@ export default defineComponent({
 
         onSubmit(event: Event) {
             event.preventDefault();
+
+            if (this.isViewMode) {
+                return;
+            }
 
             const nextErrors: Record<string, string> = {};
             const emptyFields: string[] = [];
@@ -353,24 +573,24 @@ export default defineComponent({
             }
 
             switch (type) {
-                case 'email':
+                case "email":
                     return validateEmail(str);
-                case 'phone':
+                case "phone":
                     return validatePhone(str);
-                case 'cpf':
+                case "cpf":
                     return validateCPF(str);
-                case 'cnpj':
+                case "cnpj":
                     return validateCNPJ(str);
-                case 'cep':
-                    return str.replace(/\D/g, '').length >= 8;
+                case "cep":
+                    return str.replace(/\D/g, "").length >= 8;
                 default:
                     return true;
             }
         },
 
         getFieldStyle(field: FormFieldType): Record<string, string> {
-            if (['checkbox', 'radio', 'textarea'].includes(field.type)) {
-                return { gridColumn: '1 / -1' };
+            if (["checkbox", "radio", "textarea"].includes(field.type)) {
+                return { gridColumn: "1 / -1" };
             }
 
             if (field.cols) {
@@ -386,7 +606,7 @@ export default defineComponent({
             const current = this.formValues[field.condition.field];
             const expected = field.condition.value;
 
-            if (field.condition.operator === 'neq') {
+            if (field.condition.operator === "neq") {
                 return current !== expected;
             }
 
@@ -394,7 +614,7 @@ export default defineComponent({
         },
 
         isSectionVisible(sectionFields: FormFieldType[]): boolean {
-            return sectionFields.some(field => this.isFieldVisible(field));
+            return sectionFields.some((field) => this.isFieldVisible(field));
         }
     }
 });

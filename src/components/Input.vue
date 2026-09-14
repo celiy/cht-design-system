@@ -15,7 +15,7 @@
 
         <!-- Input container -->
         <div
-            class="box-border transition-shadow"
+            class="box-border shadow-sm transition-shadow"
             :class="{
                 'rounded ring-[3px] ring-transparent ring-offset-0':
                     variant === 'secondary' && !isFocused,

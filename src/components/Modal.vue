@@ -587,6 +587,10 @@ export default defineComponent({
             const modal = this.$refs.modalRef as HTMLElement | undefined;
             const target = event.target as Node;
 
+            if (target instanceof Element && target.closest("[data-cht-floating-panel]")) {
+                return;
+            }
+
             if (modal && !modal.contains(target)) {
                 event.stopImmediatePropagation();
                 this.close();

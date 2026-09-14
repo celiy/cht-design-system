@@ -26,48 +26,61 @@
                     so label/helperText do not inflate the measured width.
                 -->
                 <div
-                    ref="panelAnchorRef"
-
-                    class="w-full"
+                    class="flex w-full items-stretch gap-2"
+                    :class="{ 'flex-row-reverse': $slots.action && actionSide === 'left' }"
                 >
-                    <Button
-                        v-if="!$slots.button"
+                    <div
+                        ref="panelAnchorRef"
 
-                        v-bind="buttonAtributes"
-                        class="w-full"
-                        :class="{
-                            'ring-[3px]! ring-ring/50! ring-offset-0!': isOpen
-                        }"
-                        :hover-effect="false"
-
-                        @click.stop="toggleOpenClose"
+                        class="min-w-0 flex-1"
                     >
-                        <div class="flex w-full items-center justify-between gap-2">
-                            <div class="min-w-0 flex-1 text-left">
-                                <slot
-                                    name="triggerLabel"
-                                    :is-open="isOpen"
-                                >
-                                    <span>{{ header }}</span>
-                                </slot>
+                        <Button
+                            v-if="!$slots.button"
+
+                            v-bind="buttonAtributes"
+                            class="w-full"
+                            :class="{
+                                'ring-[3px]! ring-ring/50! ring-offset-0!': isOpen
+                            }"
+                            :hover-effect="false"
+
+                            @click.stop="toggleOpenClose"
+                        >
+                            <div class="flex w-full items-center justify-between gap-2">
+                                <div class="min-w-0 flex-1 text-left">
+                                    <slot
+                                        name="triggerLabel"
+                                        :is-open="isOpen"
+                                    >
+                                        <span>{{ header }}</span>
+                                    </slot>
+                                </div>
+
+                                <i
+                                    v-if="!hideDropdownArrow"
+
+                                    class="fa-solid fa-chevron-down ml-2 text-xs transition-all"
+                                    :class="{ 'rotate-180': isOpen }"
+                                />
                             </div>
+                        </Button>
 
-                            <i
-                                v-if="!hideDropdownArrow"
+                        <slot
+                            name="button"
+                            :is-open="isOpen"
+                            :toggle="toggleOpenClose"
+                            :open="open"
+                            :close="close"
+                        />
+                    </div>
 
-                                class="fa-solid fa-chevron-down ml-2 text-xs transition-all"
-                                :class="{ 'rotate-180': isOpen }"
-                            />
-                        </div>
-                    </Button>
+                    <div
+                        v-if="$slots.action"
 
-                    <slot
-                        name="button"
-                        :is-open="isOpen"
-                        :toggle="toggleOpenClose"
-                        :open="open"
-                        :close="close"
-                    />
+                        class="flex min-h-0 shrink-0 self-stretch"
+                    >
+                        <slot name="action" />
+                    </div>
                 </div>
 
                 <small
@@ -86,7 +99,7 @@
                     v-if="isOpen && !useSheetModal"
                     ref="panelRef"
 
-                    class="absolute left-0 z-50 min-w-fit overflow-y-auto rounded border border-border bg-popover shadow-md"
+                    class="absolute left-0 z-[1100] min-w-fit overflow-y-auto rounded border border-border bg-popover shadow-md"
                     :class="[
                         panelClass,
                         positionAbove
@@ -94,6 +107,7 @@
                             : 'dropdown-origin-top top-full mt-1'
                     ]"
                     :style="{ maxHeight: maxHeightPx + 'px', ...panelStyle }"
+                    data-cht-floating-panel
 
                     @click.stop="onPanelClick"
                 >
@@ -251,6 +265,14 @@ export default defineComponent({
         forceModal: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * Side of the trigger where the `#action` slot is placed.
+         */
+        actionSide: {
+            type: String as PropType<"left" | "right">,
+            default: "right"
         }
     },
 

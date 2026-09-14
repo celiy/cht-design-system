@@ -32,7 +32,7 @@
             <nav class="box-border flex h-full min-h-0 w-full flex-col px-2 pt-2 select-none">
                 <!-- Title and description -->
                 <div
-                    class="w-full shrink-0 rounded bg-transparent px-4 py-3 transition-all hover:bg-sidebar-accent"
+                    class="w-full shrink-0 rounded bg-transparent px-4 py-3 transition-all dark:hover:brightness-125 light:hover:brightness-90"
                 >
                     <h4 class="mb-0!">
                         {{ title }}
@@ -67,12 +67,8 @@
                         <RouterLink
                             v-if="link.type === 'link'"
 
-                            class="flex w-full cursor-pointer items-center justify-between rounded px-4 py-2 text-sm! font-medium! text-inherit! no-underline! transition-all"
-                            :class="[
-                                isActive(link.link)
-                                    ? 'bg-primary/10! hover:bg-primary/20!'
-                                    : 'bg-transparent! hover:bg-sidebar-accent!'
-                            ]"
+                            class="flex w-full cursor-pointer items-center justify-between rounded px-4 py-2 text-sm! font-medium! text-inherit! no-underline! transition-all hover:bg-accent! hover:brightness-100!"
+                            :class="[isActive(link.link) ? 'bg-primary/10' : 'bg-transparent']"
                             :to="link.link"
                             active-class=""
                             exact-active-class=""
@@ -98,7 +94,9 @@
                             <i
                                 class="fa-solid fa-chevron-right inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
                                 :class="[
-                                    isActive(link.link) ? 'text-primary' : 'text-white',
+                                    isActive(link.link)
+                                        ? 'text-primary!'
+                                        : 'text-sidebar-foreground/90!',
                                     hoveredLink === link.link
                                         ? 'translate-y-0 opacity-100'
                                         : 'translate-y-3 opacity-0',
@@ -115,7 +113,7 @@
                         >
                             <!-- Group header -->
                             <div
-                                class="flex w-full cursor-pointer items-center justify-between rounded border-b-2 bg-transparent px-4 py-2 text-sm font-medium hover:bg-sidebar-accent"
+                                class="flex w-full cursor-pointer items-center justify-between rounded border-b-2 bg-transparent px-4 py-2 text-sm font-medium hover:bg-accent! hover:brightness-100!"
                                 :class="[
                                     isGroupOpen(link, idx)
                                         ? 'border-border text-sidebar-foreground'
@@ -177,11 +175,11 @@
                                             <RouterLink
                                                 :key="sublink.link"
 
-                                                class="flex w-full cursor-pointer items-center justify-between rounded px-4 py-2 text-sm font-medium transition-all"
+                                                class="flex w-full cursor-pointer items-center justify-between rounded px-4 py-2 text-sm font-medium transition-all hover:bg-accent! hover:brightness-100!"
                                                 :class="[
                                                     isActive(sublink.link)
                                                         ? 'bg-primary/10 text-primary! hover:bg-primary/20'
-                                                        : 'bg-transparent text-sidebar-foreground/90! hover:bg-sidebar-accent'
+                                                        : 'bg-transparent text-sidebar-foreground/90!'
                                                 ]"
                                                 :to="sublink.link"
 
@@ -200,7 +198,7 @@
                                                     :class="[
                                                         isActive(sublink.link)
                                                             ? 'text-primary!'
-                                                            : 'text-foreground!',
+                                                            : 'text-sidebar-foreground/90!',
                                                         hoveredLink === sublink.link
                                                             ? 'translate-y-0 opacity-100'
                                                             : 'translate-y-3 opacity-0',
@@ -256,10 +254,10 @@
             <div
                 v-if="variant !== 'minimalist'"
 
-                class="sticky top-0 z-10 mb-6 shrink-0 bg-background shadow-lg"
+                class="sticky top-0 z-10 mb-6 flex shrink-0 border-b bg-background shadow-lg"
             >
                 <div
-                    class="flex w-full px-2 pt-2"
+                    class="flex p-2"
                     :class="{ 'justify-end': $project.device.isMobile }"
                 >
                     <Button
@@ -277,7 +275,7 @@
                     />
                 </div>
 
-                <div class="separator mt-2" />
+                <slot name="top-bar" />
             </div>
 
             <div class="flex min-h-0 flex-1 flex-col">

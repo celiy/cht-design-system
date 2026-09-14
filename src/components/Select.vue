@@ -1,8 +1,8 @@
 <template>
     <FloatingPanel
         :id="id"
-
         ref="panelRef"
+
         :label="label"
         :helper-text="helperText"
         :header="header"
@@ -12,6 +12,7 @@
         :panel-class="panelClass"
         :mobile-modal="mobileModal"
         :force-modal="forceModal"
+        :action-side="actionSide"
     >
         <template #triggerLabel>
             <span
@@ -26,7 +27,6 @@
         <template #default>
             <OptionsList
                 v-model:search-query="searchQuery"
-
                 :options="options"
                 :search="search"
                 :show-checkmark="true"
@@ -37,9 +37,32 @@
         </template>
 
         <template #helperText>
-            <small v-if="inHelperText" class="px-3 pb-2 text-muted-foreground!">
+            <small
+                v-if="inHelperText"
+
+                class="px-3 pb-2 text-muted-foreground!"
+            >
                 {{ inHelperText }}
             </small>
+        </template>
+
+        <template
+            v-if="hasActionButton"
+            #action
+        >
+            <Button
+                type="button"
+                class="min-h-0 self-stretch"
+                :class="actionButtonLayoutClass"
+                :hover-effect="false"
+                :left-icon="actionIcon"
+                :label="actionLabel"
+                :disabled="disabled"
+                :aria-label="actionAriaLabel"
+                :button-class="actionButtonClass"
+
+                @click.stop="onActionClick"
+            />
         </template>
     </FloatingPanel>
 </template>
@@ -48,6 +71,7 @@
 import { defineComponent, type PropType } from "vue";
 import FloatingPanel from "./internal/FloatingPanel.vue";
 import OptionsList, { type OptionItem, type SearchConfig } from "./internal/OptionsList.vue";
+import Button from "./Button.vue";
 
 type SelectMultipleConfig = {
     min?: number;
@@ -60,7 +84,8 @@ export default defineComponent({
 
     components: {
         FloatingPanel,
-        OptionsList
+        OptionsList,
+        Button
     },
 
     props: {
@@ -153,10 +178,33 @@ export default defineComponent({
         forceModal: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * Icon class suffix for the side action (e.g. `fa-plus`). Same trigger style as the select.
+         */
+        actionIcon: {
+            type: String,
+            required: false
+        },
+
+        actionLabel: {
+            type: String,
+            required: false
+        },
+
+        actionSide: {
+            type: String as PropType<"left" | "right">,
+            default: "right"
+        },
+
+        disabled: {
+            type: Boolean,
+            default: false
         }
     },
 
-    emits: ["update:modelValue", "update:value"],
+    emits: ["update:modelValue", "update:value", "click:action"],
 
     data() {
         return {
@@ -208,6 +256,26 @@ export default defineComponent({
             }
 
             return undefined;
+        },
+
+        hasActionButton(): boolean {
+            return Boolean(this.actionIcon || this.actionLabel);
+        },
+
+        actionAriaLabel(): string {
+            return this.actionLabel || "Adicionar";
+        },
+
+        actionButtonLayoutClass(): string {
+            if (this.actionLabel) {
+                return "h-full";
+            }
+
+            return "aspect-square h-auto w-auto p-1.5!";
+        },
+
+        actionButtonClass(): string {
+            return "box-border h-full";
         }
     },
 
@@ -230,11 +298,11 @@ export default defineComponent({
 
                     if (Array.isArray(newVal)) {
                         if (
-                            newVal.length === 0
-                            && this.useMemo
-                            && this.id
-                            && !this.multiMemoHydrationDone
-                            && this.tryHydrateMultiFromStorage()
+                            newVal.length === 0 &&
+                            this.useMemo &&
+                            this.id &&
+                            !this.multiMemoHydrationDone &&
+                            this.tryHydrateMultiFromStorage()
                         ) {
                             this.multiMemoHydrationDone = true;
                             this.emitSelectionToParent();
@@ -243,7 +311,7 @@ export default defineComponent({
                         }
 
                         this.multiMemoHydrationDone = true;
-                        this.selectedValues = newVal.map(v => String(v));
+                        this.selectedValues = newVal.map((v) => String(v));
 
                         return;
                     }
@@ -268,11 +336,7 @@ export default defineComponent({
     mounted() {
         if (this.useMemo) {
             if (this.isSelectMultiple) {
-                if (
-                    this.id
-                    && !this.multiModelValueProvided
-                    && this.selectedValues.length === 0
-                ) {
+                if (this.id && !this.multiModelValueProvided && this.selectedValues.length === 0) {
                     if (this.tryHydrateMultiFromStorage()) {
                         this.multiMemoHydrationDone = true;
                         this.emitSelectionToParent();
@@ -354,7 +418,7 @@ export default defineComponent({
                     return false;
                 }
 
-                this.selectedValues = parsed.map(v => String(v));
+                this.selectedValues = parsed.map((v) => String(v));
                 this.multiInitializedFromMemo = true;
 
                 return true;
@@ -385,13 +449,8 @@ export default defineComponent({
             }
 
             const allValues = (this.options ?? [])
-                .filter(
-                    o =>
-                        !o.separator
-                        && o.value !== undefined
-                        && o.value !== ""
-                )
-                .map(o => String(o.value));
+                .filter((o) => !o.separator && o.value !== undefined && o.value !== "")
+                .map((o) => String(o.value));
 
             const max = this.selectMultiple.max ?? Number.POSITIVE_INFINITY;
             const next = allValues.slice(0, max);
@@ -480,6 +539,10 @@ export default defineComponent({
         close() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.close();
+        },
+
+        onActionClick(event: MouseEvent) {
+            this.$emit("click:action", event);
         }
     }
 });
