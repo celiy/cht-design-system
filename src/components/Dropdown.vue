@@ -28,6 +28,8 @@
 
                 :options="options"
                 :search="search"
+                :show-checkmark="showCheckmark"
+                :is-option-selected="isOptionSelected"
 
                 @select="onSelect"
             />
@@ -106,6 +108,22 @@ export default defineComponent({
         forceModal: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * Shows a checkmark column, same as Select.
+         */
+        showCheckmark: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * Reports whether an option is selected when `showCheckmark` is on.
+         */
+        isOptionSelected: {
+            type: Function as PropType<(value: string | undefined, item?: OptionItem, parent?: OptionItem) => boolean>,
+            required: false
         }
     },
 
@@ -118,8 +136,8 @@ export default defineComponent({
     },
 
     methods: {
-        onSelect(value: string) {
-            this.$emit("click:value", value);
+        onSelect(value: string, item?: OptionItem, parent?: OptionItem) {
+            this.$emit("click:value", value, item, parent);
 
             if (this.closeOnSelect) {
                 this.close();

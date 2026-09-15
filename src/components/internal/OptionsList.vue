@@ -29,8 +29,11 @@
         <template v-if="visibleOptions.length > 0">
             <div
                 v-for="(item, idx) of visibleOptions"
-                :key="item.value ?? item.label"
+                :key="item.value ?? item.label ?? String(idx)"
                 :ref="(el) => setOptionRef(idx, el)"
+
+                @mouseenter="onItemMouseEnter(idx, item)"
+                @mouseleave="onItemMouseLeave(item)"
             >
                 <Option
                     v-tooltip="optionTooltip(item)"
@@ -41,13 +44,14 @@
                     :value="item.value"
                     :variant="item.variant"
                     :show-checkmark="showCheckmark"
-                    :selected="Boolean(isOptionSelected?.(item.value))"
+                    :selected="isItemSelected(item)"
                     :highlighted="isItemHighlighted(idx, item)"
                     :first="idx === 0"
                     :last="idx === visibleOptions.length - 1"
+                    :disabled="item.disabled"
+                    :has-children="hasChildren(item)"
 
                     @click="onItemClick(item)"
-                    @mouseenter="onItemMouseEnter(idx, item)"
                 />
             </div>
         </template>
@@ -59,6 +63,28 @@
         >
             <small class="text-muted-foreground!">Nenhum resultado encontrado.</small>
         </div>
+
+        <Teleport to="body">
+            <div
+                v-if="nestedItem"
+
+                ref="nestedPanelRef"
+                class="absolute z-[1200] min-w-[11rem] overflow-y-auto rounded border border-border bg-popover py-1 shadow-md"
+                :style="nestedPanelStyle"
+                data-cht-floating-panel
+
+                @mouseenter="onNestedPanelEnter"
+                @mouseleave="onNestedPanelLeave"
+            >
+                <OptionsList
+                    :options="nestedItem.options"
+                    :show-checkmark="showCheckmark"
+                    :is-option-selected="nestedIsOptionSelected"
+
+                    @select="onNestedSelect"
+                />
+            </div>
+        </Teleport>
     </div>
 </template>
 
@@ -76,12 +102,27 @@ export type OptionItem = {
     selected?: boolean;
     tooltip?: string;
     variant?: "destructive";
+    disabled?: boolean;
+    /**
+     * Nested options opened in a side panel on hover and/or click.
+     */
+    options?: OptionItem[];
+    /**
+     * How the nested panel opens. Default opens on hover and click.
+     */
+    openOn?: "hover" | "click";
 };
 
 export type SearchConfig = {
     external: boolean;
     route?: string;
 };
+
+type IsOptionSelected = (
+    value: string | undefined,
+    item?: OptionItem,
+    parent?: OptionItem
+) => boolean;
 
 export default defineComponent({
     name: "OptionsList",
@@ -98,6 +139,7 @@ export default defineComponent({
     props: {
         /**
          * List of options to render. Items with `separator: true` render a divider.
+         * Items with `options` open a nested panel on the side.
          */
         options: {
             type: Array as PropType<OptionItem[]>,
@@ -125,7 +167,7 @@ export default defineComponent({
          * Function that reports whether an option's value is currently selected.
          */
         isOptionSelected: {
-            type: Function as PropType<(value: string | undefined) => boolean>,
+            type: Function as PropType<IsOptionSelected>,
             required: false
         },
 
@@ -144,7 +186,10 @@ export default defineComponent({
         return {
             localSearchQuery: this.searchQuery,
             highlightedIndex: -1,
-            optionRefs: [] as (HTMLElement | null)[]
+            optionRefs: [] as (HTMLElement | null)[],
+            nestedItem: null as OptionItem | null,
+            nestedPanelStyle: {} as Record<string, string>,
+            nestedCloseTimer: null as number | null
         };
     },
 
@@ -163,7 +208,7 @@ export default defineComponent({
             }
 
             const byLabel = source.filter(
-                item =>
+                (item) =>
                     !item.separator
                     && item.label
                     && item.label.toLowerCase().includes(query)
@@ -174,7 +219,7 @@ export default defineComponent({
             }
 
             return source.filter(
-                item =>
+                (item) =>
                     !item.separator
                     && item.value
                     && item.value.toLowerCase().includes(query)
@@ -198,13 +243,22 @@ export default defineComponent({
         this.resetHighlight();
         this.$nextTick(() => this.focusSearchInput());
         document.addEventListener("keydown", this.onKeydown);
+        window.addEventListener("scroll", this.onViewportChange, true);
+        window.addEventListener("resize", this.onViewportChange);
     },
 
     beforeUnmount() {
         document.removeEventListener("keydown", this.onKeydown);
+        window.removeEventListener("scroll", this.onViewportChange, true);
+        window.removeEventListener("resize", this.onViewportChange);
+        this.clearNestedCloseTimer();
     },
 
     methods: {
+        hasChildren(item: OptionItem): boolean {
+            return Array.isArray(item.options) && item.options.length > 0;
+        },
+
         setOptionRef(idx: number, el: unknown) {
             if (el instanceof HTMLElement) {
                 this.optionRefs[idx] = el;
@@ -221,11 +275,23 @@ export default defineComponent({
         },
 
         isSelectable(item: OptionItem): boolean {
-            return !item.separator && Boolean(item.value);
+            return !item.separator && (Boolean(item.value) || this.hasChildren(item));
         },
 
         isItemHighlighted(idx: number, item: OptionItem): boolean {
             return this.highlightedIndex === idx && this.isSelectable(item);
+        },
+
+        isItemSelected(item: OptionItem): boolean {
+            return Boolean(this.isOptionSelected?.(item.value, item));
+        },
+
+        nestedIsOptionSelected(value: string | undefined, item?: OptionItem): boolean {
+            if (!this.nestedItem) {
+                return false;
+            }
+
+            return Boolean(this.isOptionSelected?.(value, item, this.nestedItem));
         },
 
         resetHighlight() {
@@ -240,6 +306,90 @@ export default defineComponent({
             }
 
             this.highlightedIndex = idx;
+
+            if (this.hasChildren(item) && item.openOn !== "click") {
+                this.openNested(item, idx);
+            }
+        },
+
+        onItemMouseLeave(item: OptionItem) {
+            if (!this.hasChildren(item)) {
+                return;
+            }
+
+            this.scheduleNestedClose();
+        },
+
+        onNestedPanelEnter() {
+            this.clearNestedCloseTimer();
+        },
+
+        onNestedPanelLeave() {
+            this.scheduleNestedClose();
+        },
+
+        openNested(item: OptionItem, idx?: number) {
+            this.clearNestedCloseTimer();
+            this.nestedItem = item;
+            this.$nextTick(() => this.updateNestedPosition(idx));
+        },
+
+        closeNested() {
+            this.clearNestedCloseTimer();
+            this.nestedItem = null;
+            this.nestedPanelStyle = {};
+        },
+
+        scheduleNestedClose() {
+            this.clearNestedCloseTimer();
+            this.nestedCloseTimer = window.setTimeout(() => {
+                this.nestedCloseTimer = null;
+                this.nestedItem = null;
+                this.nestedPanelStyle = {};
+            }, 160);
+        },
+
+        clearNestedCloseTimer() {
+            if (this.nestedCloseTimer == null) {
+                return;
+            }
+
+            window.clearTimeout(this.nestedCloseTimer);
+            this.nestedCloseTimer = null;
+        },
+
+        onViewportChange() {
+            this.updateNestedPosition();
+        },
+
+        updateNestedPosition(idx?: number) {
+            if (!this.nestedItem) {
+                return;
+            }
+
+            const optionIndex = typeof idx === "number"
+                ? idx
+                : this.visibleOptions.findIndex((option) => option.value === this.nestedItem?.value);
+            const anchor = optionIndex >= 0 ? this.optionRefs[optionIndex] : undefined;
+
+            if (!anchor) {
+                return;
+            }
+
+            const rect = anchor.getBoundingClientRect();
+            const panelWidth = 176;
+            const gap = 4;
+            const spaceRight = window.innerWidth - rect.right;
+            const openLeft = spaceRight < panelWidth + gap;
+
+            this.nestedPanelStyle = {
+                position: "fixed",
+                top: `${Math.max(8, rect.top)}px`,
+                left: openLeft
+                    ? `${Math.max(8, rect.left - panelWidth - gap)}px`
+                    : `${rect.right - 4}px`,
+                minWidth: `${panelWidth}px`
+            };
         },
 
         moveHighlight(delta: number) {
@@ -298,6 +448,15 @@ export default defineComponent({
         },
 
         onKeydown(event: KeyboardEvent) {
+            if (this.nestedItem) {
+                if (event.key === "Escape") {
+                    event.preventDefault();
+                    this.closeNested();
+                }
+
+                return;
+            }
+
             if (event.key === "ArrowDown") {
                 event.preventDefault();
                 this.moveHighlight(1);
@@ -308,6 +467,17 @@ export default defineComponent({
             if (event.key === "ArrowUp") {
                 event.preventDefault();
                 this.moveHighlight(-1);
+
+                return;
+            }
+
+            if (event.key === "ArrowRight") {
+                const item = this.visibleOptions[this.highlightedIndex];
+
+                if (item && this.hasChildren(item)) {
+                    event.preventDefault();
+                    this.openNested(item, this.highlightedIndex);
+                }
 
                 return;
             }
@@ -327,11 +497,32 @@ export default defineComponent({
         },
 
         onItemClick(item: OptionItem) {
-            if (item.separator || !item.value) {
+            if (item.separator || item.disabled) {
                 return;
             }
 
-            this.$emit("select", item.value);
+            if (this.hasChildren(item)) {
+                if (this.nestedItem === item) {
+                    this.closeNested();
+
+                    return;
+                }
+
+                const idx = this.visibleOptions.indexOf(item);
+                this.openNested(item, idx >= 0 ? idx : undefined);
+
+                return;
+            }
+
+            if (!item.value) {
+                return;
+            }
+
+            this.$emit("select", item.value, item);
+        },
+
+        onNestedSelect(value: string, item: OptionItem, parent?: OptionItem) {
+            this.$emit("select", value, item, parent ?? this.nestedItem ?? undefined);
         },
 
         optionTooltip(item: OptionItem) {

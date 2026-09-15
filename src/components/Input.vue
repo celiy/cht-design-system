@@ -7,7 +7,15 @@
         <label
             v-if="label"
 
-            class="mb-2"
+            class="mb-2 transition-all"
+            :class="[
+                floatingLabel ? 'cursor-text' : '',
+                {
+                    'translate-y-9 translate-x-3 text-muted-foreground!': (!isFocused && !localValue) && floatingLabel
+                }
+            ]"
+
+
             :for="inputId"
         >
             {{ label }} {{ required ? "*" : "" }}
@@ -405,6 +413,15 @@ export default defineComponent({
          */
         maxHeightPx: {
             type: Number,
+            required: false
+        },
+
+        /**
+         * When true, the label is displayed in a floating position.
+         */
+        floatingLabel: {
+            type: Boolean,
+            default: false,
             required: false
         }
     },

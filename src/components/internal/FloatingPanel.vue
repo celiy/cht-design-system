@@ -447,6 +447,10 @@ export default defineComponent({
                 return;
             }
 
+            if (target instanceof Element && target.closest("[data-cht-floating-panel]")) {
+                return;
+            }
+
             this.close();
         },
 

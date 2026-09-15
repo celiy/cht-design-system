@@ -4,16 +4,17 @@
         v-bind="$attrs"
         :class="{
             'text-destructive!': isDestructive,
-            'bg-destructive/20!': showCheckmark && selected && isDestructive,
+            'bg-destructive/20!': showCheckmark && selected && isDestructive && !hasChildren,
             'bg-destructive/30!': highlighted && !$project.device.isMobile && isDestructive,
-            'hover:bg-destructive/30!': isSelectable && isDestructive,
+            'hover:bg-destructive/30!': isSelectable && isDestructive && !disabled,
 
             'text-popover-foreground': !isDestructive,
-            'bg-accent/50!': showCheckmark && selected && !isDestructive,
+            'bg-accent/50!': showCheckmark && selected && !isDestructive && !hasChildren,
             'bg-accent!': highlighted && !$project.device.isMobile && !isDestructive,
-            'hover:bg-accent': isSelectable && !isDestructive,
+            'hover:bg-accent': isSelectable && !isDestructive && !disabled,
 
-            'mx-1 cursor-pointer px-2.5 py-1.5': isSelectable,
+            'mx-1 cursor-pointer px-2.5 py-1.5': isSelectable && !disabled,
+            'mx-1 cursor-not-allowed px-2.5 py-1.5 opacity-80': isSelectable && disabled,
             'm-1 p-1 px-2.5 text-sm font-semibold text-muted-foreground!': isHeading,
             'mt-1': first,
             'mb-1': last
@@ -49,15 +50,23 @@
                 </span>
             </div>
 
-            <i
-                v-if="showCheckmark"
+            <div class="flex shrink-0 items-center gap-2">
+                <i
+                    v-if="showCheckmark && !hasChildren"
 
-                class="fa-solid fa-check text-xs text-muted-foreground"
-                :class="{
-                    'opacity-100': selected,
-                    'opacity-0': !selected
-                }"
-            />
+                    class="fa-solid fa-check text-xs text-muted-foreground"
+                    :class="{
+                        'opacity-100': selected,
+                        'opacity-0': !selected
+                    }"
+                />
+
+                <i
+                    v-if="hasChildren"
+
+                    class="fa-solid fa-chevron-right text-[0.65rem] text-muted-foreground"
+                />
+            </div>
         </div>
     </div>
 </template>
@@ -120,6 +129,16 @@ export default defineComponent({
         },
 
         last: {
+            type: Boolean,
+            default: false
+        },
+
+        disabled: {
+            type: Boolean,
+            default: false
+        },
+
+        hasChildren: {
             type: Boolean,
             default: false
         }
