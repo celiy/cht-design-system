@@ -1,172 +1,187 @@
 <template>
-    <div class="h-fit w-full overflow-x-auto rounded border border-border p-2 shadow-md">
-        <div v-if="selectCols" class="mb-2 flex w-full items-center">
-            <h4 class="ml-2">{{ title }}</h4>
+    <div class="relative h-fit w-full rounded border border-border shadow-md">
+        <div
+            v-if="loading && data"
 
-            <div class="flex w-full justify-end">
-                <Select
-                    v-if="!loading"
-                    id="table-select-cols"
-                    header="Colunas"
-                    class="w-fit!"
-                    panel-class="w-fit!"
-                    use-memo
-                    :options="selectTableHeaders"
-                    :select-multiple="{ min: 2, allSelected: true }"
-                    @update:value="(value) => (selectedHeaders = value)"
+            class="absolute inset-0 z-10 flex items-center justify-center bg-background/50"
+        >
+            <div class="w-fit shrink-0">
+                <ProgressBar
+                    loading
+                    variant="circular"
                 />
             </div>
         </div>
 
-        <table class="w-full text-foreground">
-            <!-- Header -->
-            <thead class="rounded-t">
-                <tr class="w-full bg-accent/30 transition-all hover:bg-accent/60">
-                    <!-- Left-side checkbox -->
-                    <th v-if="selectable" class="w-1 p-2 text-left text-sm font-semibold">
-                        <Checkbox
-                            id="selectable"
-                            :checked="isAllSelected"
-                            name="selectable"
-                            :disabled="loading"
-                            @click="selectAll()"
-                        />
-                    </th>
+        <div class="overflow-x-auto p-2">
+            <div v-if="selectCols" class="mb-2 flex w-full items-center">
+                <h4 class="ml-2">{{ title }}</h4>
 
-                    <th
-                        v-for="head in displayHeaders"
-                        :key="head.label"
-                        class="p-2 text-sm font-semibold"
-                        :class="{
-                            'text-left': head.position === 'start',
-                            'text-center': head.position === 'center',
-                            'text-right': head.position === 'end'
-                        }"
-                    >
-                        <span
-                            class="block w-full min-w-0"
+                <div class="flex w-full justify-end">
+                    <Select
+                        v-if="!loading"
+                        id="table-select-cols"
+                        header="Colunas"
+                        class="w-fit!"
+                        panel-class="w-fit!"
+                        use-memo
+                        :options="selectTableHeaders"
+                        :select-multiple="{ min: 2, allSelected: true }"
+                        @update:value="(value) => (selectedHeaders = value)"
+                    />
+                </div>
+            </div>
+
+            <table class="w-full text-foreground">
+                <!-- Header -->
+                <thead class="rounded-t">
+                    <tr class="w-full bg-accent/30 transition-all hover:bg-accent/60">
+                        <!-- Left-side checkbox -->
+                        <th v-if="selectable" class="w-1 p-2 text-left text-sm font-semibold">
+                            <Checkbox
+                                id="selectable"
+                                :checked="isAllSelected"
+                                name="selectable"
+                                :disabled="loading"
+                                @click="selectAll()"
+                            />
+                        </th>
+
+                        <th
+                            v-for="head in displayHeaders"
+                            :key="head.label"
+                            class="p-2 text-sm font-semibold"
                             :class="{
                                 'text-left': head.position === 'start',
                                 'text-center': head.position === 'center',
                                 'text-right': head.position === 'end'
                             }"
                         >
-                            {{ head.label }}
-                        </span>
-                    </th>
-
-                    <!-- Actions Header -->
-                    <th v-if="hasActions" scope="col" class="p-2 text-right text-sm font-semibold">
-                        <span>Ações</span>
-                    </th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <!-- Loading state -->
-                <template v-if="loading">
-                    <tr v-for="i in 5" :key="'skeleton-row-' + i" class="border-t border-border/50">
-                        <td v-if="selectable" class="flex justify-start p-2">
-                            <Skeleton type="card" class="h-4 w-5" />
-                        </td>
-
-                        <td
-                            v-for="head in displayHeaders"
-                            :key="'skeleton-cell-' + i + '-' + head.label"
-                            class="p-2"
-                        >
-                            <Skeleton type="text" class="w-full" />
-                        </td>
-
-                        <td v-if="hasActions" class="flex justify-end p-2">
-                            <Skeleton type="card" class="h-4 w-10" />
-                        </td>
-                    </tr>
-                </template>
-
-                <!-- Normal table rows -->
-                <template v-else>
-                    <tr
-                        v-for="(item, index) in data"
-                        :key="'row-' + index"
-                        class="border-t border-border/50 text-sm transition-all hover:bg-accent/60"
-                        :class="{
-                            'bg-accent/30': index % 2 !== 0
-                        }"
-                    >
-                        <!-- Checkbox -->
-                        <td v-if="selectable" class="p-2">
-                            <Checkbox
-                                :id="'row-' + index"
-                                :checked="selectedRows.includes(index)"
-                                :name="'row-' + index"
-                                @click="selectRow(index)"
-                            />
-                        </td>
-
-                        <!-- Data-->
-                        <td
-                            v-for="cell in getRowDisplayCells(item)"
-                            :key="cell.head.label"
-                            class="p-2"
-                        >
-                            <div
-                                class="flex w-full"
+                            <span
+                                class="block w-full min-w-0"
                                 :class="{
-                                    'justify-start': cell.head.position === 'start',
-                                    'justify-center': cell.head.position === 'center',
-                                    'justify-end': cell.head.position === 'end'
+                                    'text-left': head.position === 'start',
+                                    'text-center': head.position === 'center',
+                                    'text-right': head.position === 'end'
                                 }"
                             >
-                                <div v-if="isTextCellValue(cell.value)">
-                                    {{ cell.value }}
-                                </div>
+                                {{ head.label }}
+                            </span>
+                        </th>
 
+                        <!-- Actions Header -->
+                        <th v-if="hasActions" scope="col" class="p-2 text-right text-sm font-semibold">
+                            <span>Ações</span>
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <!-- Loading state -->
+                    <template v-if="loading && !data">
+                        <tr v-for="i in 5" :key="'skeleton-row-' + i" class="border-t border-border/50">
+                            <td v-if="selectable" class="flex justify-start p-2">
+                                <Skeleton type="card" class="h-4 w-5" />
+                            </td>
+
+                            <td
+                                v-for="head in displayHeaders"
+                                :key="'skeleton-cell-' + i + '-' + head.label"
+                                class="p-2"
+                            >
+                                <Skeleton type="text" class="w-full" />
+                            </td>
+
+                            <td v-if="hasActions" class="flex justify-end p-2">
+                                <Skeleton type="card" class="h-4 w-10" />
+                            </td>
+                        </tr>
+                    </template>
+
+                    <!-- Normal table rows -->
+                    <template v-else>
+                        <tr
+                            v-for="(item, index) in data"
+                            :key="'row-' + index"
+                            class="border-t border-border/50 text-sm transition-all hover:bg-accent/60"
+                            :class="{
+                                'bg-accent/30': index % 2 !== 0
+                            }"
+                        >
+                            <!-- Checkbox -->
+                            <td v-if="selectable" class="p-2">
+                                <Checkbox
+                                    :id="'row-' + index"
+                                    :checked="selectedRows.includes(index)"
+                                    :name="'row-' + index"
+                                    @click="selectRow(index)"
+                                />
+                            </td>
+
+                            <!-- Data-->
+                            <td
+                                v-for="cell in getRowDisplayCells(item)"
+                                :key="cell.head.label"
+                                class="p-2"
+                            >
                                 <div
-                                    v-if="isBadgeCellValue(cell.value)"
+                                    class="flex w-full"
                                     :class="{
-                                        'flex justify-start': cell.head.position === 'start',
-                                        'flex justify-center': cell.head.position === 'center',
-                                        'flex justify-end': cell.head.position === 'end'
+                                        'justify-start': cell.head.position === 'start',
+                                        'justify-center': cell.head.position === 'center',
+                                        'justify-end': cell.head.position === 'end'
                                     }"
                                 >
-                                    <Badge :variant="badgeVariant(cell.value)">
-                                        {{ badgeLabel(cell.value) }}
-                                    </Badge>
+                                    <div v-if="isTextCellValue(cell.value)">
+                                        {{ cell.value }}
+                                    </div>
+
+                                    <div
+                                        v-if="isBadgeCellValue(cell.value)"
+                                        :class="{
+                                            'flex justify-start': cell.head.position === 'start',
+                                            'flex justify-center': cell.head.position === 'center',
+                                            'flex justify-end': cell.head.position === 'end'
+                                        }"
+                                    >
+                                        <Badge :variant="badgeVariant(cell.value)">
+                                            {{ badgeLabel(cell.value) }}
+                                        </Badge>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
+                            </td>
 
-                        <!-- Actions -->
-                        <td v-if="hasActions" class="px-2 text-right align-middle">
-                            <div class="flex w-full justify-end">
-                                <Dropdown
-                                    class="w-fit!"
-                                    header="..."
-                                    :hide-dropdown-arrow="true"
-                                    :button-atributes="{ variant: 'transparent' }"
-                                    :options="actions"
-                                    @click:value="onActionClick($event, item)"
-                                />
-                            </div>
-                        </td>
-                    </tr>
-                </template>
-            </tbody>
-        </table>
+                            <!-- Actions -->
+                            <td v-if="hasActions" class="px-2 text-right align-middle">
+                                <div class="flex w-full justify-end">
+                                    <Dropdown
+                                        class="w-fit!"
+                                        header="..."
+                                        :hide-dropdown-arrow="true"
+                                        :button-atributes="{ variant: 'transparent' }"
+                                        :options="actions"
+                                        @click:value="onActionClick($event, item)"
+                                    />
+                                </div>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
 
-        <div v-if="selectedRows.length > 0" class="mt-2 flex w-full justify-between border-t pt-2">
-            <span class="place-self-center pl-2 text-sm text-muted-foreground">
-                Itens selecionados: {{ selectedRows.length }}
-            </span>
+            <div v-if="selectedRows.length > 0" class="mt-2 flex w-full justify-between border-t pt-2">
+                <span class="place-self-center pl-2 text-sm text-muted-foreground">
+                    Itens selecionados: {{ selectedRows.length }}
+                </span>
 
-            <Dropdown
-                v-if="hasSelectableActions"
-                class="w-fit!"
-                header="Ações"
-                :options="selectableActions"
-                @click:value="onSelectableActionClick"
-            />
+                <Dropdown
+                    v-if="hasSelectableActions"
+                    class="w-fit!"
+                    header="Ações"
+                    :options="selectableActions"
+                    @click:value="onSelectableActionClick"
+                />
+            </div>
         </div>
     </div>
 </template>
@@ -178,6 +193,7 @@ import Dropdown from "./Dropdown.vue";
 import Badge from "./Badge.vue";
 import Checkbox from "./Checkbox.vue";
 import Skeleton from "./Skeleton.vue";
+import ProgressBar from "./ProgressBar.vue";
 import type { OptionItem } from "./internal/OptionsList.vue";
 
 type TableHeader = Record<string, unknown> & {
@@ -194,7 +210,8 @@ export default defineComponent({
         Dropdown,
         Badge,
         Checkbox,
-        Skeleton
+        Skeleton,
+        ProgressBar
     },
 
     props: {

@@ -69,7 +69,7 @@
                 v-if="nestedItem"
 
                 ref="nestedPanelRef"
-                class="absolute z-[1200] min-w-[11rem] overflow-y-auto rounded border border-border bg-popover py-1 shadow-md"
+                class="absolute z-[1200] min-w-[11rem] overflow-y-auto rounded border border-border bg-popover shadow-md"
                 :style="nestedPanelStyle"
                 data-cht-floating-panel
 

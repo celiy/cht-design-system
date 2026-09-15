@@ -144,6 +144,7 @@ import { isTopModalLayer, popModalLayer, pushModalLayer } from "@shared/frontend
 
 const DRAWER_MOVE_LISTENER_OPTS = { passive: false, capture: true };
 const DRAWER_UP_LISTENER_OPTS = { capture: true };
+const OUTSIDE_CLICK_LISTENER_OPTS = { capture: true };
 
 export default defineComponent({
     name: "Modal",
@@ -307,12 +308,20 @@ export default defineComponent({
                     this.$nextTick(() => {
                         setTimeout(() => {
                             if (this.modalOpen) {
-                                document.addEventListener("click", this.handleClickOutside);
+                                document.addEventListener(
+                                    "click",
+                                    this.handleClickOutside,
+                                    OUTSIDE_CLICK_LISTENER_OPTS
+                                );
                             }
                         }, 0);
                     });
                 } else {
-                    document.removeEventListener("click", this.handleClickOutside);
+                    document.removeEventListener(
+                        "click",
+                        this.handleClickOutside,
+                        OUTSIDE_CLICK_LISTENER_OPTS
+                    );
                     this.resetDrawerDrag();
                     this.teardownDrawerPointerListeners();
                     popModalLayer(this.modalLayerId);
@@ -334,7 +343,11 @@ export default defineComponent({
     },
 
     beforeUnmount() {
-        document.removeEventListener("click", this.handleClickOutside);
+        document.removeEventListener(
+            "click",
+            this.handleClickOutside,
+            OUTSIDE_CLICK_LISTENER_OPTS
+        );
         this.teardownDrawerPointerListeners();
         popModalLayer(this.modalLayerId);
     },

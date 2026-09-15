@@ -12,16 +12,24 @@
         >
             <!-- Header -->
             <div
-                class="cursor-pointer select-none"
+                class="cursor-pointer select-none transition-all"
                 :class="{
-                    'rounded-none': variant === 'bordered'
+                    'rounded-none': variant === 'bordered',
+                    'translate-y-[0.1rem]': isPressed
                 }"
 
                 @mouseenter="handleMouseEnter"
-                @mouseleave="handleMouseLeave"
+                @mouseleave="handleHeaderLeave"
+                @mousedown="handlePressStart"
+                @mouseup="handlePressEnd"
+                @touchstart="handlePressStart"
+                @touchend="handlePressEnd"
+                @touchleave="handlePressEnd"
                 @click="toggleOpenClose"
             >
-                <span class="flex items-center justify-between text-foreground p-3">
+                <span
+                    class="flex items-center justify-between text-foreground p-3 transition-all"
+                >
                     <!-- Header text -->
                     <span 
                         class="text-base" 
@@ -112,7 +120,8 @@ export default defineComponent({
         return {
             isOpen: false,
             inside: false,
-            isPinned: false
+            isPinned: false,
+            isPressed: false
         };
     },
 
@@ -167,6 +176,19 @@ export default defineComponent({
 
         handleMouseLeave() {
             this.inside = false;
+        },
+
+        handleHeaderLeave() {
+            this.inside = false;
+            this.handlePressEnd();
+        },
+
+        handlePressStart() {
+            this.isPressed = true;
+        },
+
+        handlePressEnd() {
+            this.isPressed = false;
         },
 
         open() {

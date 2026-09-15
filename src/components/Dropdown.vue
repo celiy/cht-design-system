@@ -9,6 +9,9 @@
         :min-width-px="minWidthPx"
         :mobile-modal="mobileModal"
         :force-modal="forceModal"
+        v-bind="open === undefined ? {} : { open }"
+
+        @update:open="$emit('update:open', $event)"
     >
         <template
             v-if="$slots.button"
@@ -124,10 +127,19 @@ export default defineComponent({
         isOptionSelected: {
             type: Function as PropType<(value: string | undefined, item?: OptionItem, parent?: OptionItem) => boolean>,
             required: false
+        },
+
+        /**
+         * When defined, the menu is controlled by the parent (`v-model:open`).
+         * The built-in trigger is hidden; use an external button.
+         */
+        open: {
+            type: Boolean as PropType<boolean | undefined>,
+            default: undefined
         }
     },
 
-    emits: ["click:value"],
+    emits: ["click:value", "update:open"],
 
     data() {
         return {
@@ -144,9 +156,9 @@ export default defineComponent({
             }
         },
 
-        open() {
+        openPanel() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
-            panel?.open();
+            panel?.openPanel();
         },
 
         close() {

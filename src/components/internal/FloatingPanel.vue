@@ -2,13 +2,17 @@
     <div
         ref="rootRef"
 
-        class="relative inline-block w-full"
+        :class="rootClass"
     >
-        <div class="w-full">
+        <div
+            v-if="showTrigger"
+
+            class="w-full"
+        >
             <div
                 class="w-full gap-2"
 
-                @mouseenter="openOnHover ? open() : undefined"
+                @mouseenter="openOnHover ? openPanel() : undefined"
                 @mouseleave="openOnHover ? close() : undefined"
             >
                 <label
@@ -35,7 +39,7 @@
                         class="min-w-0 flex-1"
                     >
                         <Button
-                            v-if="!$slots.button"
+                            v-if="!$slots.button && !isControlled"
 
                             v-bind="buttonAtributes"
                             class="w-full"
@@ -69,7 +73,7 @@
                             name="button"
                             :is-open="isOpen"
                             :toggle="toggleOpenClose"
-                            :open="open"
+                            :open="openPanel"
                             :close="close"
                         />
                     </div>
@@ -103,8 +107,8 @@
                     :class="[
                         panelClass,
                         positionAbove
-                            ? 'dropdown-origin-bottom bottom-full mb-1'
-                            : 'dropdown-origin-top top-full mt-1'
+                            ? 'dropdown-origin-bottom bottom-full'
+                            : 'dropdown-origin-top top-full'
                     ]"
                     :style="{ maxHeight: maxHeightPx + 'px', ...panelStyle }"
                     data-cht-floating-panel
@@ -273,21 +277,57 @@ export default defineComponent({
         actionSide: {
             type: String as PropType<"left" | "right">,
             default: "right"
+        },
+
+        /**
+         * When defined, the panel is controlled by the parent (`v-model:open`).
+         * The built-in trigger is hidden unless `#button` is provided.
+         */
+        open: {
+            type: Boolean as PropType<boolean | undefined>,
+            default: undefined
         }
     },
 
-    emits: ["open", "close", "panel-click"],
+    emits: ["open", "close", "panel-click", "update:open"],
 
     data() {
         return {
-            isOpen: false,
+            localOpen: false,
             positionAbove: false,
             panelStyle: {} as Record<string, string>,
-            isNarrow: false
+            isNarrow: false,
+            outsideClickTimer: null as number | null
         };
     },
 
     computed: {
+        isControlled(): boolean {
+            return this.open !== undefined;
+        },
+
+        isOpen(): boolean {
+            return this.isControlled ? Boolean(this.open) : this.localOpen;
+        },
+
+        showTrigger(): boolean {
+            return Boolean(
+                this.label
+                || this.helperText
+                || this.$slots.button
+                || this.$slots.action
+                || !this.isControlled
+            );
+        },
+
+        rootClass(): string {
+            if (!this.showTrigger) {
+                return "pointer-events-none absolute inset-0";
+            }
+
+            return "relative inline-block w-full";
+        },
+
         useSheetModal(): boolean {
             return this.forceModal || (this.mobileModal && this.isNarrow);
         },
@@ -304,8 +344,14 @@ export default defineComponent({
                     this.$nextTick(() => this.updatePosition());
                     window.addEventListener("scroll", this.updatePosition, true);
                     window.addEventListener("resize", this.updatePosition);
-                    document.addEventListener("click", this.handleClickOutside);
                     document.addEventListener("keydown", this.handleKeydown);
+                    this.outsideClickTimer = window.setTimeout(() => {
+                        this.outsideClickTimer = null;
+
+                        if (this.isOpen && !this.useSheetModal) {
+                            document.addEventListener("click", this.handleClickOutside);
+                        }
+                    }, 0);
                 }
 
                 this.$emit("open");
@@ -327,16 +373,16 @@ export default defineComponent({
     },
 
     methods: {
-        open() {
+        openPanel() {
             if (!this.useSheetModal) {
                 this.syncPlacementForPanel();
             }
 
-            this.isOpen = true;
+            this.setOpen(true);
         },
 
         close() {
-            this.isOpen = false;
+            this.setOpen(false);
         },
 
         toggleOpenClose() {
@@ -346,7 +392,17 @@ export default defineComponent({
                 this.syncPlacementForPanel();
             }
 
-            this.isOpen = opening;
+            this.setOpen(opening);
+        },
+
+        setOpen(next: boolean) {
+            if (this.isControlled) {
+                this.$emit("update:open", next);
+
+                return;
+            }
+
+            this.localOpen = next;
         },
 
         onSheetModalUpdate(open: boolean) {
@@ -360,6 +416,11 @@ export default defineComponent({
         },
 
         detachFloatingListeners() {
+            if (this.outsideClickTimer != null) {
+                window.clearTimeout(this.outsideClickTimer);
+                this.outsideClickTimer = null;
+            }
+
             window.removeEventListener("scroll", this.updatePosition, true);
             window.removeEventListener("resize", this.updatePosition);
             document.removeEventListener("click", this.handleClickOutside);
@@ -381,7 +442,11 @@ export default defineComponent({
         getPanelAnchorElement(): HTMLElement | null {
             const anchor = this.$refs.panelAnchorRef as HTMLElement | undefined;
 
-            return anchor ?? null;
+            if (anchor) {
+                return anchor;
+            }
+
+            return (this.$refs.rootRef as HTMLElement | undefined) ?? null;
         },
 
         /**

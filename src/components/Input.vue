@@ -9,12 +9,10 @@
 
             class="mb-2 transition-all"
             :class="[
-                floatingLabel ? 'cursor-text' : '',
                 {
-                    'translate-y-9 translate-x-3 text-muted-foreground!': (!isFocused && !localValue) && floatingLabel
+                    'translate-y-9 translate-x-3 text-muted-foreground! cursor-text': (!isFocused && !localValue) && floatingLabel
                 }
             ]"
-
 
             :for="inputId"
         >
@@ -442,11 +440,9 @@ export default defineComponent({
     computed: {
         /**
          * Resolves the name displayed in validation messages.
-         *
-         * @Returns - Field label when available; otherwise uses the id.
          */
         fieldLabel(): string {
-            return this.label ?? this.id ?? "";
+            return this.label || this.placeholder || this.id || "";
         },
 
         /**

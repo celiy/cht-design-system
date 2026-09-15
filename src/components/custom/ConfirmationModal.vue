@@ -127,12 +127,14 @@ export default defineComponent({
             this.setOpen(next);
         },
 
-        onConfirm() {
+        onConfirm(event?: Event) {
+            event?.stopImmediatePropagation();
             this.setOpen(false);
             this.$emit("confirm");
         },
 
-        onCancel() {
+        onCancel(event?: Event) {
+            event?.stopImmediatePropagation();
             this.setOpen(false);
             this.$emit("cancel");
         }

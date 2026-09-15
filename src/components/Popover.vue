@@ -120,7 +120,7 @@ export default defineComponent({
     methods: {
         open() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
-            panel?.open();
+            panel?.openPanel();
         },
 
         close() {

@@ -51,7 +51,7 @@
         @click="handleClick"
     >
         <div
-            class="flex h-full w-full items-center transition-all"
+            class="flex h-full w-full items-center transition-all whitespace-nowrap overflow-hidden text-ellipsis"
             :class="[
                 {
                     'translate-y-[0.1rem]': isPressed,

@@ -16,6 +16,7 @@
     >
         <template #triggerLabel>
             <span
+                class="block min-w-0 truncate text-left"
                 :class="{
                     'text-muted-foreground': selectTriggerMuted
                 }"
@@ -159,6 +160,16 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * When true (default), multi-select shows selected labels on the trigger,
+         * truncated with an ellipsis if they overflow the button.
+         * When false, the trigger keeps the header/placeholder.
+         */
+        showSelectedLabels: {
+            type: Boolean,
+            default: true
+        },
+
         maxHeightPx: {
             type: Number,
             default: 280
@@ -226,10 +237,14 @@ export default defineComponent({
         },
 
         /**
-         * Text shown on the trigger button. Multi-select never surfaces the selected labels.
+         * Text shown on the trigger button.
          */
         selectTriggerLabel(): string {
             if (this.isSelectMultiple) {
+                if (this.showSelectedLabels && this.selectedLabels.length > 0) {
+                    return this.selectedLabels.join(", ");
+                }
+
                 return this.header ?? "Selecione...";
             }
 
@@ -238,10 +253,18 @@ export default defineComponent({
 
         selectTriggerMuted(): boolean {
             if (this.isSelectMultiple) {
-                return !this.header;
+                return !(this.showSelectedLabels && this.selectedLabels.length > 0);
             }
 
             return !this.selectedValueLabel && !this.header;
+        },
+
+        selectedLabels(): string[] {
+            if (!this.isSelectMultiple || this.selectedValues.length === 0) {
+                return [];
+            }
+
+            return this.labelsForValues(this.options ?? [], this.selectedValues);
         },
 
         selectedValueLabel(): string | undefined {
@@ -362,6 +385,22 @@ export default defineComponent({
     },
 
     methods: {
+        labelsForValues(options: OptionItem[], values: string[]): string[] {
+            const labels: string[] = [];
+
+            for (const option of options) {
+                if (option.value && values.includes(String(option.value)) && option.label) {
+                    labels.push(option.label);
+                }
+
+                if (option.options && option.options.length > 0) {
+                    labels.push(...this.labelsForValues(option.options, values));
+                }
+            }
+
+            return labels;
+        },
+
         /**
          * Pushes the current internal selection to the parent (v-model / @update:value).
          * Used after restoring from localStorage so consumers stay in sync on mount.
@@ -533,7 +572,7 @@ export default defineComponent({
 
         open() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
-            panel?.open();
+            panel?.openPanel();
         },
 
         close() {

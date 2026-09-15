@@ -82,13 +82,23 @@
                             @touchend="onUp()"
                         >
                             <span
+                                class="flex min-w-0 items-center gap-2"
                                 :class="
                                     isActive(link.link)
                                         ? 'text-primary!'
                                         : 'text-sidebar-foreground/90!'
                                 "
                             >
-                                {{ link.label }}
+                                <i
+                                    v-if="link.leftIcon"
+
+                                    class="fa-solid shrink-0 text-xs"
+                                    :class="link.leftIcon"
+                                />
+
+                                <span class="min-w-0 truncate">
+                                    {{ link.label }}
+                                </span>
                             </span>
 
                             <i
@@ -122,7 +132,18 @@
 
                                 @click="toggleGroup(link, idx)"
                             >
-                                <span>{{ link.label }}</span>
+                                <span class="flex min-w-0 items-center gap-2">
+                                    <i
+                                        v-if="link.leftIcon"
+
+                                        class="fa-solid shrink-0 text-xs"
+                                        :class="link.leftIcon"
+                                    />
+
+                                    <span class="min-w-0 truncate">
+                                        {{ link.label }}
+                                    </span>
+                                </span>
 
                                 <i
                                     :class="[
@@ -191,7 +212,18 @@
                                                 @touchstart="onDown()"
                                                 @touchend="onUp()"
                                             >
-                                                <span>{{ sublink.label }}</span>
+                                                <span class="flex min-w-0 items-center gap-2">
+                                                    <i
+                                                        v-if="sublink.leftIcon"
+
+                                                        class="fa-solid shrink-0 text-xs"
+                                                        :class="sublink.leftIcon"
+                                                    />
+
+                                                    <span class="min-w-0 truncate">
+                                                        {{ sublink.label }}
+                                                    </span>
+                                                </span>
 
                                                 <i
                                                     class="fa-solid fa-chevron-right inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
