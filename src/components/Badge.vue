@@ -1,21 +1,23 @@
 <template>
     <div
-        class="rounded py-0.5 px-2 select-none font-semibold w-fit text-xs flex items-center"
-
-        :class="{
-            'bg-primary text-primary-foreground': variant === 'primary',
-            'bg-secondary text-secondary-foreground border': variant === 'secondary',
-            'bg-destructive text-destructive-foreground': variant === 'destructive',
-            'bg-warning text-warning-foreground': variant === 'warning',
-            'bg-info text-info-foreground': variant === 'info',
-            'bg-success text-success-foreground': variant === 'success',
-            'bg-chart-1 text-contrast': variant === 'chart-1',
-            'bg-chart-2 text-contrast': variant === 'chart-2',
-            'bg-chart-3 text-contrast': variant === 'chart-3',
-            'bg-chart-4 text-contrast': variant === 'chart-4',
-            'bg-chart-5 text-contrast': variant === 'chart-5',
-            'hover:underline cursor-pointer': type === 'link'
-        }"
+        class="flex items-center rounded border border-transparent px-2 py-0.5 text-xs font-semibold select-none"
+        :class="[
+            colorClass,
+            {
+                'bg-primary text-primary-foreground': !color && variant === 'primary',
+                'border bg-secondary text-secondary-foreground': !color && variant === 'secondary',
+                'bg-destructive text-destructive-foreground': !color && variant === 'destructive',
+                'bg-warning text-warning-foreground': !color && variant === 'warning',
+                'bg-info text-info-foreground': !color && variant === 'info',
+                'bg-success text-success-foreground': !color && variant === 'success',
+                'text-contrast bg-chart-1': !color && variant === 'chart-1',
+                'text-contrast bg-chart-2': !color && variant === 'chart-2',
+                'text-contrast bg-chart-3': !color && variant === 'chart-3',
+                'text-contrast bg-chart-4': !color && variant === 'chart-4',
+                'text-contrast bg-chart-5': !color && variant === 'chart-5',
+                'cursor-pointer hover:underline': type === 'link'
+            }
+        ]"
 
         @click="handleClick"
     >
@@ -23,7 +25,7 @@
             {{ label }}
         </span>
 
-        <slot v-else/>
+        <slot v-else />
     </div>
 </template>
 
@@ -31,7 +33,7 @@
 import { defineComponent, type PropType } from "vue";
 
 export default defineComponent({
-    name: 'Badge',
+    name: "Badge",
 
     props: {
         label: {
@@ -57,6 +59,14 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * Tailwind color token (e.g. `sky-500`, `red-200`). Takes precedence over `variant`.
+         */
+        color: {
+            type: String,
+            required: false
+        },
+
         type: {
             type: String as PropType<"normal" | "link">,
             default: "normal",
@@ -75,7 +85,17 @@ export default defineComponent({
         }
     },
 
-    emits: ['click'],
+    emits: ["click"],
+
+    computed: {
+        colorClass(): string | null {
+            if (!this.color) {
+                return null;
+            }
+
+            return `bg-${this.color} text-contrast`;
+        }
+    },
 
     methods: {
         handleClick() {

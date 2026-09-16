@@ -4,6 +4,7 @@
         class="flex flex-col gap-6"
 
         @submit="onSubmit"
+        @keydown="onFormKeydown"
     >
         <div
             v-for="sectionObj in normalizedSections"
@@ -116,7 +117,7 @@
                         </div>
 
                         <Input
-                            v-else-if="field.type === 'select' && isViewMode"
+                            v-else-if="field.type === 'select' && isViewMode && !field.selectSeparateSelected"
 
                             :id="field.id"
                             type="text"
@@ -130,21 +131,29 @@
                         <div
                             v-else-if="field.type === 'select'"
 
-                            class="flex flex-col items-center gap-2"
+                            class="flex w-full flex-col gap-2"
                         >
                             <Select
                                 :id="field.id"
                                 :header="field.label"
                                 :helper-text="field.helperText"
                                 :options="field.options"
+                                :search="field.selectSearch"
                                 :model-value="formValues[field.id]"
                                 :select-multiple="field.selectMultiple"
+                                :separate-selected="Boolean(field.selectSeparateSelected)"
+                                :hide-dropdown-arrow="isViewMode"
+                                :disabled="isViewMode || field.disabled"
                                 :action-icon="isViewMode ? undefined : field.selectAction?.icon"
                                 :action-label="isViewMode ? undefined : field.selectAction?.label"
                                 :action-side="field.selectAction?.side ?? 'right'"
+                                :action-tooltip="isViewMode ? undefined : field.selectAction?.tooltip"
 
                                 @update:value="updateValue(field.id, $event)"
                                 @click:action="onSelectAction(field)"
+                                @click:selected="onSelectSelected(field, $event)"
+                                @remove:selected="onSelectRemove(field, $event)"
+                                @search:external="onSelectSearchExternal(field, $event)"
                             />
                         </div>
 
@@ -181,9 +190,10 @@ import Radio from "../Radio.vue";
 import Select from "../Select.vue";
 import validateEmail from "@shared/validators/email";
 import validatePhone from "@shared/validators/phone";
-import { validateCPF, validateCNPJ } from "@shared/validators/documents";
+import { validateCPF, validateCNPJ, isCnpjDocument } from "@shared/validators/documents";
 import type { FormField as FormFieldType } from "@shared/interfaces/FormField";
 import { INPUT_TYPES } from "@shared/constants/InputTypes";
+import type { SearchExternalPayload } from "../internal/OptionsList.vue";
 
 interface FormSection {
     key?: string;
@@ -243,10 +253,18 @@ export default defineComponent({
                 number | { xs?: number; sm?: number; md?: number; lg?: number }
             >,
             default: 1
+        },
+
+        /**
+         * When true, Enter-to-submit and submit emission are ignored (e.g. another modal is open).
+         */
+        submitDisabled: {
+            type: Boolean,
+            default: false
         }
     },
 
-    emits: ["submit", "click:select-action"],
+    emits: ["submit", "click:select-action", "click:select-option", "click:select-remove", "search:external"],
 
     data() {
         return {
@@ -323,7 +341,7 @@ export default defineComponent({
         },
 
         isFieldReadonly(field: FormFieldType): boolean {
-            return this.isViewMode || Boolean(field.readonly);
+            return this.isViewMode || Boolean(field.readonly) || Boolean(field.disabled);
         },
 
         selectDisplayValue(field: FormFieldType): string {
@@ -434,10 +452,38 @@ export default defineComponent({
             }
         },
 
+        getFieldValue(fieldId: string): unknown {
+            return this.formValues[fieldId];
+        },
+
         onSelectAction(field: FormFieldType) {
             this.$emit("click:select-action", {
                 id: field.id,
                 field
+            });
+        },
+
+        onSelectSelected(field: FormFieldType, value: string) {
+            this.$emit("click:select-option", {
+                id: field.id,
+                value,
+                field
+            });
+        },
+
+        onSelectRemove(field: FormFieldType, value: string) {
+            this.$emit("click:select-remove", {
+                id: field.id,
+                value,
+                field
+            });
+        },
+
+        onSelectSearchExternal(formField: FormFieldType, payload: SearchExternalPayload) {
+            this.$emit("search:external", {
+                id: formField.id,
+                field: payload.field,
+                value: payload.value
             });
         },
 
@@ -521,7 +567,7 @@ export default defineComponent({
         onSubmit(event: Event) {
             event.preventDefault();
 
-            if (this.isViewMode) {
+            if (this.isViewMode || this.submitDisabled) {
                 return;
             }
 
@@ -535,7 +581,11 @@ export default defineComponent({
 
                 const value = this.formValues[field.id];
 
-                if (field.required && this.isEmptyValue(field, value)) {
+                if (
+                    field.required
+                    && !this.isFieldReadonly(field)
+                    && this.isEmptyValue(field, value)
+                ) {
                     nextErrors[field.id] = this.requiredErrorMessage(field);
                     emptyFields.push(field.label);
                     continue;
@@ -559,6 +609,55 @@ export default defineComponent({
             }
 
             this.$emit("submit", { ...this.formValues });
+        },
+
+        /**
+         * Enter in a field submits the form. Skips textareas, select
+         * triggers, and an open floating panel (which uses Enter to pick).
+         */
+        onFormKeydown(event: KeyboardEvent) {
+            if (event.key !== "Enter" || event.repeat || event.defaultPrevented) {
+                return;
+            }
+
+            if (this.isViewMode || this.submitDisabled) {
+                return;
+            }
+
+            const target = event.target;
+
+            if (!(target instanceof HTMLElement)) {
+                return;
+            }
+
+            const form = this.$el as HTMLFormElement | undefined;
+
+            if (!form?.contains(target)) {
+                return;
+            }
+
+            if (target.closest("[data-cht-floating-panel]")) {
+                return;
+            }
+
+            if (target.tagName === "TEXTAREA" || target.isContentEditable) {
+                return;
+            }
+
+            if (target.tagName === "BUTTON") {
+                return;
+            }
+
+            if (target instanceof HTMLInputElement && (target.type === "button" || target.type === "reset")) {
+                return;
+            }
+
+            if (!form || typeof form.requestSubmit !== "function") {
+                return;
+            }
+
+            event.preventDefault();
+            form.requestSubmit();
         },
 
         isInputType(type: string): boolean {
@@ -601,16 +700,22 @@ export default defineComponent({
         },
 
         isFieldVisible(field: FormFieldType): boolean {
-            if (!field.condition) return true;
-
-            const current = this.formValues[field.condition.field];
-            const expected = field.condition.value;
-
-            if (field.condition.operator === "neq") {
-                return current !== expected;
+            if (!field.condition) {
+                return true;
             }
 
-            return current === expected;
+            const current = this.formValues[field.condition.field];
+            const operator = field.condition.operator ?? "eq";
+
+            if (operator === "cnpj") {
+                return isCnpjDocument(current);
+            }
+
+            if (operator === "neq") {
+                return current !== field.condition.value;
+            }
+
+            return current === field.condition.value;
         },
 
         isSectionVisible(sectionFields: FormFieldType[]): boolean {

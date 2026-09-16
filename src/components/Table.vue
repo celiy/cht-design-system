@@ -14,12 +14,17 @@
         </div>
 
         <div class="overflow-x-auto p-2">
-            <div v-if="selectCols" class="mb-2 flex w-full items-center">
+            <div
+                v-if="selectCols"
+
+                class="mb-2 flex w-full items-center"
+            >
                 <h4 class="ml-2">{{ title }}</h4>
 
                 <div class="flex w-full justify-end">
                     <Select
                         v-if="!loading"
+
                         id="table-select-cols"
                         header="Colunas"
                         class="w-fit!"
@@ -27,6 +32,7 @@
                         use-memo
                         :options="selectTableHeaders"
                         :select-multiple="{ min: 2, allSelected: true }"
+
                         @update:value="(value) => (selectedHeaders = value)"
                     />
                 </div>
@@ -37,12 +43,17 @@
                 <thead class="rounded-t">
                     <tr class="w-full bg-accent/30 transition-all hover:bg-accent/60">
                         <!-- Left-side checkbox -->
-                        <th v-if="selectable" class="w-1 p-2 text-left text-sm font-semibold">
+                        <th
+                            v-if="selectable"
+
+                            class="w-1 p-2 text-left text-sm font-semibold"
+                        >
                             <Checkbox
                                 id="selectable"
                                 :checked="isAllSelected"
                                 name="selectable"
                                 :disabled="loading"
+
                                 @click="selectAll()"
                             />
                         </th>
@@ -50,6 +61,7 @@
                         <th
                             v-for="head in displayHeaders"
                             :key="head.label"
+
                             class="p-2 text-sm font-semibold"
                             :class="{
                                 'text-left': head.position === 'start',
@@ -70,7 +82,12 @@
                         </th>
 
                         <!-- Actions Header -->
-                        <th v-if="hasActions" scope="col" class="p-2 text-right text-sm font-semibold">
+                        <th
+                            v-if="hasActions"
+
+                            scope="col"
+                            class="p-2 text-right text-sm font-semibold"
+                        >
                             <span>Ações</span>
                         </th>
                     </tr>
@@ -79,21 +96,44 @@
                 <tbody>
                     <!-- Loading state -->
                     <template v-if="loading && !data">
-                        <tr v-for="i in 5" :key="'skeleton-row-' + i" class="border-t border-border/50">
-                            <td v-if="selectable" class="flex justify-start p-2">
-                                <Skeleton type="card" class="h-4 w-5" />
+                        <tr
+                            v-for="i in 5"
+                            :key="'skeleton-row-' + i"
+
+                            class="border-t border-border/50"
+                        >
+                            <td
+                                v-if="selectable"
+
+                                class="flex justify-start p-2"
+                            >
+                                <Skeleton
+                                    type="card"
+                                    class="h-4 w-5"
+                                />
                             </td>
 
                             <td
                                 v-for="head in displayHeaders"
                                 :key="'skeleton-cell-' + i + '-' + head.label"
+
                                 class="p-2"
                             >
-                                <Skeleton type="text" class="w-full" />
+                                <Skeleton
+                                    type="text"
+                                    class="w-full"
+                                />
                             </td>
 
-                            <td v-if="hasActions" class="flex justify-end p-2">
-                                <Skeleton type="card" class="h-4 w-10" />
+                            <td
+                                v-if="hasActions"
+
+                                class="flex justify-end p-2"
+                            >
+                                <Skeleton
+                                    type="card"
+                                    class="h-4 w-10"
+                                />
                             </td>
                         </tr>
                     </template>
@@ -103,17 +143,23 @@
                         <tr
                             v-for="(item, index) in data"
                             :key="'row-' + index"
+
                             class="border-t border-border/50 text-sm transition-all hover:bg-accent/60"
                             :class="{
                                 'bg-accent/30': index % 2 !== 0
                             }"
                         >
                             <!-- Checkbox -->
-                            <td v-if="selectable" class="p-2">
+                            <td
+                                v-if="selectable"
+
+                                class="p-2"
+                            >
                                 <Checkbox
                                     :id="'row-' + index"
                                     :checked="selectedRows.includes(index)"
                                     :name="'row-' + index"
+
                                     @click="selectRow(index)"
                                 />
                             </td>
@@ -122,6 +168,7 @@
                             <td
                                 v-for="cell in getRowDisplayCells(item)"
                                 :key="cell.head.label"
+
                                 class="p-2"
                             >
                                 <div
@@ -133,35 +180,51 @@
                                     }"
                                 >
                                     <div v-if="isTextCellValue(cell.value)">
-                                        {{ cell.value }}
+                                        {{ formatTextCell(cell.value, cell.head) }}
                                     </div>
 
                                     <div
                                         v-if="isBadgeCellValue(cell.value)"
+
                                         :class="{
                                             'flex justify-start': cell.head.position === 'start',
                                             'flex justify-center': cell.head.position === 'center',
                                             'flex justify-end': cell.head.position === 'end'
                                         }"
                                     >
-                                        <Badge :variant="badgeVariant(cell.value)">
-                                            {{ badgeLabel(cell.value) }}
-                                        </Badge>
+                                        <Badge
+                                            :color="badgeColor(cell.value)"
+                                            :variant="badgeVariant(cell.value)"
+                                            :label="badgeLabel(cell.value)"
+                                        />
                                     </div>
                                 </div>
                             </td>
 
                             <!-- Actions -->
-                            <td v-if="hasActions" class="px-2 text-right align-middle">
+                            <td
+                                v-if="hasActions"
+
+                                class="px-2 text-right align-middle"
+                            >
                                 <div class="flex w-full justify-end">
                                     <Dropdown
-                                        class="w-fit!"
-                                        header="..."
-                                        :hide-dropdown-arrow="true"
-                                        :button-atributes="{ variant: 'transparent' }"
                                         :options="actions"
+
                                         @click:value="onActionClick($event, item)"
-                                    />
+                                    >
+                                        <template #button="{ toggle }">
+                                            <Button
+                                                variant="outline"
+                                                class="p-2!"
+                                                :hover-effect="false"
+
+                                                @click="toggle"
+                                            >
+                                                <span class="fa-solid fa-ellipsis-h" />
+                                            </Button>
+                                        </template>
+                                    </Dropdown>
                                 </div>
                             </td>
                         </tr>
@@ -169,16 +232,22 @@
                 </tbody>
             </table>
 
-            <div v-if="selectedRows.length > 0" class="mt-2 flex w-full justify-between border-t pt-2">
+            <div
+                v-if="selectedRows.length > 0"
+
+                class="mt-2 flex w-full justify-between border-t pt-2"
+            >
                 <span class="place-self-center pl-2 text-sm text-muted-foreground">
                     Itens selecionados: {{ selectedRows.length }}
                 </span>
 
                 <Dropdown
                     v-if="hasSelectableActions"
+
                     class="w-fit!"
                     header="Ações"
                     :options="selectableActions"
+
                     @click:value="onSelectableActionClick"
                 />
             </div>
@@ -195,11 +264,18 @@ import Checkbox from "./Checkbox.vue";
 import Skeleton from "./Skeleton.vue";
 import ProgressBar from "./ProgressBar.vue";
 import type { OptionItem } from "./internal/OptionsList.vue";
+import {
+    formatTableCellMask,
+    tableCellMaskForField,
+    type TableCellMaskFormat
+} from "@shared/format/displayMasks";
 
 type TableHeader = Record<string, unknown> & {
     label: string;
     field?: string;
     position?: "start" | "center" | "end";
+    /** Display mask for text cells (falls back to inference from `field`). */
+    format?: TableCellMaskFormat;
 };
 
 export default defineComponent({
@@ -386,13 +462,26 @@ export default defineComponent({
             }));
         },
 
+        formatTextCell(value: string | number | boolean, head: TableHeader): string {
+            const text = String(value);
+            const format = head.format ?? tableCellMaskForField(head.field);
+
+            if (!format) {
+                return text;
+            }
+
+            return formatTableCellMask(text, format);
+        },
+
         isTextCellValue(value: unknown): value is string | number | boolean {
             return (
                 typeof value === "string" || typeof value === "number" || typeof value === "boolean"
             );
         },
 
-        resolveBadgeValue(value: unknown): { label?: string; variant?: string } | undefined {
+        resolveBadgeValue(
+            value: unknown
+        ): { label?: string; variant?: string; color?: string } | undefined {
             if (typeof value !== "object" || value === null) {
                 return undefined;
             }
@@ -402,11 +491,12 @@ export default defineComponent({
                 typeof (value as { badge?: unknown }).badge === "object" &&
                 (value as { badge?: unknown }).badge !== null
             ) {
-                return (value as { badge: { label?: string; variant?: string } }).badge;
+                return (value as { badge: { label?: string; variant?: string; color?: string } })
+                    .badge;
             }
 
-            if ("label" in value || "variant" in value) {
-                return value as { label?: string; variant?: string };
+            if ("label" in value || "variant" in value || "color" in value) {
+                return value as { label?: string; variant?: string; color?: string };
             }
 
             return undefined;
@@ -418,6 +508,10 @@ export default defineComponent({
 
         badgeLabel(value: unknown): string | undefined {
             return this.resolveBadgeValue(value)?.label;
+        },
+
+        badgeColor(value: unknown): string | undefined {
+            return this.resolveBadgeValue(value)?.color;
         },
 
         badgeVariant(

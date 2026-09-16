@@ -35,6 +35,7 @@
                 :is-option-selected="isOptionSelected"
 
                 @select="onSelect"
+                @search:external="onSearchExternal"
             />
         </template>
     </FloatingPanel>
@@ -43,7 +44,11 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import FloatingPanel from "./internal/FloatingPanel.vue";
-import OptionsList, { type OptionItem, type SearchConfig } from "./internal/OptionsList.vue";
+import OptionsList, {
+    type OptionItem,
+    type SearchConfig,
+    type SearchExternalPayload
+} from "./internal/OptionsList.vue";
 
 export default defineComponent({
     name: "Dropdown",
@@ -139,7 +144,7 @@ export default defineComponent({
         }
     },
 
-    emits: ["click:value", "update:open"],
+    emits: ["click:value", "update:open", "search:external"],
 
     data() {
         return {
@@ -154,6 +159,10 @@ export default defineComponent({
             if (this.closeOnSelect) {
                 this.close();
             }
+        },
+
+        onSearchExternal(payload: SearchExternalPayload) {
+            this.$emit("search:external", payload);
         },
 
         openPanel() {

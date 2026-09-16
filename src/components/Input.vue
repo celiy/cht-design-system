@@ -10,10 +10,10 @@
             class="mb-2 transition-all"
             :class="[
                 {
-                    'translate-y-9 translate-x-3 text-muted-foreground! cursor-text': (!isFocused && !localValue) && floatingLabel
+                    'translate-x-3 translate-y-9 cursor-text text-muted-foreground!':
+                        !isFocused && !localValue && floatingLabel
                 }
             ]"
-
             :for="inputId"
         >
             {{ label }} {{ required ? "*" : "" }}
@@ -21,8 +21,10 @@
 
         <!-- Input container -->
         <div
-            class="box-border shadow-sm transition-shadow"
+            class="box-border transition-shadow"
             :class="{
+                'shadow-sm': noShadow || variant !== 'display',
+
                 'rounded ring-[3px] ring-transparent ring-offset-0':
                     variant === 'secondary' && !isFocused,
 
@@ -418,6 +420,12 @@ export default defineComponent({
          * When true, the label is displayed in a floating position.
          */
         floatingLabel: {
+            type: Boolean,
+            default: false,
+            required: false
+        },
+
+        noShadow: {
             type: Boolean,
             default: false,
             required: false

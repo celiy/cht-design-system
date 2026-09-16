@@ -1,78 +1,146 @@
 <template>
-    <FloatingPanel
-        :id="id"
-        ref="panelRef"
+    <div class="flex w-full flex-col gap-2">
+        <FloatingPanel
+            :id="id"
+            ref="panelRef"
 
-        :label="label"
-        :helper-text="helperText"
-        :header="header"
-        :button-atributes="buttonAtributes"
-        :hide-dropdown-arrow="hideDropdownArrow"
-        :max-height-px="maxHeightPx"
-        :panel-class="panelClass"
-        :mobile-modal="mobileModal"
-        :force-modal="forceModal"
-        :action-side="actionSide"
-    >
-        <template #triggerLabel>
-            <span
-                class="block min-w-0 truncate text-left"
-                :class="{
-                    'text-muted-foreground': selectTriggerMuted
-                }"
-            >
-                {{ selectTriggerLabel }}
-            </span>
-        </template>
-
-        <template #default>
-            <OptionsList
-                v-model:search-query="searchQuery"
-                :options="options"
-                :search="search"
-                :show-checkmark="true"
-                :is-option-selected="isOptionSelected"
-
-                @select="selectOption"
-            />
-        </template>
-
-        <template #helperText>
-            <small
-                v-if="inHelperText"
-
-                class="px-3 pb-2 text-muted-foreground!"
-            >
-                {{ inHelperText }}
-            </small>
-        </template>
-
-        <template
-            v-if="hasActionButton"
-            #action
+            :label="isCombobox ? undefined : label"
+            :helper-text="helperText"
+            :header="isCombobox ? undefined : header"
+            :button-atributes="mergedButtonAtributes"
+            :hide-dropdown-arrow="isCombobox || hideDropdownArrow"
+            :max-height-px="maxHeightPx"
+            :panel-class="panelClass"
+            :mobile-modal="mobileModal"
+            :force-modal="forceModal"
+            :action-side="actionSide"
         >
-            <Button
-                type="button"
-                class="min-h-0 self-stretch"
-                :class="actionButtonLayoutClass"
-                :hover-effect="false"
-                :left-icon="actionIcon"
-                :label="actionLabel"
-                :disabled="disabled"
-                :aria-label="actionAriaLabel"
-                :button-class="actionButtonClass"
+            <template
+                v-if="isCombobox"
+                #button="{ open }"
+            >
+                <Input
+                    :id="id"
+                    type="text"
+                    :label="header || label"
+                    variant="secondary"
+                    :value="comboboxQuery"
+                    :disabled="disabled"
+                    :error="error"
 
-                @click.stop="onActionClick"
-            />
-        </template>
-    </FloatingPanel>
+                    @focus="open"
+                    @update:value="onComboboxInput"
+                />
+            </template>
+
+            <template
+                v-else
+                #triggerLabel
+            >
+                <span
+                    class="block min-w-0 truncate text-left"
+                    :class="{
+                        'text-muted-foreground': selectTriggerMuted
+                    }"
+                >
+                    {{ selectTriggerLabel }}
+                </span>
+            </template>
+
+            <template #default>
+                <OptionsList
+                    v-model:search-query="searchQuery"
+                    :options="panelOptions"
+                    :search="listSearch"
+                    :show-checkmark="panelShowCheckmark"
+                    :is-option-selected="isOptionSelected"
+
+                    @select="selectOption"
+                    @search:external="onSearchExternal"
+                />
+            </template>
+
+            <template #helperText>
+                <small
+                    v-if="inHelperText"
+
+                    class="px-3 pb-2 text-muted-foreground!"
+                >
+                    {{ inHelperText }}
+                </small>
+            </template>
+
+            <template
+                v-if="hasActionButton"
+                #action
+            >
+                <Button
+                    v-tooltip="actionTooltip || undefined"
+
+                    type="button"
+                    class="min-h-0 self-stretch"
+                    :class="actionButtonLayoutClass"
+                    :hover-effect="false"
+                    :left-icon="actionIcon"
+                    :label="actionLabel"
+                    :disabled="disabled"
+                    :aria-label="actionAriaLabel"
+                    :button-class="actionButtonClass"
+
+                    @click.stop="onActionClick"
+                />
+            </template>
+        </FloatingPanel>
+
+        <div
+            v-if="showSeparatedSelected"
+
+            class="flex flex-wrap gap-2"
+        >
+            <div
+                v-for="item in separatedSelectedItems"
+                :key="item.value"
+
+                class="flex items-stretch"
+            >
+                <Button
+                    variant="outline"
+                    size="small"
+                    :class="{ 'rounded-r-none!': !disabled }"
+                    :hover-effect="false"
+                    :label="item.label"
+
+                    @click.stop="onSeparatedLabelClick(item.value)"
+                />
+
+                <Button
+                    v-if="!disabled"
+
+                    variant="outline"
+                    size="small"
+                    class="rounded-l-none! border-l-0"
+                    :hover-effect="false"
+                    left-icon="fa-xmark"
+                    :aria-label="`Remover ${item.label}`"
+
+                    @click.stop="onSeparatedRemoveClick(item.value)"
+                />
+            </div>
+        </div>
+    </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import FloatingPanel from "./internal/FloatingPanel.vue";
-import OptionsList, { type OptionItem, type SearchConfig } from "./internal/OptionsList.vue";
+import OptionsList, {
+    type OptionItem,
+    type SearchConfig,
+    type SearchExternalPayload
+} from "./internal/OptionsList.vue";
 import Button from "./Button.vue";
+import Input from "./Input.vue";
+import tooltip from "@shared/frontend/tooltip";
 
 type SelectMultipleConfig = {
     min?: number;
@@ -86,7 +154,12 @@ export default defineComponent({
     components: {
         FloatingPanel,
         OptionsList,
-        Button
+        Button,
+        Input
+    },
+
+    directives: {
+        tooltip
     },
 
     props: {
@@ -170,6 +243,15 @@ export default defineComponent({
             default: true
         },
 
+        /**
+         * Multi-select only: render selected options as removable chips below the trigger
+         * instead of listing labels on the trigger button.
+         */
+        separateSelected: {
+            type: Boolean,
+            default: false
+        },
+
         maxHeightPx: {
             type: Number,
             default: 280
@@ -209,13 +291,48 @@ export default defineComponent({
             default: "right"
         },
 
+        actionTooltip: {
+            type: String,
+            required: false
+        },
+
         disabled: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * Replaces the trigger button with a text input. Typing searches and
+         * can keep a value that is not in `options`; picking an option fills the input.
+         */
+        combobox: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * Free-text value of the combobox input (`v-model:query`).
+         */
+        query: {
+            type: String,
+            default: ""
+        },
+
+        error: {
+            type: String,
+            required: false
         }
     },
 
-    emits: ["update:modelValue", "update:value", "click:action"],
+    emits: [
+        "update:modelValue",
+        "update:value",
+        "update:query",
+        "click:action",
+        "click:selected",
+        "remove:selected",
+        "search:external"
+    ],
 
     data() {
         return {
@@ -227,7 +344,9 @@ export default defineComponent({
             multiMemoHydrationDone: false,
             /** True when `modelValue` is not `undefined` (parent explicitly controls). */
             multiModelValueProvided: false,
-            searchQuery: ""
+            searchQuery: "",
+            comboboxQuery: this.query ?? "",
+            comboboxSearchTimer: null as number | null
         };
     },
 
@@ -236,12 +355,77 @@ export default defineComponent({
             return this.selectMultiple != null;
         },
 
+        isCombobox(): boolean {
+            return this.combobox && !this.isSelectMultiple;
+        },
+
+        listSearch(): SearchConfig | undefined {
+            if (this.isCombobox) {
+                return undefined;
+            }
+
+            return this.search;
+        },
+
+        showLabelsOnTrigger(): boolean {
+            if (this.separateSelected && this.isSelectMultiple) {
+                return false;
+            }
+
+            return this.showSelectedLabels;
+        },
+
+        showSeparatedSelected(): boolean {
+            return this.separateSelected && this.isSelectMultiple && this.separatedSelectedItems.length > 0;
+        },
+
+        separatedSelectedItems(): Array<{ label: string; value: string }> {
+            if (!this.isSelectMultiple) {
+                return [];
+            }
+
+            const items: Array<{ label: string; value: string }> = [];
+
+            for (const value of this.selectedValues) {
+                items.push({
+                    value,
+                    label: this.optionLabelForValue(value) || value
+                });
+            }
+
+            return items;
+        },
+
+        panelOptions(): OptionItem[] {
+            let options = this.options ?? [];
+
+            if (this.separateSelected && this.isSelectMultiple) {
+                options = this.optionsExcludingSelected(options);
+            }
+
+            if (this.isCombobox && this.search && !this.search.external) {
+                const query = this.comboboxQuery.trim().toLowerCase();
+
+                if (query) {
+                    options = options.filter((item) => {
+                        return Boolean(item.label && item.label.toLowerCase().includes(query));
+                    });
+                }
+            }
+
+            return options;
+        },
+
+        panelShowCheckmark(): boolean {
+            return !(this.separateSelected && this.isSelectMultiple);
+        },
+
         /**
          * Text shown on the trigger button.
          */
         selectTriggerLabel(): string {
             if (this.isSelectMultiple) {
-                if (this.showSelectedLabels && this.selectedLabels.length > 0) {
+                if (this.showLabelsOnTrigger && this.selectedLabels.length > 0) {
                     return this.selectedLabels.join(", ");
                 }
 
@@ -253,7 +437,7 @@ export default defineComponent({
 
         selectTriggerMuted(): boolean {
             if (this.isSelectMultiple) {
-                return !(this.showSelectedLabels && this.selectedLabels.length > 0);
+                return !(this.showLabelsOnTrigger && this.selectedLabels.length > 0);
             }
 
             return !this.selectedValueLabel && !this.header;
@@ -286,7 +470,7 @@ export default defineComponent({
         },
 
         actionAriaLabel(): string {
-            return this.actionLabel || "Adicionar";
+            return this.actionLabel || this.actionTooltip || "Adicionar";
         },
 
         actionButtonLayoutClass(): string {
@@ -299,6 +483,15 @@ export default defineComponent({
 
         actionButtonClass(): string {
             return "box-border h-full";
+        },
+
+        mergedButtonAtributes(): Record<string, unknown> {
+            const extra = (this.buttonAtributes ?? {}) as Record<string, unknown>;
+
+            return {
+                ...extra,
+                disabled: this.disabled || Boolean(extra.disabled)
+            };
         }
     },
 
@@ -353,6 +546,14 @@ export default defineComponent({
             },
             immediate: true,
             deep: true
+        },
+
+        query(next: string) {
+            if (!this.isCombobox) {
+                return;
+            }
+
+            this.comboboxQuery = next ?? "";
         }
     },
 
@@ -365,7 +566,7 @@ export default defineComponent({
                         this.emitSelectionToParent();
                     }
                 }
-            } else if (this.id) {
+            } else if (this.id && !this.isCombobox) {
                 const raw = localStorage.getItem(this.id);
 
                 if (!this.value) {
@@ -384,6 +585,10 @@ export default defineComponent({
         });
     },
 
+    beforeUnmount() {
+        this.clearComboboxSearchTimer();
+    },
+
     methods: {
         labelsForValues(options: OptionItem[], values: string[]): string[] {
             const labels: string[] = [];
@@ -399,6 +604,59 @@ export default defineComponent({
             }
 
             return labels;
+        },
+
+        optionsExcludingSelected(options: OptionItem[]): OptionItem[] {
+            const filtered: OptionItem[] = [];
+
+            for (const option of options) {
+                if (option.separator) {
+                    filtered.push(option);
+                    continue;
+                }
+
+                if (option.options && option.options.length > 0) {
+                    const children = this.optionsExcludingSelected(option.options);
+
+                    if (children.length === 0) {
+                        continue;
+                    }
+
+                    filtered.push({
+                        ...option,
+                        options: children
+                    });
+                    continue;
+                }
+
+                if (option.value != null && this.selectedValues.includes(String(option.value))) {
+                    continue;
+                }
+
+                filtered.push(option);
+            }
+
+            return filtered;
+        },
+
+        optionLabelForValue(value: string, options?: OptionItem[]): string | undefined {
+            const list = options ?? this.options ?? [];
+
+            for (const option of list) {
+                if (option.value != null && String(option.value) === value) {
+                    return option.label;
+                }
+
+                if (option.options && option.options.length > 0) {
+                    const nested = this.optionLabelForValue(value, option.options);
+
+                    if (nested) {
+                        return nested;
+                    }
+                }
+            }
+
+            return undefined;
         },
 
         /**
@@ -542,6 +800,20 @@ export default defineComponent({
                 return;
             }
 
+            if (this.isCombobox) {
+                const label = this.optionLabelForValue(val) || val;
+
+                this.value = val;
+                this.comboboxQuery = label;
+                this.clearComboboxSearchTimer();
+                this.$emit("update:query", label);
+                this.$emit("update:value", val);
+                this.$emit("update:modelValue", val);
+                this.close();
+
+                return;
+            }
+
             this.close();
 
             if (this.value === val) {
@@ -581,7 +853,73 @@ export default defineComponent({
         },
 
         onActionClick(event: MouseEvent) {
+            this.close();
             this.$emit("click:action", event);
+        },
+
+        onSearchExternal(payload: SearchExternalPayload) {
+            this.$emit("search:external", payload);
+        },
+
+        clearComboboxSearchTimer() {
+            if (this.comboboxSearchTimer == null) {
+                return;
+            }
+
+            window.clearTimeout(this.comboboxSearchTimer);
+            this.comboboxSearchTimer = null;
+        },
+
+        onComboboxInput(value: unknown) {
+            const text = String(value ?? "");
+
+            this.comboboxQuery = text;
+            this.$emit("update:query", text);
+
+            if (this.value) {
+                this.value = "";
+                this.$emit("update:value", "");
+                this.$emit("update:modelValue", "");
+            }
+
+            const trimmed = text.trim();
+
+            if (trimmed) {
+                this.open();
+            } else {
+                this.close();
+            }
+
+            if (!this.search?.external) {
+                return;
+            }
+
+            this.clearComboboxSearchTimer();
+            this.comboboxSearchTimer = window.setTimeout(() => {
+                this.comboboxSearchTimer = null;
+                this.$emit("search:external", {
+                    field: this.search?.field ?? "",
+                    value: trimmed
+                });
+            }, 300);
+        },
+
+        onSeparatedLabelClick(value: string) {
+            this.$emit("click:selected", value);
+        },
+
+        onSeparatedRemoveClick(value: string) {
+            if (this.disabled) {
+                return;
+            }
+
+            const wasSelected = this.selectedValues.includes(value);
+
+            this.selectOption(value);
+
+            if (wasSelected && !this.selectedValues.includes(value)) {
+                this.$emit("remove:selected", value);
+            }
         }
     }
 });

@@ -3,144 +3,150 @@
         <div
             v-show="modalOpen"
 
-            class="fixed z-999 left-0 top-0 w-full h-full"
+            class="fixed top-0 left-0 h-full w-full"
+            :style="{ zIndex: overlayZIndex }"
         >
-
-        <Transition name="fade-modal">
-            <div
-                v-show="modalOpen"
-
-                class="absolute inset-0 bg-black/50"
-                aria-hidden="true"
-
-                @click="onOverlayDismiss"
-            />
-        </Transition>
-
-        <div
-            class="absolute inset-0 flex pointer-events-none"
-            :class="shellAlignClass"
-        >
-            <Transition :name="panelTransitionName">
-                <div 
-                    v-if="variant === 'preview'"
-                    v-show="modalOpen"
-
-                    ref="modalRef"
-
-                    class="relative pointer-events-auto max-w-[90vw] max-h-[90vh]"
-                >
-                    <slot name="body" />
-                </div>
-
-                <!-- Modal panel -->
+            <Transition name="fade-modal">
                 <div
-                    v-else
                     v-show="modalOpen"
 
-                    ref="modalRef"
+                    class="absolute inset-0 bg-black/50"
+                    aria-hidden="true"
 
-                    class="relative bg-card p-0 shadow-2xl pointer-events-auto box-border"
-                    :class="[
-                        panelSurfaceClass,
-                        variant === 'drawer' ? 'flex flex-col min-h-0' : ''
-                    ]"
+                    @click="onOverlayDismiss"
+                />
+            </Transition>
 
-                    :style="drawerDragStyle"
-
-                    @pointerdown="onDrawerPointerDown"
-                >
+            <div
+                class="pointer-events-none absolute inset-0 flex"
+                :class="shellAlignClass"
+            >
+                <Transition :name="panelTransitionName">
                     <div
-                        v-if="variant === 'drawer' && side === 'bottom'"
+                        v-if="variant === 'preview'"
+                        v-show="modalOpen"
+                        ref="modalRef"
 
-                        class="flex shrink-0 justify-center pt-3 pb-1 select-none touch-manipulation"
-                        aria-hidden="true"
+                        class="pointer-events-auto relative max-h-[90vh] max-w-[90vw]"
                     >
-                        <span class="h-1.5 w-10 rounded-full bg-muted-foreground/40" />
-                    </div>
-
-                    <div
-                        v-if="variant !== 'blank'"
-
-                        class="rounded-t px-4 pt-4 shrink-0"
-                        :class="{
-                            'cursor-grab active:cursor-grabbing': variant === 'drawer'
-                        }"
-                    >
-                        <div class="flex items-center justify-between">
-                            <!-- Header -->
-                            <h5>
-                                <slot name="header" />
-                            </h5>
-
-                            <Button
-                                variant="transparent"
-
-                                @click="onCloseButtonClick"
-                            >
-                                <i class="fa-solid fa-x text-xs" />
-                            </Button>
-                        </div>
-                    </div>
-
-                    <div
-                        v-if="$slots.description && variant !== 'blank'"
-
-                        class="px-4 pb-4 shrink-0"
-                    >
-                        <!-- Description -->
-                        <p class="text-muted-foreground!">
-                            <slot name="description" />
-                        </p>
-                    </div>
-
-                    <div
-                        v-if="$slots.body"
-
-                        class="overflow-auto"
-                        :class="{
-                            'mt-2': variant !== 'blank' && !$slots.description,
-                            'px-4 pb-4': variant === 'modal' || variant === 'drawer',
-                            'max-h-[60vh]': (variant === 'modal' || variant === 'blank') && size !== 'large',
-                            'max-h-[80vh]': (variant === 'modal' || variant === 'blank') && size === 'large',
-                            'flex-1 min-h-0': variant === 'drawer'
-                        }"
-                    >
-                        <!-- Body -->
                         <slot name="body" />
                     </div>
 
+                    <!-- Modal panel -->
                     <div
-                        v-if="$slots.footer && variant !== 'blank'"
+                        v-else
+                        v-show="modalOpen"
+                        ref="modalRef"
 
-                        class="bg-muted/50 p-4 border-t shrink-0 rounded-b"
-                        :class="{
-                            'mt-auto': variant === 'drawer'
-                        }"
+                        class="pointer-events-auto relative box-border bg-card p-0 shadow-2xl"
+                        :class="[
+                            panelSurfaceClass,
+                            variant === 'drawer' ? 'flex min-h-0 flex-col' : ''
+                        ]"
+                        :style="drawerDragStyle"
+
+                        @pointerdown="onDrawerPointerDown"
                     >
-                        <!-- Footer -->
-                        <slot name="footer" />
+                        <div
+                            v-if="variant === 'drawer' && side === 'bottom'"
+
+                            class="flex shrink-0 touch-manipulation justify-center pt-3 pb-1 select-none"
+                            aria-hidden="true"
+                        >
+                            <span class="h-1.5 w-10 rounded-full bg-muted-foreground/40" />
+                        </div>
+
+                        <div
+                            v-if="variant !== 'blank'"
+
+                            class="shrink-0 rounded-t px-4 pt-4"
+                            :class="{
+                                'cursor-grab active:cursor-grabbing': variant === 'drawer'
+                            }"
+                        >
+                            <div class="flex items-center justify-between">
+                                <!-- Header -->
+                                <h5>
+                                    <slot name="header" />
+                                </h5>
+
+                                <Button
+                                    variant="transparent"
+
+                                    @click="onCloseButtonClick"
+                                >
+                                    <i class="fa-solid fa-x text-xs" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="$slots.description && variant !== 'blank'"
+
+                            class="shrink-0 px-4 pb-4"
+                        >
+                            <!-- Description -->
+                            <p class="text-muted-foreground!">
+                                <slot name="description" />
+                            </p>
+                        </div>
+
+                        <div
+                            v-if="$slots.body"
+
+                            class="overflow-auto"
+                            :class="{
+                                'mt-2': variant !== 'blank' && !$slots.description,
+                                'px-4 pb-4': variant === 'modal' || variant === 'drawer',
+                                'max-h-[60vh]':
+                                    (variant === 'modal' || variant === 'blank') &&
+                                    size !== 'large',
+                                'max-h-[80vh]':
+                                    (variant === 'modal' || variant === 'blank') &&
+                                    size === 'large',
+                                'min-h-0 flex-1': variant === 'drawer'
+                            }"
+                        >
+                            <!-- Body -->
+                            <slot name="body" />
+                        </div>
+
+                        <div
+                            v-if="$slots.footer && variant !== 'blank'"
+
+                            class="shrink-0 rounded-b border-t bg-muted/50 p-4"
+                            :class="{
+                                'mt-auto': variant === 'drawer'
+                            }"
+                        >
+                            <!-- Footer -->
+                            <slot name="footer" />
+                        </div>
                     </div>
-                </div>
-            </Transition>
-        </div>
+                </Transition>
+            </div>
 
-        <Keybind
-            key-name="Escape"
-            :ignore-when-typing="false"
-            :enabled="modalOpen"
+            <Keybind
+                key-name="Escape"
+                :ignore-when-typing="false"
+                :enabled="modalOpen"
 
-            @trigger="onEscape"
-        />
+                @trigger="onEscape"
+            />
         </div>
     </Teleport>
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from "vue";
+import { defineComponent, toRef, type PropType } from "vue";
 import Button from "./Button.vue";
 import Keybind from "./internal/Keybind.vue";
-import { isTopModalLayer, popModalLayer, pushModalLayer } from "@shared/frontend/keybinds";
+import {
+    getModalLayerIndex,
+    isTopModalLayer,
+    popModalLayer,
+    pushModalLayer
+} from "@shared/frontend/keybinds";
 
 const DRAWER_MOVE_LISTENER_OPTS = { passive: false, capture: true };
 const DRAWER_UP_LISTENER_OPTS = { capture: true };
@@ -152,6 +158,24 @@ export default defineComponent({
     components: {
         Button,
         Keybind
+    },
+
+    provide() {
+        return {
+            chtModalIsOpen: toRef(this, "modalOpen"),
+
+            registerChtFloatingPanelCloser: (close: () => void) => {
+                this.floatingPanelClosers.push(close);
+
+                return () => {
+                    const idx = this.floatingPanelClosers.indexOf(close);
+
+                    if (idx !== -1) {
+                        this.floatingPanelClosers.splice(idx, 1);
+                    }
+                };
+            }
+        };
     },
 
     props: {
@@ -174,7 +198,7 @@ export default defineComponent({
         },
 
         size: {
-            type: String as PropType<"small" | "medium" | "large">,
+            type: String as PropType<"small" | "medium" | "large" | "extra-large">,
             default: "medium",
             required: false
         },
@@ -191,7 +215,9 @@ export default defineComponent({
     data() {
         return {
             modalOpen: false,
+            floatingPanelClosers: [] as Array<() => void>,
             modalLayerId: Symbol("modal"),
+            layerIndex: 0,
 
             drawerPointerDown: false,
             drawerDragCommitted: false,
@@ -204,12 +230,20 @@ export default defineComponent({
     },
 
     computed: {
+        overlayZIndex(): number {
+            return 999 + this.layerIndex * 20;
+        },
+
         /**
          * Calculates the shell align class.
          * @returns {string} The shell align class.
          */
         shellAlignClass(): string {
-            if (this.variant === "modal" || this.variant === "preview" || this.variant === "blank") {
+            if (
+                this.variant === "modal" ||
+                this.variant === "preview" ||
+                this.variant === "blank"
+            ) {
                 return "items-center justify-center p-4";
             }
 
@@ -229,7 +263,11 @@ export default defineComponent({
          * @returns {string} The panel transition name.
          */
         panelTransitionName(): string {
-            if (this.variant === "modal" || this.variant === "preview" || this.variant === "blank") {
+            if (
+                this.variant === "modal" ||
+                this.variant === "preview" ||
+                this.variant === "blank"
+            ) {
                 return "fade-modal";
             }
 
@@ -250,29 +288,47 @@ export default defineComponent({
          */
         panelSurfaceClass(): Record<string, boolean> {
             const c: Record<string, boolean> = {
-                "lg:w-[35%] md:w-[50%] sm:w-[70%] w-[90%]": this.size === "small" && (this.variant === "modal" || this.variant === "blank"),
-                "lg:w-[50%] md:w-[70%] sm:w-[80%] w-[94%]": this.size === "medium" && (this.variant === "modal" || this.variant === "blank"),
-                "lg:w-[70%] md:w-[80%] sm:w-[86%] w-[98%]": this.size === "large" && (this.variant === "modal" || this.variant === "blank"),
-                "rounded border border-border/60!": this.variant === "modal" || this.variant === "blank",
+                "lg:w-[35%] md:w-[50%] sm:w-[70%] w-[90%]":
+                    this.size === "small" && (this.variant === "modal" || this.variant === "blank"),
+                "lg:w-[50%] md:w-[70%] sm:w-[80%] w-[94%]":
+                    this.size === "medium" &&
+                    (this.variant === "modal" || this.variant === "blank"),
+                "lg:w-[70%] md:w-[80%] sm:w-[86%] w-[98%]":
+                    this.size === "large" && (this.variant === "modal" || this.variant === "blank"),
+                "lg:w-[80%] md:w-[85%] sm:w-[90%] w-[98%]":
+                    this.size === "extra-large" &&
+                    (this.variant === "modal" || this.variant === "blank"),
+                "rounded border border-border/60!":
+                    this.variant === "modal" || this.variant === "blank",
 
                 "border-warning/50! border-2!": this.color === "warning",
                 "border-destructive/50! border-2!": this.color === "destructive",
                 "border-success/50! border-2!": this.color === "success",
                 "border-info/50! border-2!": this.color === "info",
 
-                "lg:w-[30%] md:w-[50%] sm:w-[80%] w-[90%]": this.variant === "drawer" && this.side !== "bottom" && this.size === "small",
-                "lg:w-[30%] md:w-[55%] sm:w-[85%] w-[90%]": this.variant === "drawer" && this.side !== "bottom" && this.size === "medium",
-                "lg:w-[30%] md:w-[60%] sm:w-[85%] w-[90%]": this.variant === "drawer" && this.side !== "bottom" && this.size === "large",
+                "lg:w-[30%] md:w-[50%] sm:w-[80%] w-[90%]":
+                    this.variant === "drawer" && this.side !== "bottom" && this.size === "small",
+                "lg:w-[30%] md:w-[55%] sm:w-[85%] w-[90%]":
+                    this.variant === "drawer" && this.side !== "bottom" && this.size === "medium",
+                "lg:w-[30%] md:w-[60%] sm:w-[85%] w-[90%]":
+                    this.variant === "drawer" && this.side !== "bottom" && this.size === "large",
 
-                "h-full self-stretch max-h-full": this.variant === "drawer" && (this.side === "left" || this.side === "right"),
+                "h-full self-stretch max-h-full":
+                    this.variant === "drawer" && (this.side === "left" || this.side === "right"),
 
-                "w-full self-stretch max-h-[42vh] sm:max-h-[50vh] md:max-h-[58vh]": this.variant === "drawer" && this.side === "bottom" && this.size === "small",
-                "w-full self-stretch max-h-[58vh] sm:max-h-[68vh] md:max-h-[72vh]": this.variant === "drawer" && this.side === "bottom" && this.size === "medium",
-                "w-full self-stretch max-h-[78vh] sm:max-h-[85vh] md:max-h-[88vh]": this.variant === "drawer" && this.side === "bottom" && this.size === "large",
+                "w-full self-stretch max-h-[42vh] sm:max-h-[50vh] md:max-h-[58vh]":
+                    this.variant === "drawer" && this.side === "bottom" && this.size === "small",
+                "w-full self-stretch max-h-[58vh] sm:max-h-[68vh] md:max-h-[72vh]":
+                    this.variant === "drawer" && this.side === "bottom" && this.size === "medium",
+                "w-full self-stretch max-h-[78vh] sm:max-h-[85vh] md:max-h-[88vh]":
+                    this.variant === "drawer" && this.side === "bottom" && this.size === "large",
 
-                "rounded-r border-r border-border/60!": this.variant === "drawer" && this.side === "left",
-                "rounded-l border-l border-border/60!":this.variant === "drawer" && this.side === "right",
-                "rounded-t border-t border-border/60!": this.variant === "drawer" && this.side === "bottom"
+                "rounded-r border-r border-border/60!":
+                    this.variant === "drawer" && this.side === "left",
+                "rounded-l border-l border-border/60!":
+                    this.variant === "drawer" && this.side === "right",
+                "rounded-t border-t border-border/60!":
+                    this.variant === "drawer" && this.side === "bottom"
             };
 
             return c;
@@ -304,6 +360,7 @@ export default defineComponent({
                 if (newVal) {
                     this.resetDrawerDrag();
                     pushModalLayer(this.modalLayerId);
+                    this.layerIndex = getModalLayerIndex(this.modalLayerId);
 
                     this.$nextTick(() => {
                         setTimeout(() => {
@@ -325,6 +382,8 @@ export default defineComponent({
                     this.resetDrawerDrag();
                     this.teardownDrawerPointerListeners();
                     popModalLayer(this.modalLayerId);
+                    this.layerIndex = 0;
+                    this.closeDescendantFloatingPanels();
                 }
 
                 this.$emit("update:value", newVal);
@@ -343,11 +402,7 @@ export default defineComponent({
     },
 
     beforeUnmount() {
-        document.removeEventListener(
-            "click",
-            this.handleClickOutside,
-            OUTSIDE_CLICK_LISTENER_OPTS
-        );
+        document.removeEventListener("click", this.handleClickOutside, OUTSIDE_CLICK_LISTENER_OPTS);
         this.teardownDrawerPointerListeners();
         popModalLayer(this.modalLayerId);
     },
@@ -365,6 +420,17 @@ export default defineComponent({
          */
         close() {
             this.modalOpen = false;
+        },
+
+        /**
+         * Closes select/dropdown panels opened inside this modal (teleported to body).
+         */
+        closeDescendantFloatingPanels() {
+            const closers = this.floatingPanelClosers.splice(0);
+
+            for (const close of closers) {
+                close();
+            }
         },
 
         /**
@@ -431,9 +497,21 @@ export default defineComponent({
          * Tears down the drawer pointer listeners.
          */
         teardownDrawerPointerListeners() {
-            window.removeEventListener("pointermove", this.onDrawerPointerMove, DRAWER_MOVE_LISTENER_OPTS);
-            window.removeEventListener("pointerup", this.onDrawerPointerUp, DRAWER_UP_LISTENER_OPTS);
-            window.removeEventListener("pointercancel", this.onDrawerPointerUp, DRAWER_UP_LISTENER_OPTS);
+            window.removeEventListener(
+                "pointermove",
+                this.onDrawerPointerMove,
+                DRAWER_MOVE_LISTENER_OPTS
+            );
+            window.removeEventListener(
+                "pointerup",
+                this.onDrawerPointerUp,
+                DRAWER_UP_LISTENER_OPTS
+            );
+            window.removeEventListener(
+                "pointercancel",
+                this.onDrawerPointerUp,
+                DRAWER_UP_LISTENER_OPTS
+            );
         },
 
         /**
@@ -463,7 +541,7 @@ export default defineComponent({
 
             const target = event.target as HTMLElement | null;
 
-            if (target?.closest("button, a, input, textarea, select, label, [role=\"slider\"]")) {
+            if (target?.closest('button, a, input, textarea, select, label, [role="slider"]')) {
                 return;
             }
 
@@ -474,9 +552,17 @@ export default defineComponent({
             this.drawerDragX = 0;
             this.drawerDragY = 0;
 
-            window.addEventListener("pointermove", this.onDrawerPointerMove, DRAWER_MOVE_LISTENER_OPTS);
+            window.addEventListener(
+                "pointermove",
+                this.onDrawerPointerMove,
+                DRAWER_MOVE_LISTENER_OPTS
+            );
             window.addEventListener("pointerup", this.onDrawerPointerUp, DRAWER_UP_LISTENER_OPTS);
-            window.addEventListener("pointercancel", this.onDrawerPointerUp, DRAWER_UP_LISTENER_OPTS);
+            window.addEventListener(
+                "pointercancel",
+                this.onDrawerPointerUp,
+                DRAWER_UP_LISTENER_OPTS
+            );
 
             this.drawerCapturedPointerId = event.pointerId;
 
@@ -617,17 +703,17 @@ export default defineComponent({
 /* Backdrop / modal panel — mesma curva que o overlay da Sidebar (opacity 0.2s ease) */
 .fade-modal-enter-active,
 .fade-modal-leave-active {
-  transition: opacity 0.2s ease;
+    transition: opacity 0.2s ease;
 }
 
 .fade-modal-enter-from,
 .fade-modal-leave-to {
-  opacity: 0;
+    opacity: 0;
 }
 
 .fade-modal-enter-to,
 .fade-modal-leave-from {
-  opacity: 1;
+    opacity: 1;
 }
 
 /*
@@ -640,36 +726,36 @@ export default defineComponent({
 .drawer-slide-right-leave-active,
 .drawer-slide-bottom-enter-active,
 .drawer-slide-bottom-leave-active {
-  transition: transform 300ms cubic-bezier(0, 0, 0.2, 1);
+    transition: transform 300ms cubic-bezier(0, 0, 0.2, 1);
 }
 
 .drawer-slide-left-enter-from,
 .drawer-slide-left-leave-to {
-  transform: translateX(-100%);
+    transform: translateX(-100%);
 }
 
 .drawer-slide-left-enter-to,
 .drawer-slide-left-leave-from {
-  transform: translateX(0);
+    transform: translateX(0);
 }
 
 .drawer-slide-right-enter-from,
 .drawer-slide-right-leave-to {
-  transform: translateX(100%);
+    transform: translateX(100%);
 }
 
 .drawer-slide-right-enter-to,
 .drawer-slide-right-leave-from {
-  transform: translateX(0);
+    transform: translateX(0);
 }
 
 .drawer-slide-bottom-enter-from,
 .drawer-slide-bottom-leave-to {
-  transform: translateY(100%);
+    transform: translateY(100%);
 }
 
 .drawer-slide-bottom-enter-to,
 .drawer-slide-bottom-leave-from {
-  transform: translateY(0);
+    transform: translateY(0);
 }
 </style>

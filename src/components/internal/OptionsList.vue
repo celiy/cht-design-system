@@ -1,75 +1,78 @@
 <template>
-    <div>
-        <!-- Search input -->
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col">
         <div
             v-if="search"
-            class="flex items-center px-4"
+
+            class="shrink-0"
         >
-            <span class="fa fa-search text-muted-foreground! text-sm" />
+            <div class="flex items-center px-4">
+                <span class="fa fa-search text-sm text-muted-foreground!" />
 
-            <Input
-                id="options-list-search"
-                v-model="localSearchQuery"
+                <Input
+                    id="options-list-search"
+                    v-model="localSearchQuery"
+                    class="my-1"
+                    type="text"
+                    variant="transparent"
+                    placeholder="Pesquisar..."
+                    no-shadow
 
-                class="my-1"
-                type="text"
-                variant="transparent"
-                placeholder="Pesquisar..."
+                    @update:model-value="onSearchQueryUpdate"
+                />
+            </div>
 
-                @update:model-value="onSearchQueryUpdate"
-            />
+            <div class="separator" />
         </div>
 
         <div
-            v-if="search"
-            class="separator"
-        />
+            ref="optionsScrollRef"
 
-        <!-- Options list -->
-        <template v-if="visibleOptions.length > 0">
-            <div
-                v-for="(item, idx) of visibleOptions"
-                :key="item.value ?? item.label ?? String(idx)"
-                :ref="(el) => setOptionRef(idx, el)"
-
-                @mouseenter="onItemMouseEnter(idx, item)"
-                @mouseleave="onItemMouseLeave(item)"
-            >
-                <Option
-                    v-tooltip="optionTooltip(item)"
-
-                    :label="item.label"
-                    :icon="item.icon"
-                    :separator="item.separator"
-                    :value="item.value"
-                    :variant="item.variant"
-                    :show-checkmark="showCheckmark"
-                    :selected="isItemSelected(item)"
-                    :highlighted="isItemHighlighted(idx, item)"
-                    :first="idx === 0"
-                    :last="idx === visibleOptions.length - 1"
-                    :disabled="item.disabled"
-                    :has-children="hasChildren(item)"
-
-                    @click="onItemClick(item)"
-                />
-            </div>
-        </template>
-
-        <!-- No options found -->
-        <div
-            v-else
-            class="text-muted-foreground! text-sm px-3 py-2 text-center"
+            class="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         >
-            <small class="text-muted-foreground!">Nenhum resultado encontrado.</small>
+            <template v-if="visibleOptions.length > 0">
+                <div
+                    v-for="(item, idx) of visibleOptions"
+                    :key="item.value ?? item.label ?? String(idx)"
+                    :ref="(el) => setOptionRef(idx, el)"
+
+                    @mouseenter="onItemMouseEnter(idx, item)"
+                    @mouseleave="onItemMouseLeave(item)"
+                >
+                    <Option
+                        v-tooltip="optionTooltip(item)"
+                        :label="item.label"
+                        :icon="item.icon"
+                        :separator="item.separator"
+                        :value="item.value"
+                        :variant="item.variant"
+                        :show-checkmark="showCheckmark"
+                        :selected="isItemSelected(item)"
+                        :highlighted="isItemHighlighted(idx, item)"
+                        :first="idx === 0"
+                        :last="idx === visibleOptions.length - 1"
+                        :disabled="item.disabled"
+                        :has-children="hasChildren(item)"
+
+                        @click="onItemClick(item)"
+                    />
+                </div>
+            </template>
+
+            <div
+                v-else
+
+                class="px-3 py-2 text-center text-sm text-muted-foreground!"
+            >
+                <small class="text-muted-foreground!">Nenhum resultado encontrado.</small>
+            </div>
         </div>
 
         <Teleport to="body">
             <div
                 v-if="nestedItem"
-
                 ref="nestedPanelRef"
-                class="absolute z-[1200] min-w-[11rem] overflow-y-auto rounded border border-border bg-popover shadow-md"
+
+                class="absolute z-[1200] flex max-h-[280px] min-w-[11rem] flex-col overflow-hidden rounded border border-border bg-popover shadow-md"
                 :style="nestedPanelStyle"
                 data-cht-floating-panel
 
@@ -115,8 +118,20 @@ export type OptionItem = {
 
 export type SearchConfig = {
     external: boolean;
+    /**
+     * Backend field used when `external` is true.
+     * Included in the `search:external` payload.
+     */
+    field?: string;
     route?: string;
 };
+
+export type SearchExternalPayload = {
+    field: string;
+    value: string;
+};
+
+const SEARCH_EXTERNAL_DEBOUNCE_MS = 300;
 
 type IsOptionSelected = (
     value: string | undefined,
@@ -180,7 +195,7 @@ export default defineComponent({
         }
     },
 
-    emits: ["select", "update:searchQuery"],
+    emits: ["select", "update:searchQuery", "search:external"],
 
     data() {
         return {
@@ -189,7 +204,8 @@ export default defineComponent({
             optionRefs: [] as (HTMLElement | null)[],
             nestedItem: null as OptionItem | null,
             nestedPanelStyle: {} as Record<string, string>,
-            nestedCloseTimer: null as number | null
+            nestedCloseTimer: null as number | null,
+            searchExternalTimer: null as number | null
         };
     },
 
@@ -208,10 +224,7 @@ export default defineComponent({
             }
 
             const byLabel = source.filter(
-                (item) =>
-                    !item.separator
-                    && item.label
-                    && item.label.toLowerCase().includes(query)
+                (item) => !item.separator && item.label && item.label.toLowerCase().includes(query)
             );
 
             if (byLabel.length > 0) {
@@ -219,10 +232,7 @@ export default defineComponent({
             }
 
             return source.filter(
-                (item) =>
-                    !item.separator
-                    && item.value
-                    && item.value.toLowerCase().includes(query)
+                (item) => !item.separator && item.value && item.value.toLowerCase().includes(query)
             );
         }
     },
@@ -252,6 +262,7 @@ export default defineComponent({
         window.removeEventListener("scroll", this.onViewportChange, true);
         window.removeEventListener("resize", this.onViewportChange);
         this.clearNestedCloseTimer();
+        this.clearSearchExternalTimer();
     },
 
     methods: {
@@ -272,6 +283,31 @@ export default defineComponent({
         onSearchQueryUpdate(value: string) {
             this.localSearchQuery = value;
             this.$emit("update:searchQuery", value);
+            this.scheduleExternalSearch(value);
+        },
+
+        scheduleExternalSearch(value: string) {
+            if (!this.search?.external) {
+                return;
+            }
+
+            this.clearSearchExternalTimer();
+            this.searchExternalTimer = window.setTimeout(() => {
+                this.searchExternalTimer = null;
+                this.$emit("search:external", {
+                    field: this.search?.field ?? "",
+                    value: value.trim()
+                });
+            }, SEARCH_EXTERNAL_DEBOUNCE_MS);
+        },
+
+        clearSearchExternalTimer() {
+            if (this.searchExternalTimer == null) {
+                return;
+            }
+
+            window.clearTimeout(this.searchExternalTimer);
+            this.searchExternalTimer = null;
         },
 
         isSelectable(item: OptionItem): boolean {
@@ -367,9 +403,12 @@ export default defineComponent({
                 return;
             }
 
-            const optionIndex = typeof idx === "number"
-                ? idx
-                : this.visibleOptions.findIndex((option) => option.value === this.nestedItem?.value);
+            const optionIndex =
+                typeof idx === "number"
+                    ? idx
+                    : this.visibleOptions.findIndex(
+                          (option) => option.value === this.nestedItem?.value
+                      );
             const anchor = optionIndex >= 0 ? this.optionRefs[optionIndex] : undefined;
 
             if (!anchor) {
@@ -433,7 +472,9 @@ export default defineComponent({
             }
 
             const root = this.$el as HTMLElement | undefined;
-            const input = root?.querySelector<HTMLInputElement | HTMLTextAreaElement>("input, textarea");
+            const input = root?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+                "input, textarea"
+            );
 
             if (!input) {
                 return;
@@ -447,10 +488,33 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Hidden lists (closed modal `v-show`, leftover Teleport) must not
+         * steal Enter/arrows from other selects or from form submit.
+         */
+        isKeyListenerActive(): boolean {
+            const root = this.$el;
+
+            if (!(root instanceof Element) || !root.isConnected) {
+                return false;
+            }
+
+            return root.getClientRects().length > 0;
+        },
+
+        consumeKey(event: KeyboardEvent) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        },
+
         onKeydown(event: KeyboardEvent) {
+            if (event.defaultPrevented || !this.isKeyListenerActive()) {
+                return;
+            }
+
             if (this.nestedItem) {
                 if (event.key === "Escape") {
-                    event.preventDefault();
+                    this.consumeKey(event);
                     this.closeNested();
                 }
 
@@ -458,14 +522,14 @@ export default defineComponent({
             }
 
             if (event.key === "ArrowDown") {
-                event.preventDefault();
+                this.consumeKey(event);
                 this.moveHighlight(1);
 
                 return;
             }
 
             if (event.key === "ArrowUp") {
-                event.preventDefault();
+                this.consumeKey(event);
                 this.moveHighlight(-1);
 
                 return;
@@ -475,16 +539,18 @@ export default defineComponent({
                 const item = this.visibleOptions[this.highlightedIndex];
 
                 if (item && this.hasChildren(item)) {
-                    event.preventDefault();
+                    this.consumeKey(event);
                     this.openNested(item, this.highlightedIndex);
                 }
 
                 return;
             }
 
-            if (event.key !== "Enter") {
+            if (event.key !== "Enter" || event.repeat) {
                 return;
             }
+
+            this.consumeKey(event);
 
             const item = this.visibleOptions[this.highlightedIndex];
 
@@ -492,7 +558,6 @@ export default defineComponent({
                 return;
             }
 
-            event.preventDefault();
             this.onItemClick(item);
         },
 

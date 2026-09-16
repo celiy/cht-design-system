@@ -1,7 +1,7 @@
 <template>
     <Teleport to="body">
         <div
-            class="fixed inset-0 z-100 pointer-events-none p-4 flex"
+            class="fixed inset-0 z-[200000] pointer-events-none p-4 flex"
 
             :class="positionClass"
         >

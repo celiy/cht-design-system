@@ -49,6 +49,8 @@
                             :hover-effect="false"
 
                             @click.stop="toggleOpenClose"
+                            @keydown.enter="onTriggerActivate"
+                            @keydown.space="onTriggerActivate"
                         >
                             <div class="flex w-full items-center justify-between gap-2">
                                 <div class="min-w-0 flex-1 text-left">
@@ -103,7 +105,7 @@
                     v-if="isOpen && !useSheetModal"
                     ref="panelRef"
 
-                    class="absolute left-0 z-[1100] min-w-fit overflow-y-auto rounded border border-border bg-popover shadow-md"
+                    class="absolute left-0 z-[1100] flex min-w-fit flex-col overflow-hidden rounded border border-border bg-popover shadow-md"
                     :class="[
                         panelClass,
                         positionAbove
@@ -120,21 +122,34 @@
                         :close="close"
                     />
 
-                    <slot name="helperText" />
+                    <div
+                        v-if="$slots.helperText"
+
+                        class="shrink-0"
+                    >
+                        <slot name="helperText" />
+                    </div>
                 </div>
             </Transition>
         </Teleport>
 
+        <!--
+            Keep the list unmounted while closed. Modal uses v-show, so a
+            permanent #body slot would leave OptionsList listening to Enter.
+        -->
         <Modal
+            v-if="useSheetModal"
             variant="blank"
             size="small"
-            :is-open="isOpen && useSheetModal"
+            :is-open="isOpen"
 
             @update:value="onSheetModalUpdate"
         >
             <template #body>
                 <div
-                    class="mt-1 overflow-y-auto"
+                    v-if="isOpen"
+
+                    class="mt-1 flex min-h-0 flex-col overflow-hidden"
                     :style="{ maxHeight: maxHeightPx + 'px' }"
 
                     @click.stop="onPanelClick"
@@ -144,7 +159,13 @@
                         :close="close"
                     />
 
-                    <slot name="helperText" />
+                    <div
+                        v-if="$slots.helperText"
+
+                        class="shrink-0"
+                    >
+                        <slot name="helperText" />
+                    </div>
                 </div>
             </template>
         </Modal>
@@ -152,7 +173,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from "vue";
+import { defineComponent, unref, type PropType } from "vue";
+import {
+    closeOtherFloatingPanels,
+    registerOpenFloatingPanel,
+    unregisterOpenFloatingPanel
+} from "@shared/frontend/floatingPanels";
 import Button from "../Button.vue";
 import Modal from "../Modal.vue";
 
@@ -164,6 +190,18 @@ export default defineComponent({
     components: {
         Button,
         Modal
+    },
+
+    inject: {
+        chtModalIsOpen: {
+            from: "chtModalIsOpen",
+            default: null
+        },
+
+        registerChtFloatingPanelCloser: {
+            from: "registerChtFloatingPanelCloser",
+            default: null
+        }
     },
 
     props: {
@@ -297,7 +335,11 @@ export default defineComponent({
             positionAbove: false,
             panelStyle: {} as Record<string, string>,
             isNarrow: false,
-            outsideClickTimer: null as number | null
+            outsideClickTimer: null as number | null,
+            layoutObserver: null as ResizeObserver | null,
+            positionFrame: null as number | null,
+            unregisterFloatingPanelCloser: null as (() => void) | null,
+            floatingPanelId: Symbol("cht-floating-panel")
         };
     },
 
@@ -334,28 +376,53 @@ export default defineComponent({
 
         panelTransitionName(): "dropdown-up" | "dropdown-down" {
             return this.positionAbove ? "dropdown-up" : "dropdown-down";
+        },
+
+        ancestorModalOpen(): boolean {
+            const open = unref(this.chtModalIsOpen);
+
+            if (open === undefined || open === null) {
+                return true;
+            }
+
+            return Boolean(open);
         }
     },
 
     watch: {
+        ancestorModalOpen(open: boolean) {
+            if (!open && this.isOpen) {
+                this.close();
+            }
+        },
+
         isOpen(open: boolean) {
             if (open) {
+                closeOtherFloatingPanels(this.floatingPanelId);
+                registerOpenFloatingPanel(this.floatingPanelId, () => {
+                    this.close();
+                });
+                this.registerWithAncestorModal();
+
                 if (!this.useSheetModal) {
                     this.$nextTick(() => this.updatePosition());
-                    window.addEventListener("scroll", this.updatePosition, true);
-                    window.addEventListener("resize", this.updatePosition);
+                    this.attachLayoutObservers();
+                    window.addEventListener("scroll", this.schedulePositionUpdate, true);
+                    window.addEventListener("resize", this.schedulePositionUpdate);
                     document.addEventListener("keydown", this.handleKeydown);
                     this.outsideClickTimer = window.setTimeout(() => {
                         this.outsideClickTimer = null;
 
                         if (this.isOpen && !this.useSheetModal) {
-                            document.addEventListener("click", this.handleClickOutside);
+                            document.addEventListener("click", this.handleClickOutside, true);
                         }
                     }, 0);
                 }
 
                 this.$emit("open");
             } else {
+                unregisterOpenFloatingPanel(this.floatingPanelId);
+                this.unregisterFromAncestorModal();
                 this.detachFloatingListeners();
                 this.$emit("close");
             }
@@ -368,12 +435,37 @@ export default defineComponent({
     },
 
     beforeUnmount() {
+        this.unregisterFromAncestorModal();
+        this.close();
         this.detachFloatingListeners();
         window.matchMedia(NARROW_VIEWPORT).removeEventListener("change", this.syncNarrowViewport);
     },
 
     methods: {
+        registerWithAncestorModal() {
+            this.unregisterFromAncestorModal();
+
+            const register = this.registerChtFloatingPanelCloser as
+                | ((close: () => void) => () => void)
+                | null;
+
+            if (typeof register === "function") {
+                this.unregisterFloatingPanelCloser = register(() => {
+                    this.close();
+                });
+            }
+        },
+
+        unregisterFromAncestorModal() {
+            if (this.unregisterFloatingPanelCloser) {
+                this.unregisterFloatingPanelCloser();
+                this.unregisterFloatingPanelCloser = null;
+            }
+        },
+
         openPanel() {
+            closeOtherFloatingPanels(this.floatingPanelId);
+
             if (!this.useSheetModal) {
                 this.syncPlacementForPanel();
             }
@@ -393,6 +485,20 @@ export default defineComponent({
             }
 
             this.setOpen(opening);
+        },
+
+        /**
+         * Closed trigger: Enter/Space open the panel instead of falling
+         * through to a list that is not on screen (or submitting a form).
+         */
+        onTriggerActivate(event: KeyboardEvent) {
+            if (this.isOpen) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            this.openPanel();
         },
 
         setOpen(next: boolean) {
@@ -415,15 +521,82 @@ export default defineComponent({
             this.isNarrow = window.matchMedia(NARROW_VIEWPORT).matches;
         },
 
+        cancelPositionFrame() {
+            if (this.positionFrame == null) {
+                return;
+            }
+
+            window.cancelAnimationFrame(this.positionFrame);
+            this.positionFrame = null;
+        },
+
+        schedulePositionUpdate() {
+            if (!this.isOpen || this.useSheetModal) {
+                return;
+            }
+
+            if (this.positionFrame != null) {
+                return;
+            }
+
+            this.positionFrame = window.requestAnimationFrame(() => {
+                this.positionFrame = null;
+                this.updatePosition();
+            });
+        },
+
+        /**
+         * Reposition when the trigger or an ancestor changes size (e.g. a
+         * centered modal grows after selected chips appear below the select).
+         */
+        attachLayoutObservers() {
+            this.detachLayoutObservers();
+
+            const trigger = this.getPanelAnchorElement();
+
+            if (!trigger || typeof ResizeObserver === "undefined") {
+                return;
+            }
+
+            this.layoutObserver = new ResizeObserver(() => {
+                this.schedulePositionUpdate();
+            });
+
+            this.layoutObserver.observe(trigger);
+
+            let ancestor: HTMLElement | null = trigger.parentElement;
+
+            while (ancestor) {
+                this.layoutObserver.observe(ancestor);
+
+                if (ancestor === document.body) {
+                    break;
+                }
+
+                ancestor = ancestor.parentElement;
+            }
+        },
+
+        detachLayoutObservers() {
+            if (this.layoutObserver == null) {
+                return;
+            }
+
+            this.layoutObserver.disconnect();
+            this.layoutObserver = null;
+        },
+
         detachFloatingListeners() {
             if (this.outsideClickTimer != null) {
                 window.clearTimeout(this.outsideClickTimer);
                 this.outsideClickTimer = null;
             }
 
-            window.removeEventListener("scroll", this.updatePosition, true);
-            window.removeEventListener("resize", this.updatePosition);
-            document.removeEventListener("click", this.handleClickOutside);
+            this.cancelPositionFrame();
+            this.detachLayoutObservers();
+            window.removeEventListener("scroll", this.schedulePositionUpdate, true);
+            window.removeEventListener("resize", this.schedulePositionUpdate);
+            document.removeEventListener("click", this.handleClickOutside, true);
             document.removeEventListener("keydown", this.handleKeydown);
         },
 
@@ -512,6 +685,7 @@ export default defineComponent({
                 return;
             }
 
+            // Nested option submenus are teleported to `body` (OptionsList).
             if (target instanceof Element && target.closest("[data-cht-floating-panel]")) {
                 return;
             }

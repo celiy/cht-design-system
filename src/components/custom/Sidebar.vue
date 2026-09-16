@@ -490,7 +490,30 @@ export default defineComponent({
          * @returns {boolean} True if the link is active, false otherwise.
          */
         isActive(link: string | null) {
-            return (this as any).$route.path === link;
+            if (!link) {
+                return false;
+            }
+
+            const url = new URL(link, "http://local.invalid");
+            const route = (
+                this as unknown as {
+                    $route: { path: string; hash: string; query: Record<string, unknown> };
+                }
+            ).$route;
+
+            if (url.pathname !== route.path) {
+                return false;
+            }
+
+            if (url.hash) {
+                return route.hash === url.hash;
+            }
+
+            if (url.searchParams.get("cadastrar") === "true") {
+                return String(route.query.cadastrar) === "true";
+            }
+
+            return true;
         },
 
         /**
