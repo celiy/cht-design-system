@@ -22,6 +22,7 @@
                 :class="shellAlignClass"
             >
                 <Transition :name="panelTransitionName">
+                    <!-- Modal panel: preview -->
                     <div
                         v-if="variant === 'preview'"
                         v-show="modalOpen"
@@ -98,12 +99,18 @@
                             :class="{
                                 'mt-2': variant !== 'blank' && !$slots.description,
                                 'px-4 pb-4': variant === 'modal' || variant === 'drawer',
+                                'max-h-[50vh]':
+                                    (variant === 'modal' || variant === 'blank') &&
+                                    size === 'small',
                                 'max-h-[60vh]':
                                     (variant === 'modal' || variant === 'blank') &&
-                                    size !== 'large',
-                                'max-h-[80vh]':
+                                    size === 'medium',
+                                'max-h-[70vh]':
                                     (variant === 'modal' || variant === 'blank') &&
                                     size === 'large',
+                                'max-h-[80vh]':
+                                    (variant === 'modal' || variant === 'blank') &&
+                                    size === 'extra-large',
                                 'min-h-0 flex-1': variant === 'drawer'
                             }"
                         >
@@ -214,7 +221,7 @@ export default defineComponent({
 
     data() {
         return {
-            modalOpen: false,
+            modalOpen: this.isOpen,
             floatingPanelClosers: [] as Array<() => void>,
             modalLayerId: Symbol("modal"),
             layerIndex: 0,
@@ -687,6 +694,10 @@ export default defineComponent({
             const target = event.target as Node;
 
             if (target instanceof Element && target.closest("[data-cht-floating-panel]")) {
+                return;
+            }
+
+            if (target instanceof Element && target.closest("[data-cht-toast]")) {
                 return;
             }
 

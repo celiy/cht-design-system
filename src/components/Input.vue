@@ -594,7 +594,7 @@ export default defineComponent({
             }
 
             if (this.variant === "display") {
-                return "border-b";
+                return "border border-border/80! rounded bg-input/15";
             }
 
             let color = {

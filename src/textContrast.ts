@@ -60,13 +60,13 @@ function oklchToRgb(L: number, C: number, h: number, a = 1): Rgb {
     const B = C * Math.sin(hr);
     const l_ = L + 0.3963377774 * A + 0.2158037573 * B;
     const m_ = L - 0.1055613458 * A - 0.0638541728 * B;
-    const s_ = L - 0.0894841775 * A - 1.2914855480 * B;
+    const s_ = L - 0.0894841775 * A - 1.291485548 * B;
     const l = l_ ** 3;
     const m = m_ ** 3;
     const s = s_ ** 3;
     const rLin = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
     const gLin = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
-    const bLin = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+    const bLin = -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s;
 
     const toSrgb = (channel: number) => {
         const c = Math.min(Math.max(channel, 0), 1);
@@ -75,7 +75,7 @@ function oklchToRgb(L: number, C: number, h: number, a = 1): Rgb {
             return 255 * 12.92 * c;
         }
 
-        return 255 * (1.055 * (c ** (1 / 2.4)) - 0.055);
+        return 255 * (1.055 * c ** (1 / 2.4) - 0.055);
     };
 
     const r = toSrgb(rLin);
@@ -121,7 +121,7 @@ function parseCssColor(value: string): Rgb | null {
             const h = Number(match[3]);
             const alpha = match[4] !== undefined ? Number(match[4]) : 1;
 
-            if ([L, C, h, alpha].every(n => Number.isFinite(n))) {
+            if ([L, C, h, alpha].every((n) => Number.isFinite(n))) {
                 const result = oklchToRgb(L, C, h, alpha);
                 colorCache.set(value, result);
 
@@ -140,7 +140,7 @@ function parseCssColor(value: string): Rgb | null {
             const b = Number(match[3]);
             const a = match[4] !== undefined ? Number(match[4]) : 1;
 
-            if ([r, g, b, a].every(n => Number.isFinite(n))) {
+            if ([r, g, b, a].every((n) => Number.isFinite(n))) {
                 if (a === 0) {
                     colorCache.set(value, TRANSPARENT_COLOR);
 
@@ -245,6 +245,16 @@ function parseCssColor(value: string): Rgb | null {
     return null;
 }
 
+/**
+ * Calculates the WCAG contrast ratio between two luminance values.
+ *
+ * @param l1 Luminance of the first color (0–1)
+ * @param l2 Luminance of the second color (0–1)
+ * @returns Contrast ratio (1–21)
+ *
+ * Formula: (L1 + 0.05) / (L2 + 0.05), where L1 is the lighter and L2 is the darker luminance.
+ * See: https://www.w3.org/TR/WCAG20/#contrast-ratiodef
+ */
 function contrastRatio(l1: number, l2: number): number {
     const lighter = Math.max(l1, l2);
     const darker = Math.min(l1, l2);
@@ -282,7 +292,8 @@ function getProbe(): HTMLSpanElement | null {
 }
 
 function getThemeTokens(): { fgColor: Rgb; bgColor: Rgb } {
-    const currentTheme = (typeof document !== "undefined" ? document.documentElement.dataset.theme : null) || "dark";
+    const currentTheme =
+        (typeof document !== "undefined" ? document.documentElement.dataset.theme : null) || "dark";
 
     if (cachedTheme === currentTheme && cachedFgColor && cachedBgColor) {
         return { fgColor: cachedFgColor, bgColor: cachedBgColor };
@@ -292,10 +303,22 @@ function getThemeTokens(): { fgColor: Rgb; bgColor: Rgb } {
 
     if (probe) {
         probe.style.color = "var(--color-foreground)";
-        cachedFgColor = parseCssColor(getComputedStyle(probe).color) ?? { r: 255, g: 255, b: 255, a: 1, lum: 1 };
+        cachedFgColor = parseCssColor(getComputedStyle(probe).color) ?? {
+            r: 255,
+            g: 255,
+            b: 255,
+            a: 1,
+            lum: 1
+        };
 
         probe.style.color = "var(--color-background)";
-        cachedBgColor = parseCssColor(getComputedStyle(probe).color) ?? { r: 0, g: 0, b: 0, a: 1, lum: 0 };
+        cachedBgColor = parseCssColor(getComputedStyle(probe).color) ?? {
+            r: 0,
+            g: 0,
+            b: 0,
+            a: 1,
+            lum: 0
+        };
     } else {
         cachedFgColor = { r: 255, g: 255, b: 255, a: 1, lum: 1 };
         cachedBgColor = { r: 0, g: 0, b: 0, a: 1, lum: 0 };
@@ -368,7 +391,9 @@ export function applyTextContrast(root: ParentNode = document) {
 
 export function startTextContrastObserver() {
     if (typeof window !== "undefined") {
-        (window as unknown as { __applyTextContrast?: typeof applyTextContrast }).__applyTextContrast = applyTextContrast;
+        (
+            window as unknown as { __applyTextContrast?: typeof applyTextContrast }
+        ).__applyTextContrast = applyTextContrast;
     }
 
     if (typeof document === "undefined" || typeof MutationObserver === "undefined") {

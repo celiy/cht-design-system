@@ -19,18 +19,34 @@
                 v-if="isCombobox"
                 #button="{ open }"
             >
-                <Input
-                    :id="id"
-                    type="text"
-                    :label="header || label"
-                    variant="secondary"
-                    :value="comboboxQuery"
-                    :disabled="disabled"
-                    :error="error"
+                <div class="relative w-full">
+                    <Input
+                        :id="id"
+                        type="text"
+                        :label="header || label"
+                        variant="secondary"
+                        :value="comboboxQuery"
+                        :disabled="disabled"
+                        :readonly="comboboxSelectionLocked"
+                        :error="error"
 
-                    @focus="open"
-                    @update:value="onComboboxInput"
-                />
+                        @focus="onComboboxFocus(open)"
+                        @click="onComboboxClick(open)"
+                        @update:value="onComboboxInput"
+                    />
+
+                    <button
+                        v-if="comboboxSelectionLocked && !disabled"
+
+                        type="button"
+                        class="absolute right-2 bottom-1.5 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+                        aria-label="Limpar seleção"
+
+                        @click.stop="clearComboboxSelection"
+                    >
+                        <i class="fa-solid fa-xmark text-sm" />
+                    </button>
+                </div>
             </template>
 
             <template
@@ -76,7 +92,6 @@
             >
                 <Button
                     v-tooltip="actionTooltip || undefined"
-
                     type="button"
                     class="min-h-0 self-stretch"
                     :class="actionButtonLayoutClass"
@@ -311,6 +326,15 @@ export default defineComponent({
         },
 
         /**
+         * Combobox: picking a panel option locks the input (like a normal select)
+         * until the user clears with the X control. Free typing only when unlocked.
+         */
+        comboboxOption: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
          * Free-text value of the combobox input (`v-model:query`).
          */
         query: {
@@ -376,7 +400,11 @@ export default defineComponent({
         },
 
         showSeparatedSelected(): boolean {
-            return this.separateSelected && this.isSelectMultiple && this.separatedSelectedItems.length > 0;
+            return (
+                this.separateSelected &&
+                this.isSelectMultiple &&
+                this.separatedSelectedItems.length > 0
+            );
         },
 
         separatedSelectedItems(): Array<{ label: string; value: string }> {
@@ -492,6 +520,10 @@ export default defineComponent({
                 ...extra,
                 disabled: this.disabled || Boolean(extra.disabled)
             };
+        },
+
+        comboboxSelectionLocked(): boolean {
+            return Boolean(this.isCombobox && this.comboboxOption && this.value);
         }
     },
 
@@ -542,7 +574,17 @@ export default defineComponent({
                     return;
                 }
 
-                this.value = String(newVal);
+                const nextValue = String(newVal);
+
+                this.value = nextValue;
+
+                if (this.isCombobox && nextValue) {
+                    const label = this.optionLabelForValue(nextValue);
+
+                    if (label) {
+                        this.comboboxQuery = label;
+                    }
+                }
             },
             immediate: true,
             deep: true
@@ -870,7 +912,62 @@ export default defineComponent({
             this.comboboxSearchTimer = null;
         },
 
+        onComboboxFocus(open: () => void) {
+            this.openComboboxPanel(open);
+        },
+
+        onComboboxClick(open: () => void) {
+            this.openComboboxPanel(open);
+        },
+
+        openComboboxPanel(open: () => void) {
+            if (this.comboboxSelectionLocked) {
+                return;
+            }
+
+            open();
+            this.emitComboboxExternalSearch(this.comboboxQuery.trim(), true);
+        },
+
+        emitComboboxExternalSearch(value: string, immediate = false) {
+            if (!this.search?.external) {
+                return;
+            }
+
+            const payload = {
+                field: this.search?.field ?? "",
+                value
+            };
+
+            if (immediate) {
+                this.clearComboboxSearchTimer();
+                this.$emit("search:external", payload);
+
+                return;
+            }
+
+            this.clearComboboxSearchTimer();
+            this.comboboxSearchTimer = window.setTimeout(() => {
+                this.comboboxSearchTimer = null;
+                this.$emit("search:external", payload);
+            }, 300);
+        },
+
+        clearComboboxSelection() {
+            this.value = "";
+            this.comboboxQuery = "";
+            this.clearComboboxSearchTimer();
+            this.$emit("update:query", "");
+            this.$emit("update:value", "");
+            this.$emit("update:modelValue", "");
+            this.close();
+        },
+
         onComboboxInput(value: unknown) {
+            if (this.comboboxSelectionLocked) {
+                return;
+            }
+
             const text = String(value ?? "");
 
             this.comboboxQuery = text;
@@ -890,18 +987,7 @@ export default defineComponent({
                 this.close();
             }
 
-            if (!this.search?.external) {
-                return;
-            }
-
-            this.clearComboboxSearchTimer();
-            this.comboboxSearchTimer = window.setTimeout(() => {
-                this.comboboxSearchTimer = null;
-                this.$emit("search:external", {
-                    field: this.search?.field ?? "",
-                    value: trimmed
-                });
-            }, 300);
+            this.emitComboboxExternalSearch(trimmed);
         },
 
         onSeparatedLabelClick(value: string) {

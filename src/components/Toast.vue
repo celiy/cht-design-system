@@ -6,6 +6,7 @@
             :class="positionClass"
         >
             <div
+                data-cht-toast
                 class="pointer-events-auto relative flex flex-col toast-stack"
 
                 :class="stackAlignClass"

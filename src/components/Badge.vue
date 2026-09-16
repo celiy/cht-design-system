@@ -1,23 +1,7 @@
 <template>
     <div
-        class="flex items-center rounded border border-transparent px-2 py-0.5 text-xs font-semibold select-none"
-        :class="[
-            colorClass,
-            {
-                'bg-primary text-primary-foreground': !color && variant === 'primary',
-                'border bg-secondary text-secondary-foreground': !color && variant === 'secondary',
-                'bg-destructive text-destructive-foreground': !color && variant === 'destructive',
-                'bg-warning text-warning-foreground': !color && variant === 'warning',
-                'bg-info text-info-foreground': !color && variant === 'info',
-                'bg-success text-success-foreground': !color && variant === 'success',
-                'text-contrast bg-chart-1': !color && variant === 'chart-1',
-                'text-contrast bg-chart-2': !color && variant === 'chart-2',
-                'text-contrast bg-chart-3': !color && variant === 'chart-3',
-                'text-contrast bg-chart-4': !color && variant === 'chart-4',
-                'text-contrast bg-chart-5': !color && variant === 'chart-5',
-                'cursor-pointer hover:underline': type === 'link'
-            }
-        ]"
+        class="flex items-center rounded px-2 py-0.5 text-xs font-semibold select-none"
+        :class="[colorClass]"
 
         @click="handleClick"
     >
@@ -59,6 +43,10 @@ export default defineComponent({
             required: false
         },
 
+        variantStyle: {
+            type: String as PropType<"fill" | "bordered">
+        },
+
         /**
          * Tailwind color token (e.g. `sky-500`, `red-200`). Takes precedence over `variant`.
          */
@@ -88,9 +76,28 @@ export default defineComponent({
     emits: ["click"],
 
     computed: {
-        colorClass(): string | null {
+        colorClass(): string | object {
             if (!this.color) {
-                return null;
+                return {
+                    "bg-primary text-primary-foreground": !this.color && this.variant === "primary",
+                    "border bg-secondary text-secondary-foreground":
+                        !this.color && this.variant === "secondary",
+                    "bg-destructive text-destructive-foreground":
+                        !this.color && this.variant === "destructive",
+                    "bg-warning text-warning-foreground": !this.color && this.variant === "warning",
+                    "bg-info text-info-foreground": !this.color && this.variant === "info",
+                    "bg-success text-success-foreground": !this.color && this.variant === "success",
+                    "text-contrast bg-chart-1": !this.color && this.variant === "chart-1",
+                    "text-contrast bg-chart-2": !this.color && this.variant === "chart-2",
+                    "text-contrast bg-chart-3": !this.color && this.variant === "chart-3",
+                    "text-contrast bg-chart-4": !this.color && this.variant === "chart-4",
+                    "text-contrast bg-chart-5": !this.color && this.variant === "chart-5",
+                    "cursor-pointer hover:underline": this.type === "link"
+                };
+            }
+
+            if (this.variantStyle === "bordered") {
+                return `border-${this.color}! border-2 bg-card text-${this.color}`;
             }
 
             return `bg-${this.color} text-contrast`;

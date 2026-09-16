@@ -193,6 +193,7 @@
                                         }"
                                     >
                                         <Badge
+                                            v-bind="tableBadgeProps(cell.head, cell.value)"
                                             :color="badgeColor(cell.value)"
                                             :variant="badgeVariant(cell.value)"
                                             :label="badgeLabel(cell.value)"
@@ -270,12 +271,32 @@ import {
     type TableCellMaskFormat
 } from "@shared/format/displayMasks";
 
-type TableHeader = Record<string, unknown> & {
+/** Static props forwarded to `Badge` for badge columns (`header.badgeProps` + per-cell badge object). */
+export type TableHeaderBadgeProps = {
+    variantStyle?: "fill" | "bordered";
+    type?: "normal" | "link";
+    link?: string;
+    external?: boolean;
+};
+
+export type TableHeader = Record<string, unknown> & {
     label: string;
     field?: string;
     position?: "start" | "center" | "end";
     /** Display mask for text cells (falls back to inference from `field`). */
     format?: TableCellMaskFormat;
+    /** Applied to every badge cell in this column (e.g. `variantStyle: "bordered"`). */
+    badgeProps?: TableHeaderBadgeProps;
+};
+
+type ResolvedBadgeValue = {
+    label?: string;
+    variant?: string;
+    color?: string;
+    variantStyle?: "fill" | "bordered";
+    type?: "normal" | "link";
+    link?: string;
+    external?: boolean;
 };
 
 export default defineComponent({
@@ -479,9 +500,7 @@ export default defineComponent({
             );
         },
 
-        resolveBadgeValue(
-            value: unknown
-        ): { label?: string; variant?: string; color?: string } | undefined {
+        resolveBadgeValue(value: unknown): ResolvedBadgeValue | undefined {
             if (typeof value !== "object" || value === null) {
                 return undefined;
             }
@@ -491,15 +510,34 @@ export default defineComponent({
                 typeof (value as { badge?: unknown }).badge === "object" &&
                 (value as { badge?: unknown }).badge !== null
             ) {
-                return (value as { badge: { label?: string; variant?: string; color?: string } })
-                    .badge;
+                return (value as { badge: ResolvedBadgeValue }).badge;
             }
 
-            if ("label" in value || "variant" in value || "color" in value) {
-                return value as { label?: string; variant?: string; color?: string };
+            if (
+                "label" in value ||
+                "variant" in value ||
+                "color" in value ||
+                "variantStyle" in value
+            ) {
+                return value as ResolvedBadgeValue;
             }
 
             return undefined;
+        },
+
+        tableBadgeProps(head: TableHeader, value: unknown): TableHeaderBadgeProps {
+            const fromCell = this.resolveBadgeValue(value);
+            const fromHeader = head.badgeProps ?? {};
+
+            return {
+                ...fromHeader,
+                ...(fromCell?.variantStyle != null
+                    ? { variantStyle: fromCell.variantStyle }
+                    : {}),
+                ...(fromCell?.type != null ? { type: fromCell.type } : {}),
+                ...(fromCell?.link != null ? { link: fromCell.link } : {}),
+                ...(fromCell?.external != null ? { external: fromCell.external } : {})
+            };
         },
 
         isBadgeCellValue(value: unknown): boolean {
