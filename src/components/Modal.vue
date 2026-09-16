@@ -94,6 +94,7 @@
 
                         <div
                             v-if="$slots.body"
+                            ref="bodyScrollRef"
 
                             class="overflow-auto"
                             :class="{
@@ -415,6 +416,17 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Scrolls the modal body slot container to the top (overflow area around `#body`).
+         */
+        scrollBodyToTop() {
+            const el = this.$refs.bodyScrollRef as HTMLElement | undefined;
+
+            if (el) {
+                el.scrollTop = 0;
+            }
+        },
+
         /**
          * Opens the modal.
          */
