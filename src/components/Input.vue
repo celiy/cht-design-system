@@ -2,6 +2,7 @@
     <div
         class="flex flex-col"
         :class="[fit ? 'w-fit' : 'w-full']"
+        @click="$emit('click', $event)"
     >
         <!-- Label -->
         <label
@@ -432,7 +433,7 @@ export default defineComponent({
         }
     },
 
-    emits: ["update:value", "update:modelValue"],
+    emits: ["update:value", "update:modelValue", "focus", "click"],
 
     data() {
         return {
@@ -783,8 +784,9 @@ export default defineComponent({
         /**
          * Marks the field as focused to apply visual styles.
          */
-        onFocus() {
+        onFocus(event: FocusEvent) {
             this.isFocused = true;
+            this.$emit("focus", event);
         },
 
         /**

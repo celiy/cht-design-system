@@ -277,6 +277,7 @@ import { defineComponent, type PropType } from "vue";
 import Select from "./Select.vue";
 import Dropdown from "./Dropdown.vue";
 import Badge from "./Badge.vue";
+import Button from "./Button.vue";
 import Checkbox from "./Checkbox.vue";
 import Skeleton from "./Skeleton.vue";
 import ProgressBar from "./ProgressBar.vue";
@@ -322,6 +323,7 @@ export default defineComponent({
         Select,
         Dropdown,
         Badge,
+        Button,
         Checkbox,
         Skeleton,
         ProgressBar

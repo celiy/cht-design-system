@@ -49,6 +49,7 @@
         @touchend="handleMouseUp"
         @touchleave="handleMouseUp"
         @click="handleClick"
+        @keydown="handleKeydown"
     >
         <div
             class="flex h-full w-full items-center transition-all whitespace-nowrap overflow-hidden text-ellipsis"
@@ -161,7 +162,7 @@ export default defineComponent({
         }
     },
 
-    emits: ["click"],
+    emits: ["click", "keydown"],
 
     data() {
         return {
@@ -191,6 +192,10 @@ export default defineComponent({
     methods: {
         handleClick(event: MouseEvent) {
             this.$emit("click", event);
+        },
+
+        handleKeydown(event: KeyboardEvent) {
+            this.$emit("keydown", event);
         },
 
         handleMouseDown() {

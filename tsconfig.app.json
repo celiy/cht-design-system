@@ -7,7 +7,10 @@
 
     "paths": {
       "@base/*": ["../cht-base/src/*"],
-      "@shared/*": ["../cht-shared/src/*"]
+      "@shared/*": ["../cht-shared/src/*"],
+      // Sidebar types the globally registered `RouterLink`/`RouterView`; the
+      // router itself is provided by the host app at runtime.
+      "vue-router": ["../cht-base/node_modules/vue-router"]
     },
     "strict": true,
     "noUnusedLocals": true,
