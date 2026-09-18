@@ -138,6 +138,22 @@
                         </tr>
                     </template>
 
+                    <template v-else-if="hasNoData">
+                        <tr>
+                            <td
+                                :colspan="tableColumnCount"
+                                class="p-6 text-center text-sm text-muted-foreground"
+                            >
+                                <slot name="empty">
+                                    <div class="flex flex-col items-center justify-center gap-2">
+                                        <span class="font-medium text-foreground">Nenhum dado encontrado.</span>
+                                        <span>Não há registros para exibir neste momento.</span>
+                                    </div>
+                                </slot>
+                            </td>
+                        </tr>
+                    </template>
+
                     <!-- Normal table rows -->
                     <template v-else>
                         <tr
@@ -433,6 +449,24 @@ export default defineComponent({
             }
 
             return headersToDisplay;
+        },
+
+        hasNoData(): boolean {
+            return !Array.isArray(this.data) || this.data.length === 0;
+        },
+
+        tableColumnCount(): number {
+            let count = this.displayHeaders.length;
+
+            if (this.selectable) {
+                count += 1;
+            }
+
+            if (this.hasActions) {
+                count += 1;
+            }
+
+            return count;
         }
     },
 

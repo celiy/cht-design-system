@@ -24,11 +24,18 @@
         @mouseenter="$emit('mouseenter', $event)"
     >
         <div class="flex flex-nowrap items-center justify-between gap-4">
-            <div class="flex w-full flex-nowrap items-center">
+            <div class="flex w-full flex-nowrap items-center gap-2">
+                <span
+                    v-if="indicator"
+
+                    class="block shrink-0 rounded-full border border-current/10"
+                    :style="indicatorStyle"
+                />
+
                 <i
                     v-if="icon"
 
-                    :class="`fa-solid ${icon} mr-2 text-sm`"
+                    :class="`fa-solid ${icon} mr-1 text-sm`"
                 />
 
                 <div
@@ -90,6 +97,11 @@ export default defineComponent({
             required: false
         },
 
+        indicator: {
+            type: Object as PropType<{ color?: string; size?: string; backgroundColor?: string }>,
+            required: false
+        },
+
         separator: {
             type: Boolean,
             default: false
@@ -147,6 +159,19 @@ export default defineComponent({
     emits: ["click", "mouseenter"],
 
     computed: {
+        indicatorStyle(): Record<string, string> {
+            const size = this.indicator?.size ?? "0.625rem";
+            const color = this.indicator?.color ?? "currentColor";
+            const backgroundColor = this.indicator?.backgroundColor ?? color;
+
+            return {
+                width: size,
+                height: size,
+                backgroundColor,
+                borderColor: color
+            };
+        },
+
         isSelectable(): boolean {
             return !this.separator && Boolean(this.value);
         },

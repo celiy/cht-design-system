@@ -134,8 +134,11 @@
                             class="flex w-full flex-col gap-2"
                         >
                             <Select
+                                :ref="(el) => registerSelectRef(field.id, el)"
                                 :id="field.id"
-                                :header="field.label"
+                                :label="field.label"
+                                :placeholder="field.placeholder || 'Selecione...'"
+                                :header="field.placeholder || field.label"
                                 :helper-text="field.helperText"
                                 :options="field.options"
                                 :search="field.selectSearch"
@@ -154,7 +157,17 @@
                                 @click:selected="onSelectSelected(field, $event)"
                                 @remove:selected="onSelectRemove(field, $event)"
                                 @search:external="onSelectSearchExternal(field, $event)"
-                            />
+                            >
+                                <template
+                                    v-if="$slots['select-inside-empty-panel']"
+                                    #inside-empty-panel
+                                >
+                                    <slot
+                                        name="select-inside-empty-panel"
+                                        :field="field"
+                                    />
+                                </template>
+                            </Select>
                         </div>
 
                         <p
@@ -270,7 +283,8 @@ export default defineComponent({
         return {
             formValues: {} as Record<string, any>,
             fieldErrors: {} as Record<string, string>,
-            activeSectionColumns: 1
+            activeSectionColumns: 1,
+            selectRefByFieldId: {} as Record<string, { close?: () => void } | null>
         };
     },
 
@@ -454,6 +468,22 @@ export default defineComponent({
 
         getFieldValue(fieldId: string): unknown {
             return this.formValues[fieldId];
+        },
+
+        registerSelectRef(fieldId: string, el: unknown) {
+            if (el && typeof el === "object" && "close" in el) {
+                this.selectRefByFieldId[fieldId] = el as { close?: () => void };
+
+                return;
+            }
+
+            if (!el) {
+                delete this.selectRefByFieldId[fieldId];
+            }
+        },
+
+        closeSelect(fieldId: string) {
+            this.selectRefByFieldId[fieldId]?.close?.();
         },
 
         onSelectAction(field: FormFieldType) {

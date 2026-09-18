@@ -42,6 +42,7 @@
                         v-tooltip="optionTooltip(item)"
                         :label="item.label"
                         :icon="item.icon"
+                        :indicator="item.indicator"
                         :separator="item.separator"
                         :value="item.value"
                         :variant="item.variant"
@@ -61,9 +62,17 @@
             <div
                 v-else
 
-                class="px-3 py-2 text-center text-sm text-muted-foreground!"
+                class="flex flex-col gap-2 px-3 py-2 text-center text-sm text-muted-foreground!"
             >
                 <small class="text-muted-foreground!">Nenhum resultado encontrado.</small>
+
+                <div
+                    v-if="$slots.insideEmptyPanel"
+
+                    class="pt-1"
+                >
+                    <slot name="insideEmptyPanel" />
+                </div>
             </div>
         </div>
 
@@ -97,6 +106,12 @@ import Input from "../Input.vue";
 import Option from "../Option.vue";
 import tooltip from "@shared/frontend/tooltip";
 
+export type OptionIndicator = {
+    color?: string;
+    size?: string;
+    backgroundColor?: string;
+};
+
 export type OptionItem = {
     separator?: boolean;
     icon?: string;
@@ -106,12 +121,14 @@ export type OptionItem = {
     tooltip?: string;
     variant?: "destructive";
     disabled?: boolean;
+    indicator?: OptionIndicator;
     /**
      * Nested options opened in a side panel on hover and/or click.
      */
     options?: OptionItem[];
     /**
-     * How the nested panel opens. Default opens on hover and click.
+     * When `"click"`, the nested panel opens only on click (not on hover).
+     * Omit or use `"hover"` for hover and click.
      */
     openOn?: "hover" | "click";
 };

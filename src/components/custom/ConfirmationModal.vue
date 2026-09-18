@@ -129,14 +129,14 @@ export default defineComponent({
 
         onConfirm(event?: Event) {
             event?.stopImmediatePropagation();
-            this.setOpen(false);
             this.$emit("confirm");
+            this.setOpen(false);
         },
 
         onCancel(event?: Event) {
             event?.stopImmediatePropagation();
-            this.setOpen(false);
             this.$emit("cancel");
+            this.setOpen(false);
         }
     }
 });

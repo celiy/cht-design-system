@@ -53,14 +53,23 @@
                 v-else
                 #triggerLabel
             >
-                <span
-                    class="block min-w-0 truncate text-left"
-                    :class="{
-                        'text-muted-foreground': selectTriggerMuted
-                    }"
-                >
-                    {{ selectTriggerLabel }}
-                </span>
+                <div class="flex min-w-0 items-center gap-2 text-left">
+                    <span
+                        v-if="selectTriggerIndicator"
+
+                        class="block shrink-0 rounded-full border border-current/10"
+                        :style="selectTriggerIndicatorStyle"
+                    />
+
+                    <span
+                        class="block min-w-0 truncate"
+                        :class="{
+                            'text-muted-foreground': selectTriggerMuted
+                        }"
+                    >
+                        {{ selectTriggerLabel }}
+                    </span>
+                </div>
             </template>
 
             <template #default>
@@ -73,7 +82,14 @@
 
                     @select="selectOption"
                     @search:external="onSearchExternal"
-                />
+                >
+                    <template
+                        v-if="$slots['inside-empty-panel']"
+                        #insideEmptyPanel
+                    >
+                        <slot name="inside-empty-panel" />
+                    </template>
+                </OptionsList>
             </template>
 
             <template #helperText>
@@ -184,6 +200,11 @@ export default defineComponent({
         },
 
         label: {
+            type: String,
+            required: false
+        },
+
+        placeholder: {
             type: String,
             required: false
         },
@@ -457,10 +478,10 @@ export default defineComponent({
                     return this.selectedLabels.join(", ");
                 }
 
-                return this.header ?? "Selecione...";
+                return this.placeholder || this.header || "Selecione...";
             }
 
-            return this.selectedValueLabel || this.header || "Selecione...";
+            return this.selectedValueLabel || this.placeholder || this.header || "Selecione...";
         },
 
         selectTriggerMuted(): boolean {
@@ -468,7 +489,7 @@ export default defineComponent({
                 return !(this.showLabelsOnTrigger && this.selectedLabels.length > 0);
             }
 
-            return !this.selectedValueLabel && !this.header;
+            return !this.selectedValueLabel && !this.header && !this.placeholder;
         },
 
         selectedLabels(): string[] {
@@ -491,6 +512,73 @@ export default defineComponent({
             }
 
             return undefined;
+        },
+
+        selectedValueIndicator(): { color?: string; size?: string; backgroundColor?: string } | undefined {
+            if (!this.options) {
+                return undefined;
+            }
+
+            if (this.isSelectMultiple) {
+                const [firstValue] = this.selectedValues;
+
+                if (!firstValue) {
+                    return undefined;
+                }
+
+                for (const option of this.options) {
+                    if (option.value === firstValue) {
+                        return option.indicator;
+                    }
+
+                    if (option.options && option.options.length > 0) {
+                        const nested = this.findIndicatorForValue(option.options, firstValue);
+
+                        if (nested) {
+                            return nested;
+                        }
+                    }
+                }
+
+                return undefined;
+            }
+
+            for (const option of this.options) {
+                if (this.value === option.value) {
+                    return option.indicator;
+                }
+
+                if (option.options && option.options.length > 0) {
+                    const nested = this.findIndicatorForValue(option.options, String(this.value));
+
+                    if (nested) {
+                        return nested;
+                    }
+                }
+            }
+
+            return undefined;
+        },
+
+        selectTriggerIndicator(): { color?: string; size?: string; backgroundColor?: string } | undefined {
+            if (this.isSelectMultiple) {
+                return this.selectedValueIndicator;
+            }
+
+            return this.selectedValueIndicator;
+        },
+
+        selectTriggerIndicatorStyle(): Record<string, string> {
+            const size = this.selectTriggerIndicator?.size ?? "0.625rem";
+            const color = this.selectTriggerIndicator?.color ?? "currentColor";
+            const backgroundColor = this.selectTriggerIndicator?.backgroundColor ?? color;
+
+            return {
+                width: size,
+                height: size,
+                backgroundColor,
+                borderColor: color
+            };
         },
 
         hasActionButton(): boolean {
@@ -691,6 +779,24 @@ export default defineComponent({
 
                 if (option.options && option.options.length > 0) {
                     const nested = this.optionLabelForValue(value, option.options);
+
+                    if (nested) {
+                        return nested;
+                    }
+                }
+            }
+
+            return undefined;
+        },
+
+        findIndicatorForValue(options: OptionItem[], value: string): { color?: string; size?: string; backgroundColor?: string } | undefined {
+            for (const option of options) {
+                if (option.value != null && String(option.value) === value) {
+                    return option.indicator;
+                }
+
+                if (option.options && option.options.length > 0) {
+                    const nested = this.findIndicatorForValue(option.options, value);
 
                     if (nested) {
                         return nested;
