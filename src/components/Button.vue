@@ -21,7 +21,7 @@
                 'p-1.5 px-3 text-sm': size === 'medium' && shape !== 'rounded',
                 'p-2 px-3.5 text-base': size === 'large' && shape !== 'rounded',
 
-                'hover:translate-y-[-0.2rem]': hoverEffect,
+                'hover-ring': hoverEffect,
 
                 rounded: shape === 'square',
                 'flex aspect-square items-center justify-center justify-items-center rounded-full p-0':
@@ -52,7 +52,7 @@
         @keydown="handleKeydown"
     >
         <div
-            class="flex h-full w-full items-center transition-all whitespace-nowrap overflow-hidden text-ellipsis"
+            class="flex h-full w-full items-center overflow-hidden text-ellipsis whitespace-nowrap transition-all"
             :class="[
                 {
                     'translate-y-[0.1rem]': isPressed,

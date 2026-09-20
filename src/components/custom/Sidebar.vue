@@ -45,8 +45,7 @@
 
                 <!-- Links -->
                 <div
-                    class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-1 pb-2 pl-2"
-                    :class="{ 'sidebar-links-scroll-hidden': variant === 'minimalist' }"
+                    class="sidebar-links-scroll-hidden min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-1 pb-2 pl-2"
                 >
                     <div
                         v-for="(link, idx) in resolvedNav"
