@@ -24,7 +24,7 @@
                         :id="id"
                         type="text"
                         :label="header || label"
-                        variant="secondary"
+                        :variant="variant"
                         :value="comboboxQuery"
                         :disabled="disabled"
                         :readonly="comboboxSelectionLocked"
@@ -353,6 +353,15 @@ export default defineComponent({
         comboboxOption: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * Visual variant of the combobox trigger input. Mirrors `Input.variant`,
+         * so a combobox can sit inside denser layouts such as table cells.
+         */
+        variant: {
+            type: String as PropType<"secondary" | "transparent" | "display">,
+            default: "secondary"
         },
 
         /**

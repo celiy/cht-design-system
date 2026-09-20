@@ -285,7 +285,7 @@
             <div
                 v-if="variant !== 'minimalist'"
 
-                class="sticky top-0 z-10 mb-6 flex shrink-0 border-b bg-background shadow-lg"
+                class="sticky top-0 z-10 mb-6 flex shrink-0 border-b bg-background shadow-sm"
             >
                 <div
                     class="flex p-2"

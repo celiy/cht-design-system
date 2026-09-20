@@ -24,7 +24,7 @@
         <div
             class="box-border transition-shadow"
             :class="{
-                'shadow-sm': noShadow || variant !== 'display',
+                'shadow-sm': !noShadow && variant !== 'display',
 
                 'rounded ring-[3px] ring-transparent ring-offset-0':
                     variant === 'secondary' && !isFocused,
