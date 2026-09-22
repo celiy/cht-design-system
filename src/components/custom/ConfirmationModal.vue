@@ -24,7 +24,7 @@
                 <p
                     v-if="description"
 
-                    class="text-muted-foreground!"
+                    class="text-center text-muted-foreground!"
                 >
                     {{ description }}
                 </p>
