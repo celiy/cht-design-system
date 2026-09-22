@@ -1,27 +1,35 @@
 <template>
-    <div 
+    <div
         v-if="amount > 1"
+
         class="flex w-full justify-center gap-1 md:gap-2"
     >
         <Button
             variant="transparent"
-            :class="[
-                { 'transparent': selectedPage > 1 },
-                { 'invisible': selectedPage === 1 }
-            ]"
+            :class="[{ transparent: selectedPage > 1 }, { invisible: selectedPage === 1 }]"
+
+            @click="goFirst"
+        >
+            <span class="fa-solid fa-angle-double-left" />
+        </Button>
+
+        <Button
+            variant="transparent"
+            :class="[{ transparent: selectedPage > 1 }, { invisible: selectedPage === 1 }]"
+
             @click="goPrev"
         >
-            <span class="flex gap-1 items-center">
-                <span class="fa-solid fa-arrow-left"/> <span class="hidden md:block">Anterior</span>
+            <span class="flex items-center gap-1">
+                <span class="fa-solid fa-arrow-left" />
             </span>
         </Button>
 
         <Popover
             v-if="pagesHiddenBeforeOptions.length > 0"
+
             class="w-fit!"
             header="..."
             panel-class="w-fit! p-1"
-
             close-on-content-click
         >
             <div
@@ -31,7 +39,10 @@
                 <Button
                     v-for="page of pagesHiddenBeforeOptions"
                     :key="page.value"
-                    :variant="Number.parseInt(page.value, 10) !== selectedPage ? 'transparent' : 'default'"
+
+                    :variant="
+                        Number.parseInt(page.value, 10) !== selectedPage ? 'transparent' : 'default'
+                    "
 
                     @click="selectPage(Number.parseInt(page.value, 10))"
                 >
@@ -57,10 +68,10 @@
 
         <Popover
             v-if="pagesHiddenAfterOptions.length > 0"
+
             class="w-fit!"
             header="..."
             panel-class="w-fit! p-1"
-
             close-on-content-click
         >
             <div
@@ -70,7 +81,10 @@
                 <Button
                     v-for="page of pagesHiddenAfterOptions"
                     :key="page.value"
-                    :variant="Number.parseInt(page.value, 10) !== selectedPage ? 'transparent' : 'default'"
+
+                    :variant="
+                        Number.parseInt(page.value, 10) !== selectedPage ? 'transparent' : 'default'
+                    "
 
                     @click="selectPage(Number.parseInt(page.value, 10))"
                 >
@@ -82,14 +96,27 @@
         <Button
             variant="transparent"
             :class="[
-                { 'transparent': selectedPage < amount },
-                { 'invisible': selectedPage === amount }
+                { transparent: selectedPage < amount },
+                { invisible: selectedPage === amount }
             ]"
+
             @click="goNext"
         >
-            <span class="flex gap-1 items-center">
-                <span class="hidden md:block">Próximo</span> <span class="fa-solid fa-arrow-right"/>
+            <span class="flex items-center gap-1">
+                <span class="fa-solid fa-arrow-right" />
             </span>
+        </Button>
+
+        <Button
+            variant="transparent"
+            :class="[
+                { transparent: selectedPage < amount },
+                { invisible: selectedPage === amount }
+            ]"
+
+            @click="goLast"
+        >
+            <span class="fa-solid fa-angle-double-right" />
         </Button>
     </div>
 </template>
@@ -209,14 +236,14 @@ export default defineComponent({
          * Options for Dropdown (value/label must be strings).
          */
         pagesHiddenBeforeOptions(): Array<{ value: string; label: string }> {
-            return this.pagesHiddenBefore.map(p => ({
+            return this.pagesHiddenBefore.map((p) => ({
                 value: String(p),
                 label: String(p)
             }));
         },
 
         pagesHiddenAfterOptions(): Array<{ value: string; label: string }> {
-            return this.pagesHiddenAfter.map(p => ({
+            return this.pagesHiddenAfter.map((p) => ({
                 value: String(p),
                 label: String(p)
             }));
@@ -296,6 +323,24 @@ export default defineComponent({
 
             this.selectedPage = next;
             this.notifyPageChange(next);
+        },
+
+        goFirst() {
+            if (this.selectedPage <= 1) {
+                return;
+            }
+
+            this.selectedPage = 1;
+            this.notifyPageChange(this.selectedPage);
+        },
+
+        goLast() {
+            if (this.selectedPage >= this.amount) {
+                return;
+            }
+
+            this.selectedPage = this.amount;
+            this.notifyPageChange(this.selectedPage);
         },
 
         goPrev() {
