@@ -1,37 +1,47 @@
 <template>
     <Modal
-        variant="modal"
-        :size="size"
+        variant="blank"
+        size="extra-small"
         :is-open="isOpen"
         :color="variant"
+        :keep-open="true"
 
         @update:value="onModalOpenUpdate"
     >
-        <template #header>
-            <span class="flex gap-2 items-center">
-                {{ title }}
-            </span>
-
-            <slot name="header" />
-        </template>
-
-        <template #description>
-            {{ description }}
-
-            <slot name="description" />
-        </template>
-
         <template #body>
-            <p>{{ body }}</p>
+            <div class="flex w-full flex-col items-center justify-center gap-2 p-4">
+                <ItemIcon
+                    class="w-fit"
+                    :variant="variant"
+                    :icon="icon"
+                    type="card"
+                />
+
+                <p v-if="title">
+                    <b>{{ title }}</b>
+                </p>
+
+                <p
+                    v-if="description"
+
+                    class="text-muted-foreground!"
+                >
+                    {{ description }}
+                </p>
+            </div>
 
             <slot name="body" />
         </template>
 
-        <template #footer>
-            <div class="flex justify-end gap-2">
+        <template
+            v-if="$slots.footer || cancelText || confirmText"
+            #footer
+        >
+            <div class="flex gap-2">
                 <Button
                     v-if="cancelText"
-                    variant="transparent"
+
+                    class="w-full"
 
                     @click="onCancel"
                 >
@@ -40,6 +50,8 @@
 
                 <Button
                     v-if="confirmText"
+
+                    class="w-full"
                     :variant="variant"
 
                     @click="onConfirm"
@@ -57,25 +69,21 @@
 import { defineComponent, type PropType } from "vue";
 import Modal from "../Modal.vue";
 import Button from "../Button.vue";
+import ItemIcon from "../ItemIcon.vue";
 
 export default defineComponent({
     name: "ConfirmationModal",
 
     components: {
         Modal,
-        Button
+        Button,
+        ItemIcon
     },
 
     props: {
         variant: {
             type: String as PropType<"destructive" | "success" | "warning" | "info">,
             default: "info",
-            required: false
-        },
-
-        size: {
-            type: String as PropType<"small" | "medium" | "large">,
-            default: "small",
             required: false
         },
 
@@ -91,18 +99,12 @@ export default defineComponent({
             required: false
         },
 
-        body: {
-            type: String,
-            default: "",
-            required: false
-        },
-
         confirmText: {
             type: [String, Boolean] as PropType<string | boolean>,
             default: "Confirmar",
             required: false
         },
-        
+
         cancelText: {
             type: [String, Boolean] as PropType<string | boolean>,
             default: "Cancelar",
@@ -117,6 +119,23 @@ export default defineComponent({
     },
 
     emits: ["cancel", "confirm", "update:isOpen"],
+
+    computed: {
+        icon() {
+            switch (this.variant) {
+                case "success":
+                    return "fa-circle-check";
+                case "warning":
+                    return "fa-triangle-exclamation";
+                case "destructive":
+                    return "fa-trash";
+                case "info":
+                    return "fa-circle-info";
+                default:
+                    return "fa-circle-question";
+            }
+        }
+    },
 
     methods: {
         setOpen(next: boolean) {

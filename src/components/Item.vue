@@ -1,33 +1,32 @@
 <template>
     <div
-        class="transition-all p-3 border rounded flex items-start gap-3"
+        class="flex items-start gap-3 rounded border p-3 transition-all"
         :class="[
             cardClass,
             {
-                'dark:hover:brightness-125 light:hover:brightness-90  cursor-pointer': hoverEffect && !disabled
+                'cursor-pointer dark:hover:brightness-125 light:hover:brightness-90':
+                    hoverEffect && !disabled
             }
         ]"
 
         @click="onClick"
     >
         <!-- Icon -->
-        <div
+        <ItemIcon
             v-if="icon"
-            class="flex items-center justify-center shrink-0"
-            :class="iconWrapClass"
-        >
-            <i
-                class="text-md"
-                :class="iconClass"
-            />
-        </div>
+
+            :variant="variant"
+            :icon="icon"
+            :type="type === 'alert' ? 'icon' : 'card'"
+        />
 
         <!-- Label and description -->
-        <div class="min-w-0 flex-1 w-full">
+        <div class="w-full min-w-0 flex-1">
             <div class="flex flex-col gap-1">
-                <span 
+                <span
                     v-if="head"
-                    class="font-semibold text-xs text-muted-foreground"
+
+                    class="text-xs font-semibold text-muted-foreground"
                 >
                     {{ head }}
                 </span>
@@ -35,7 +34,8 @@
                 <!-- Label -->
                 <p
                     v-if="label"
-                    class="select-none leading-tight! font-semibold!"
+
+                    class="leading-tight! font-semibold! select-none"
                     :class="disabled ? 'text-muted-foreground' : 'text-foreground'"
                 >
                     {{ label }}
@@ -67,11 +67,16 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
+import ItemIcon from "./ItemIcon.vue";
 
 type ItemVariant = "primary" | "secondary" | "success" | "warning" | "destructive" | "info";
 
 export default defineComponent({
     name: "Item",
+
+    components: {
+        ItemIcon
+    },
 
     props: {
         head: {
@@ -168,26 +173,32 @@ export default defineComponent({
          * Icon wrap class.
          */
         iconWrapClass() {
-            if (this.type === 'alert') {
-                return ['pt-1', {
-                    "text-primary": this.variant === "primary",
-                    "text-secondary-foreground": this.variant === "secondary",
-                    "text-success": this.variant === "success",
-                    "text-warning": this.variant === "warning",
-                    "text-destructive": this.variant === "destructive",
-                    "text-info": this.variant === "info"
-                }]
-            } 
+            if (this.type === "alert") {
+                return [
+                    "pt-1",
+                    {
+                        "text-primary": this.variant === "primary",
+                        "text-secondary-foreground": this.variant === "secondary",
+                        "text-success": this.variant === "success",
+                        "text-warning": this.variant === "warning",
+                        "text-destructive": this.variant === "destructive",
+                        "text-info": this.variant === "info"
+                    }
+                ];
+            }
 
-            return ['p-3.5 rounded', {
-                "bg-primary/15 text-primary": this.variant === "primary",
-                "bg-secondary text-secondary-foreground": this.variant === "secondary",
-                "bg-success/15 text-success": this.variant === "success",
-                "bg-warning/15 text-warning": this.variant === "warning",
-                "bg-destructive/15 text-destructive": this.variant === "destructive",
-                "bg-info/15 text-info": this.variant === "info",
-                "opacity-50": this.disabled
-            }];
+            return [
+                "p-3.5 rounded",
+                {
+                    "bg-primary/15 text-primary": this.variant === "primary",
+                    "bg-secondary text-secondary-foreground": this.variant === "secondary",
+                    "bg-success/15 text-success": this.variant === "success",
+                    "bg-warning/15 text-warning": this.variant === "warning",
+                    "bg-destructive/15 text-destructive": this.variant === "destructive",
+                    "bg-info/15 text-info": this.variant === "info",
+                    "opacity-50": this.disabled
+                }
+            ];
         },
 
         /**
@@ -212,18 +223,21 @@ export default defineComponent({
         },
 
         descriptionClass() {
-            if (this.type === 'alert') {
-                return ['leading-normal text-base', {
-                    'text-info!': this.variant === 'info',
-                    'text-success!': this.variant === 'success',
-                    'text-warning!': this.variant === 'warning',
-                    'text-destructive!': this.variant === 'destructive',
-                    'text-primary!': this.variant === 'primary',
-                    'text-secondary-foreground!': this.variant === 'secondary'
-                }]
+            if (this.type === "alert") {
+                return [
+                    "leading-normal text-base",
+                    {
+                        "text-info!": this.variant === "info",
+                        "text-success!": this.variant === "success",
+                        "text-warning!": this.variant === "warning",
+                        "text-destructive!": this.variant === "destructive",
+                        "text-primary!": this.variant === "primary",
+                        "text-secondary-foreground!": this.variant === "secondary"
+                    }
+                ];
             }
 
-            return "text-muted-foreground! select-none text-sm"
+            return "text-muted-foreground! select-none text-sm";
         }
     },
 

@@ -52,10 +52,10 @@
         @keydown="handleKeydown"
     >
         <div
-            class="flex h-full w-full items-center overflow-hidden text-ellipsis whitespace-nowrap transition-all"
+            class="flex h-full w-full items-center overflow-hidden text-ellipsis whitespace-nowrap transition duration-75"
             :class="[
                 {
-                    'translate-y-[0.1rem]': isPressed,
+                    'translate-y-[0.08rem]': isPressed,
                     'items-center justify-center': shape === 'rounded',
                     'flex items-center gap-2': leftIcon || rightIcon,
                     'justify-start': contentPosition === 'start',

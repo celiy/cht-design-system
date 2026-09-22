@@ -48,6 +48,7 @@
 
                         @pointerdown="onDrawerPointerDown"
                     >
+                        <!-- Visual dragger for bottom drawer -->
                         <div
                             v-if="variant === 'drawer' && side === 'bottom'"
 
@@ -57,6 +58,7 @@
                             <span class="h-1.5 w-10 rounded-full bg-muted-foreground/40" />
                         </div>
 
+                        <!-- Header with title and close button for Modal and Drawer -->
                         <div
                             v-if="variant !== 'blank'"
 
@@ -81,6 +83,7 @@
                             </div>
                         </div>
 
+                        <!-- Header description for Modal and Drawer -->
                         <div
                             v-if="$slots.description && variant !== 'blank'"
 
@@ -92,6 +95,7 @@
                             </p>
                         </div>
 
+                        <!-- Body for Modal, Blank and Drawer-->
                         <div
                             v-if="$slots.body"
                             ref="bodyScrollRef"
@@ -100,6 +104,9 @@
                             :class="{
                                 'mt-2': variant !== 'blank' && !$slots.description,
                                 'px-4 pb-4': variant === 'modal' || variant === 'drawer',
+                                'max-h-[40vh]':
+                                    (variant === 'modal' || variant === 'blank') &&
+                                    size === 'extra-small',
                                 'max-h-[50vh]':
                                     (variant === 'modal' || variant === 'blank') &&
                                     size === 'small',
@@ -115,19 +122,21 @@
                                 'min-h-0 flex-1': variant === 'drawer'
                             }"
                         >
-                            <!-- Body -->
                             <slot name="body" />
                         </div>
 
+                        <!-- Footer for Modal, Blank and Drawer-->
                         <div
-                            v-if="$slots.footer && variant !== 'blank'"
+                            v-if="
+                                $slots.footer &&
+                                (variant === 'blank' || variant === 'modal' || variant === 'drawer')
+                            "
 
                             class="shrink-0 rounded-b border-t bg-muted/50 p-4"
                             :class="{
                                 'mt-auto': variant === 'drawer'
                             }"
                         >
-                            <!-- Footer -->
                             <slot name="footer" />
                         </div>
                     </div>
@@ -206,7 +215,7 @@ export default defineComponent({
         },
 
         size: {
-            type: String as PropType<"small" | "medium" | "large" | "extra-large">,
+            type: String as PropType<"extra-small" | "small" | "medium" | "large" | "extra-large">,
             default: "medium",
             required: false
         },
@@ -215,6 +224,12 @@ export default defineComponent({
             type: Boolean,
             default: false,
             required: true
+        },
+
+        keepOpen: {
+            type: Boolean,
+            default: false,
+            required: false
         }
     },
 
@@ -296,6 +311,9 @@ export default defineComponent({
          */
         panelSurfaceClass(): Record<string, boolean> {
             const c: Record<string, boolean> = {
+                "lg:w-[25%] md:w-[40%] sm:w-[60%] w-[80%]":
+                    this.size === "extra-small" &&
+                    (this.variant === "modal" || this.variant === "blank"),
                 "lg:w-[35%] md:w-[50%] sm:w-[70%] w-[90%]":
                     this.size === "small" && (this.variant === "modal" || this.variant === "blank"),
                 "lg:w-[50%] md:w-[70%] sm:w-[80%] w-[94%]":
@@ -458,6 +476,10 @@ export default defineComponent({
          * @param event Click or pointer event from backdrop / outside
          */
         onOverlayDismiss(event: Event) {
+            if (this.keepOpen) {
+                return;
+            }
+
             if (!isTopModalLayer(this.modalLayerId)) {
                 return;
             }
@@ -698,6 +720,10 @@ export default defineComponent({
          * @param event The mouse event
          */
         handleClickOutside(event: MouseEvent) {
+            if (this.keepOpen) {
+                return;
+            }
+
             if (!isTopModalLayer(this.modalLayerId)) {
                 return;
             }
