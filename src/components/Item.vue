@@ -22,7 +22,7 @@
 
         <!-- Label and description -->
         <div class="w-full min-w-0 flex-1">
-            <div class="flex flex-col gap-1">
+            <div class="flex flex-col gap-0.5">
                 <span
                     v-if="head"
 
@@ -35,8 +35,7 @@
                 <p
                     v-if="label"
 
-                    class="leading-tight! font-semibold! select-none"
-                    :class="disabled ? 'text-muted-foreground' : 'text-foreground'"
+                    :class="titleClass"
                 >
                     {{ label }}
                 </p>
@@ -220,6 +219,25 @@ export default defineComponent({
                 "border-info/30! border-2 bg-muted/40": this.variant === "info",
                 "border-input bg-muted/40": true
             };
+        },
+
+        titleClass() {
+            if (this.type === "alert") {
+                return [
+                    "font-bold!",
+                    this.disabled ? "text-muted-foreground!" : "text-foreground!",
+                    {
+                        "text-info!": this.variant === "info",
+                        "text-success!": this.variant === "success",
+                        "text-warning!": this.variant === "warning",
+                        "text-destructive!": this.variant === "destructive",
+                        "text-primary!": this.variant === "primary",
+                        "text-secondary-foreground!": this.variant === "secondary"
+                    }
+                ];
+            }
+
+            return "text-foreground! select-none";
         },
 
         descriptionClass() {

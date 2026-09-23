@@ -85,9 +85,14 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
+import Marker from "./Marker.vue";
 
 export default defineComponent({
     name: "Option",
+
+    components: {
+        Marker
+    },
 
     inheritAttrs: false,
 

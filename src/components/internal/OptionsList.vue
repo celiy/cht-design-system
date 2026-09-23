@@ -103,6 +103,7 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Input from "../Input.vue";
+import Marker from "../Marker.vue";
 import Option from "../Option.vue";
 import tooltip from "@shared/frontend/tooltip";
 
@@ -161,6 +162,7 @@ export default defineComponent({
 
     components: {
         Input,
+        Marker,
         Option
     },
 

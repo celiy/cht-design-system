@@ -188,7 +188,7 @@ export default defineComponent({
             }
         },
 
-        applyLoaded(el: HTMLImageElement) {
+        applyLoaded(_el: HTMLImageElement) {
             if (this.hasLoaded) {
                 return;
             }

@@ -166,14 +166,14 @@ import {
 } from "@shared/frontend/keybinds";
 import {
     MODAL_QUERY_PARAM,
-    addModalToQuery,
+    type ModalUrlRouter,
     parseModalQueryParam,
     registerModalUrlInstance,
     releaseModalUrlInstance,
-    removeModalFromQuery,
-    serializeModalQueryParam
+    scheduleModalUrlQuerySync,
+    trackModalUrlOpenState
 } from "@shared/frontend/modalQuery";
-import type { RouteLocationNormalizedLoaded, Router } from "vue-router";
+import type { RouteLocationNormalizedLoaded } from "vue-router";
 
 const DRAWER_MOVE_LISTENER_OPTS = { passive: false, capture: true };
 const DRAWER_UP_LISTENER_OPTS = { capture: true };
@@ -263,9 +263,7 @@ export default defineComponent({
             modalUrlId: 0,
 
             urlSyncReady: false,
-            urlSyncFromRoute: false,
-            modalUrlPushedHistory: false,
-            urlNavGen: 0
+            urlSyncFromRoute: false
         };
     },
 
@@ -429,8 +427,12 @@ export default defineComponent({
                     this.closeDescendantFloatingPanels();
                 }
 
-                if (this.urlSyncReady && !this.urlSyncFromRoute) {
-                    this.syncOpenStateToUrl(newVal, { reason: "state" });
+                if (this.urlSyncReady) {
+                    trackModalUrlOpenState(this.modalUrlId, newVal);
+
+                    if (!this.urlSyncFromRoute) {
+                        this.syncOpenStateToUrl(newVal, { reason: "state" });
+                    }
                 }
 
                 this.$emit("update:value", newVal);
@@ -472,6 +474,7 @@ export default defineComponent({
 
     beforeUnmount() {
         if (this.modalOpen && this.urlSyncReady) {
+            trackModalUrlOpenState(this.modalUrlId, false);
             this.syncOpenStateToUrl(false, { reason: "unmount" });
         }
 
@@ -503,74 +506,14 @@ export default defineComponent({
         },
 
         syncOpenStateToUrl(
-            open: boolean,
-            options: { reason: "state" | "unmount" } = { reason: "state" }
+            _open: boolean,
+            _options: { reason: "state" | "unmount" } = { reason: "state" }
         ) {
             if (!this.shouldSyncModalUrl()) {
                 return;
             }
 
-            const router = this.$router as Router;
-            const route = this.$route as RouteLocationNormalizedLoaded;
-            const id = this.modalUrlId;
-            const current = this.modalIdsFromRoute();
-
-            if (open) {
-                if (current.includes(id)) {
-                    return;
-                }
-
-                const nextIds = addModalToQuery(current, id);
-                const query = { ...route.query };
-                query[MODAL_QUERY_PARAM] = serializeModalQueryParam(nextIds);
-
-                this.urlNavGen += 1;
-                const gen = this.urlNavGen;
-                this.modalUrlPushedHistory = true;
-
-                void router.push({ query }).then(() => {
-                    if (gen !== this.urlNavGen) {
-                        const ids = removeModalFromQuery(this.modalIdsFromRoute(), id);
-                        const rollback = { ...this.$route.query };
-
-                        if (ids.length === 0) {
-                            delete rollback[MODAL_QUERY_PARAM];
-                        } else {
-                            rollback[MODAL_QUERY_PARAM] = serializeModalQueryParam(ids);
-                        }
-
-                        void router.replace({ query: rollback });
-                        return;
-                    }
-
-                    this.modalUrlPushedHistory = true;
-                });
-
-                return;
-            }
-
-            this.urlNavGen += 1;
-            this.modalUrlPushedHistory = false;
-
-            if (!current.includes(id)) {
-                return;
-            }
-
-            const nextIds = removeModalFromQuery(current, id);
-            const query = { ...route.query };
-
-            if (nextIds.length === 0) {
-                delete query[MODAL_QUERY_PARAM];
-            } else {
-                query[MODAL_QUERY_PARAM] = serializeModalQueryParam(nextIds);
-            }
-
-            if (options.reason === "unmount") {
-                void router.replace({ query });
-                return;
-            }
-
-            void router.replace({ query });
+            scheduleModalUrlQuerySync(this.$router as ModalUrlRouter);
         },
 
         syncOpenFromUrl() {
@@ -582,10 +525,6 @@ export default defineComponent({
 
             if (shouldOpen === this.modalOpen) {
                 return;
-            }
-
-            if (!shouldOpen) {
-                this.modalUrlPushedHistory = false;
             }
 
             this.urlSyncFromRoute = true;
