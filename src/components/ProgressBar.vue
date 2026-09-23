@@ -1,7 +1,7 @@
 <template>
-    <div class="flex flex-col w-full">
+    <div class="flex w-full flex-col">
         <!-- Label -->
-        <label 
+        <label
             v-if="label"
 
             class="mb-2"
@@ -13,13 +13,14 @@
         <!-- Bar -->
         <div
             v-if="variant === 'bar'"
+
             class="relative"
             :class="{
                 'flex w-full justify-center': direction === 'vertical'
             }"
         >
             <input
-                class="progress-range rounded relative transition-all"
+                class="progress-range relative rounded transition-all"
                 :class="[
                     direction === 'vertical' ? 'progress-range--vertical rotate-180' : 'h-2 w-full',
                     {
@@ -27,14 +28,13 @@
                         'progress-range--readonly': readonly,
                         'cursor-pointer disabled:cursor-not-allowed': !readonly,
                         'pointer-events-none': readonly,
-                        'ring-[3px] ring-ring/50 ring-offset-0': isVisible
+                        'hover-ring-primary': isVisible
                     }
                 ]"
                 :style="progressTrackStyle"
                 type="range"
                 :aria-readonly="readonly ? true : undefined"
                 :tabindex="readonly ? -1 : undefined"
-
                 :value="localValue"
                 :step="step"
                 :max="max"
@@ -52,7 +52,7 @@
                 @input="onInput($event)"
             />
 
-            <div 
+            <div
                 v-if="showProgress"
 
                 class="absolute top-0 -translate-y-10 rounded transition-all"
@@ -62,7 +62,7 @@
                     'opacity-0': !isVisible
                 }"
             >
-                <div class="bg-popover border p-2 rounded select-none shadow-sm text-foreground!">
+                <div class="rounded border bg-popover p-2 text-foreground! shadow-sm select-none">
                     {{ localValue }}
                 </div>
             </div>
@@ -71,24 +71,25 @@
         <!-- Circular -->
         <div
             v-if="variant === 'circular'"
+
             class="relative"
         >
-            <svg 
-                fill="none" 
-                class="inset-0" 
-                
+            <svg
+                fill="none"
+                class="inset-0"
                 v-bind="circularProgressAtributes"
             >
-                <circle 
+                <circle
                     v-bind="circleAtributes"
-                    stroke="var(--color-muted)" 
-                    stroke-width="4" 
-                    fill="none" 
-                    class="text-gray-200">
-                </circle>
+                    stroke="var(--color-muted)"
+                    stroke-width="4"
+                    fill="none"
+                    class="text-gray-200"
+                ></circle>
 
                 <circle
                     v-if="!isCircularLoading"
+
                     v-bind="circleAtributes"
                     stroke="var(--color-primary)"
                     stroke-width="4"
@@ -102,6 +103,7 @@
 
                 <g
                     v-else
+
                     :transform="circularSpinnerStageTransform"
                 >
                     <g class="progress-circular__spin">
@@ -122,7 +124,7 @@
         </div>
 
         <!-- Helper text -->
-        <small 
+        <small
             v-if="helperText"
 
             class="mt-2 text-muted-foreground!"
@@ -162,10 +164,10 @@ export default defineComponent({
          */
         height: {
             type: String,
-            default: '12rem',
+            default: "12rem",
             required: false
         },
-        
+
         /**
          * Value controlled by Vue's v-model pattern.
          * When defined, it has priority over the value prop.
@@ -249,8 +251,8 @@ export default defineComponent({
             localValue: 0 as number,
             isVisible: false
         };
-    }, 
-    
+    },
+
     computed: {
         /**
          * Defines the single source of truth between modelValue and value.
@@ -361,16 +363,14 @@ export default defineComponent({
              * Synchronizes local state with the value coming from props.
              */
             handler(newVal: number | undefined) {
-                this.localValue = newVal ?? 0
+                this.localValue = newVal ?? 0;
             },
 
             immediate: true
         }
     },
 
-    mounted() {
-
-    },
+    mounted() {},
 
     methods: {
         /**
@@ -417,186 +417,192 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .progress-range {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 0.5rem;
-  background: transparent;
-
-  &:focus {
-    outline: none;
-  }
-
-  &::-webkit-slider-runnable-track {
-    height: 0.5rem;
-    border-radius: 9999px;
-    background: linear-gradient(
-      to right,
-      var(--color-primary) 0%,
-      var(--color-primary) var(--progress-percent, 0%),
-      var(--color-muted) var(--progress-percent, 0%),
-      var(--color-muted) 100%
-    );
-  }
-
-  &::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 1rem;
-    height: 1rem;
-    margin-top: -0.25rem;
-    border-radius: 9999px;
-    background: var(--color-primary-foreground);
-    border: 2px solid var(--color-primary);
-    box-shadow: 0 0 0 1px var(--color-border);
-    cursor: pointer;
-  }
-
-  &::-moz-range-track {
+    width: 100%;
     height: 0.5rem;
-    border-radius: 9999px;
-    background: var(--color-input);
-    opacity: 50%;
-  }
+    background: transparent;
 
-  &::-moz-range-progress {
-    height: 0.5rem;
-    border-radius: 9999px;
-    background: var(--color-primary);
-  }
+    &:focus {
+        outline: none;
+    }
 
-  &::-moz-range-thumb {
-    width: 0.9rem;
-    height: 0.9rem;
-    cursor: pointer;
-  }
+    &::-webkit-slider-runnable-track {
+        height: 0.5rem;
+        border-radius: 9999px;
+        background: linear-gradient(
+            to right,
+            var(--color-primary) 0%,
+            var(--color-primary) var(--progress-percent, 0%),
+            var(--color-muted) var(--progress-percent, 0%),
+            var(--color-muted) 100%
+        );
+    }
 
-  &:disabled::-webkit-slider-thumb,
-  &:disabled::-moz-range-thumb {
-    border-color: var(--color-muted-foreground);
-    cursor: not-allowed;
-  }
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 1rem;
+        height: 1rem;
+        margin-top: -0.25rem;
+        border-radius: 9999px;
+        background: var(--color-primary-foreground);
+        border: 2px solid var(--color-primary);
+        box-shadow: 0 0 0 1px var(--color-border);
+        cursor: pointer;
+    }
+
+    &::-moz-range-track {
+        height: 0.5rem;
+        border-radius: 9999px;
+        background: var(--color-input);
+        opacity: 50%;
+    }
+
+    &::-moz-range-progress {
+        height: 0.5rem;
+        border-radius: 9999px;
+        background: var(--color-primary);
+    }
+
+    &::-moz-range-thumb {
+        width: 0.9rem;
+        height: 0.9rem;
+        cursor: pointer;
+    }
+
+    &:disabled::-webkit-slider-thumb,
+    &:disabled::-moz-range-thumb {
+        border-color: var(--color-muted-foreground);
+        cursor: not-allowed;
+    }
 }
 
 /* Somente leitura: sem thumb e sem interação (pointer-events no template) */
 .progress-range--readonly {
-  cursor: default;
+    cursor: default;
 
-  &::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 0;
-    height: 0;
-    margin: 0;
-    border: 0;
-    background: var(--color-primary-foreground);
-    box-shadow: none;
-  }
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 0;
+        height: 0;
+        margin: 0;
+        border: 0;
+        background: var(--color-primary-foreground);
+        box-shadow: none;
+    }
 
-  &::-moz-range-thumb {
-    width: 0;
-    height: 0;
-    margin: 0;
-    border: 0;
-    background: var(--color-primary-foreground);
-    box-shadow: none;
-  }
+    &::-moz-range-thumb {
+        width: 0;
+        height: 0;
+        margin: 0;
+        border: 0;
+        background: var(--color-primary-foreground);
+        box-shadow: none;
+    }
 }
 
 .progress-range--vertical {
-  writing-mode: vertical-lr;
-  direction: ltr;
-  --progress-vertical-thumb-w: 1rem;
-  --progress-vertical-track-w: 0.5rem;
-  --progress-vertical-control-w: var(--progress-vertical-thumb-w);
+    writing-mode: vertical-lr;
+    direction: ltr;
+    --progress-vertical-thumb-w: 1rem;
+    --progress-vertical-track-w: 0.5rem;
+    --progress-vertical-control-w: var(--progress-vertical-thumb-w);
 
-  width: var(--progress-vertical-control-w);
-  min-width: var(--progress-vertical-control-w);
-  height: var(--progress-vertical-height, 8rem);
+    width: var(--progress-vertical-control-w);
+    min-width: var(--progress-vertical-control-w);
+    height: var(--progress-vertical-height, 8rem);
 
-  &::-webkit-slider-runnable-track {
-    width: var(--progress-vertical-track-w);
-    height: 100%;
-    margin-inline: 0;
-    margin-block: calc((var(--progress-vertical-thumb-w) - var(--progress-vertical-track-w)) / 2);
-    background: linear-gradient(
-      to bottom,
-      var(--color-primary) 0%,
-      var(--color-primary) var(--progress-percent, 0%),
-      var(--color-muted) var(--progress-percent, 0%),
-      var(--color-muted) 100%
-    );
-  }
-
-  &::-webkit-slider-thumb {
-    margin: 0;
-    margin-left: -0.3rem;
-    box-sizing: border-box;
-    background: var(--color-primary-foreground);
-  }
-
-  &::-moz-range-track {
-    width: var(--progress-vertical-track-w);
-    height: 100%;
-    margin-inline: 0;
-    margin-block: calc((var(--progress-vertical-thumb-w) - var(--progress-vertical-track-w)) / 2);
-    background: var(--color-muted);
-  }
-
-  &::-moz-range-progress {
-    width: var(--progress-vertical-track-w);
-    margin-inline: 0;
-    margin-block: calc((var(--progress-vertical-thumb-w) - var(--progress-vertical-track-w)) / 2);
-    background: var(--color-primary);
-  }
-
-  &::-moz-range-thumb {
-    margin: 0;
-    margin-left: -0.3rem;
-    box-sizing: border-box;
-    background: var(--color-primary-foreground);
-  }
-
-  &.progress-range--readonly {
-    &::-webkit-slider-thumb,
-    &::-moz-range-thumb {
-      width: 0;
-      height: 0;
-      margin: 0;
-      margin-left: 0;
-      border: 0;
+    &::-webkit-slider-runnable-track {
+        width: var(--progress-vertical-track-w);
+        height: 100%;
+        margin-inline: 0;
+        margin-block: calc(
+            (var(--progress-vertical-thumb-w) - var(--progress-vertical-track-w)) / 2
+        );
+        background: linear-gradient(
+            to bottom,
+            var(--color-primary) 0%,
+            var(--color-primary) var(--progress-percent, 0%),
+            var(--color-muted) var(--progress-percent, 0%),
+            var(--color-muted) 100%
+        );
     }
-  }
+
+    &::-webkit-slider-thumb {
+        margin: 0;
+        margin-left: -0.3rem;
+        box-sizing: border-box;
+        background: var(--color-primary-foreground);
+    }
+
+    &::-moz-range-track {
+        width: var(--progress-vertical-track-w);
+        height: 100%;
+        margin-inline: 0;
+        margin-block: calc(
+            (var(--progress-vertical-thumb-w) - var(--progress-vertical-track-w)) / 2
+        );
+        background: var(--color-muted);
+    }
+
+    &::-moz-range-progress {
+        width: var(--progress-vertical-track-w);
+        margin-inline: 0;
+        margin-block: calc(
+            (var(--progress-vertical-thumb-w) - var(--progress-vertical-track-w)) / 2
+        );
+        background: var(--color-primary);
+    }
+
+    &::-moz-range-thumb {
+        margin: 0;
+        margin-left: -0.3rem;
+        box-sizing: border-box;
+        background: var(--color-primary-foreground);
+    }
+
+    &.progress-range--readonly {
+        &::-webkit-slider-thumb,
+        &::-moz-range-thumb {
+            width: 0;
+            height: 0;
+            margin: 0;
+            margin-left: 0;
+            border: 0;
+        }
+    }
 }
 
 .progress-circular__spin {
-  animation: progress-circular-rotate 2.5s linear infinite;
+    animation: progress-circular-rotate 2.5s linear infinite;
 }
 
 .progress-circular__indeterminate-arc {
-  animation: progress-circular-dash 2.5s ease-in-out infinite;
+    animation: progress-circular-dash 2.5s ease-in-out infinite;
 }
 
 @keyframes progress-circular-rotate {
-  100% {
-    transform: rotate(360deg);
-  }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes progress-circular-dash {
-  0% {
-    stroke-dasharray: 1px var(--progress-circ, 200px);
-    stroke-dashoffset: 0;
-  }
+    0% {
+        stroke-dasharray: 1px var(--progress-circ, 200px);
+        stroke-dashoffset: 0;
+    }
 
-  50% {
-    stroke-dasharray: calc(var(--progress-circ, 200px) * 0.72) var(--progress-circ, 200px);
-    stroke-dashoffset: calc(var(--progress-circ, 200px) * -0.22);
-  }
+    50% {
+        stroke-dasharray: calc(var(--progress-circ, 200px) * 0.72) var(--progress-circ, 200px);
+        stroke-dashoffset: calc(var(--progress-circ, 200px) * -0.22);
+    }
 
-  100% {
-    stroke-dasharray: 1px var(--progress-circ, 200px);
-    stroke-dashoffset: calc(var(--progress-circ, 200px) * -1);
-  }
+    100% {
+        stroke-dasharray: 1px var(--progress-circ, 200px);
+        stroke-dashoffset: calc(var(--progress-circ, 200px) * -1);
+    }
 }
 </style>

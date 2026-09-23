@@ -2,14 +2,13 @@
     <div
         class="transition-all"
         :class="{
-            'p-3 border rounded': variant === 'card',
+            'rounded border p-3': variant === 'card',
             'border-primary/30! bg-primary/10': !disabled && variant === 'card' && isChecked,
             'border-input bg-input/30': !disabled && variant === 'card' && !isChecked,
-            'bg-transparent border-border/50': disabled && variant === 'card',
+            'border-border/50 bg-transparent': disabled && variant === 'card',
             'cursor-pointer': !disabled,
             'cursor-not-allowed!': disabled
         }"
-
 
         @mouseenter="hovered = true"
         @mouseleave="hovered = false"
@@ -19,10 +18,9 @@
             <input
                 :id="id"
                 type="radio"
-                class="custom-radio w-4 h-4 border border-input bg-input/30 transition-all rounded-full cursor-pointer relative shrink-0"
-
+                class="custom-radio relative h-4 w-4 shrink-0 cursor-pointer rounded-full border border-input bg-input/30 transition-all"
                 :class="{
-                    'ring-[3px] ring-ring/50 ring-offset-0' : hovered && !disabled,
+                    'hover-ring': hovered && !disabled,
                     'translate-y-0.75': label || description
                 }"
                 :name="name"
@@ -30,6 +28,7 @@
                 :disabled="disabled"
                 :value="optionValue"
                 :checked="isChecked"
+
                 @change="onChange"
             />
 
@@ -38,14 +37,18 @@
                     :for="id"
                     class="ml-2 select-none"
                     :class="{
-                        'text-muted-foreground! cursor-not-allowed!': disabled,
+                        'cursor-not-allowed! text-muted-foreground!': disabled,
                         'cursor-pointer': !disabled
                     }"
                 >
                     {{ label }}
                 </label>
 
-                <small v-if="description" class="mt-1 ml-2 text-muted-foreground! select-none">
+                <small
+                    v-if="description"
+
+                    class="mt-1 ml-2 text-muted-foreground! select-none"
+                >
                     {{ description }}
                 </small>
             </div>
@@ -57,7 +60,7 @@
 import { defineComponent, type PropType } from "vue";
 
 export default defineComponent({
-    name: 'Radio',
+    name: "Radio",
 
     props: {
         variant: {
@@ -110,12 +113,12 @@ export default defineComponent({
         }
     },
 
-    emits: ['click', 'update:modelValue'],
+    emits: ["click", "update:modelValue"],
 
     data() {
         return {
             hovered: false
-        }
+        };
     },
 
     computed: {
@@ -124,7 +127,11 @@ export default defineComponent({
         },
 
         isChecked(): boolean {
-            return this.modelValue !== undefined && this.modelValue !== null && this.modelValue === this.optionValue;
+            return (
+                this.modelValue !== undefined &&
+                this.modelValue !== null &&
+                this.modelValue === this.optionValue
+            );
         }
     },
 
@@ -138,7 +145,7 @@ export default defineComponent({
                 return;
             }
 
-            if (this.variant === 'card') {
+            if (this.variant === "card") {
                 event.stopPropagation();
             }
 
@@ -157,8 +164,8 @@ export default defineComponent({
 
             this.$emit("update:modelValue", this.optionValue);
             this.$emit("click", event);
-        },
-    },
+        }
+    }
 });
 </script>
 

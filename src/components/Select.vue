@@ -62,7 +62,7 @@
                         v-bind="mergedButtonAtributes"
                         class="w-full"
                         :class="{
-                            'ring-[3px]! ring-ring/50! ring-offset-0!': isPanelOpen
+                            'hover-ring': isPanelOpen
                         }"
                         :hover-effect="false"
 
@@ -595,7 +595,8 @@ export default defineComponent({
             return undefined;
         },
 
-        selectedValueIndicator(): { color?: string; size?: string; backgroundColor?: string } | undefined {
+        selectedValueIndicator():
+            { color?: string; size?: string; backgroundColor?: string } | undefined {
             if (!this.options) {
                 return undefined;
             }
@@ -641,7 +642,8 @@ export default defineComponent({
             return undefined;
         },
 
-        selectTriggerIndicator(): { color?: string; size?: string; backgroundColor?: string } | undefined {
+        selectTriggerIndicator():
+            { color?: string; size?: string; backgroundColor?: string } | undefined {
             if (this.isSelectMultiple) {
                 return this.selectedValueIndicator;
             }
@@ -875,7 +877,10 @@ export default defineComponent({
             return undefined;
         },
 
-        findIndicatorForValue(options: OptionItem[], value: string): { color?: string; size?: string; backgroundColor?: string } | undefined {
+        findIndicatorForValue(
+            options: OptionItem[],
+            value: string
+        ): { color?: string; size?: string; backgroundColor?: string } | undefined {
             for (const option of options) {
                 if (option.value != null && String(option.value) === value) {
                     return option.indicator;

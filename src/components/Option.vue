@@ -1,15 +1,21 @@
 <template>
     <div
-        class="block rounded bg-popover text-sm transition-all select-none"
+        class="block rounded text-sm transition-all select-none"
         v-bind="$attrs"
         :class="{
             'text-destructive!': isDestructive,
-            'bg-destructive/20!': showCheckmark && selected && isDestructive && !hasChildren,
+            'bg-destructive/20!':
+                (showCheckmark || showCheckboxSwitch) && selected && isDestructive && !hasChildren,
             'bg-destructive/30!': highlighted && !$project.device.isMobile && isDestructive,
             'hover:bg-destructive/30!': isSelectable && isDestructive && !disabled,
 
             'text-popover-foreground': !isDestructive,
-            'bg-accent/50!': showCheckmark && selected && !isDestructive && !hasChildren,
+            'bg-accent/50':
+                (showCheckmark || showCheckboxSwitch) &&
+                selected &&
+                !highlighted &&
+                !isDestructive &&
+                !hasChildren,
             'bg-accent!': highlighted && !$project.device.isMobile && !isDestructive,
             'hover:bg-accent': isSelectable && !isDestructive && !disabled,
 
@@ -23,7 +29,7 @@
         @click="$emit('click', $event)"
         @mouseenter="$emit('mouseenter', $event)"
     >
-        <div class="flex flex-nowrap items-center justify-between gap-4">
+        <div class="flex flex-nowrap items-center justify-between gap-2">
             <div class="flex w-full flex-nowrap items-center gap-2">
                 <span
                     v-if="indicator"
@@ -35,7 +41,7 @@
                 <i
                     v-if="icon"
 
-                    :class="`fa-solid ${icon} mr-1 text-sm`"
+                    :class="`fa-solid ${icon} text-sm`"
                 />
 
                 <Marker
@@ -48,29 +54,64 @@
                 <span
                     v-if="label"
 
-                    class="truncate font-medium"
-                    :class="{
-                        'text-sm': value,
-                        'text-xs': !value
-                    }"
+                    class="w-full truncate text-sm font-medium"
                 >
-                    {{ label }}
+                    <template v-if="labelHelper && label && labelHelperPosition === 'left'">
+                        <div class="flex gap-2">
+                            <span>
+                                {{ label }}
+                            </span>
+
+                            <span class="text-muted-foreground!">
+                                {{ labelHelper }}
+                            </span>
+                        </div>
+                    </template>
+
+                    <template v-else-if="labelHelper && label && labelHelperPosition === 'right'">
+                        <div class="flex justify-between">
+                            <span>
+                                {{ label }}
+                            </span>
+
+                            <span class="text-muted-foreground!">
+                                {{ labelHelper }}
+                            </span>
+                        </div>
+                    </template>
+
+                    <template v-else>
+                        <span>
+                            {{ label }}
+                        </span>
+                    </template>
                 </span>
             </div>
 
             <div
-                v-if="showCheckmark || hasChildren"
+                v-if="showCheckmark || showCheckboxSwitch || hasChildren"
 
                 class="flex shrink-0 items-center gap-2"
             >
                 <i
-                    v-if="showCheckmark && !hasChildren"
+                    v-if="showCheckmark && !hasChildren && !showCheckboxSwitch"
 
                     class="fa-solid fa-check text-xs text-muted-foreground"
                     :class="{
                         'opacity-100': selected,
                         'opacity-0': !selected
                     }"
+                />
+
+                <Checkbox
+                    v-if="showCheckboxSwitch && !hasChildren && !showCheckmark"
+
+                    :id="`option-${label}-${value}`"
+                    :name="`option-${label}-${value}-name`"
+                    checkbox-style="switch"
+                    :checked="selected"
+                    :clickable="false"
+                    size="small"
                 />
 
                 <i
@@ -86,12 +127,14 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Marker from "./Marker.vue";
+import Checkbox from "./Checkbox.vue";
 
 export default defineComponent({
     name: "Option",
 
     components: {
-        Marker
+        Marker,
+        Checkbox
     },
 
     inheritAttrs: false,
@@ -99,6 +142,17 @@ export default defineComponent({
     props: {
         label: {
             type: String,
+            required: false
+        },
+
+        labelHelper: {
+            type: String,
+            required: false
+        },
+
+        labelHelperPosition: {
+            type: String as PropType<"left" | "right">,
+            default: "left",
             required: false
         },
 
@@ -131,6 +185,11 @@ export default defineComponent({
         },
 
         showCheckmark: {
+            type: Boolean,
+            default: false
+        },
+
+        showCheckboxSwitch: {
             type: Boolean,
             default: false
         },

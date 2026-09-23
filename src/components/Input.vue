@@ -2,6 +2,7 @@
     <div
         class="flex flex-col"
         :class="[fit ? 'w-fit' : 'w-full']"
+
         @click="$emit('click', $event)"
     >
         <!-- Label -->
@@ -22,17 +23,14 @@
 
         <!-- Input container -->
         <div
-            class="box-border transition-shadow"
+            class="box-border rounded transition-shadow"
             :class="{
                 'shadow-sm': !noShadow && variant !== 'display',
 
-                'rounded ring-[3px] ring-transparent ring-offset-0':
-                    variant === 'secondary' && !isFocused,
-
-                'rounded ring-[3px] ring-ring/50 ring-offset-0':
+                'hover-ring':
                     variant === 'secondary' && isFocused && !(error || errorsMessage.length > 0),
 
-                'rounded ring-[3px] ring-destructive/50 ring-offset-0':
+                'hover-ring-destructive':
                     variant === 'secondary' && isFocused && (error || errorsMessage.length > 0)
             }"
         >

@@ -25,7 +25,7 @@
                         : 'custom-checkbox relative h-4 w-4 shrink-0 cursor-pointer rounded-sm border border-input bg-input/30 transition-all',
                     {
                         'translate-y-0.5': checkboxStyle !== 'switch' && (label || description),
-                        'ring-[3px] ring-ring/50 ring-offset-0': hovered && !disabled
+                        'hover-ring': hovered && !disabled
                     }
                 ]"
                 :name="name"
@@ -44,6 +44,9 @@
                 :input-id="id"
                 :checked="localChecked"
                 :disabled="disabled"
+                :clickable="clickable"
+                :size="size"
+                :hovered="hovered"
                 class="shrink-0"
             />
 
@@ -142,7 +145,18 @@ export default defineComponent({
 
         checked: {
             type: Boolean,
-            default: false,
+            required: false
+        },
+
+        clickable: {
+            type: Boolean,
+            default: true,
+            required: false
+        },
+
+        size: {
+            type: String as PropType<"small" | "medium">,
+            default: "medium",
             required: false
         }
     },
@@ -167,7 +181,7 @@ export default defineComponent({
         },
 
         checked: {
-            handler(val: boolean) {
+            handler(val: boolean | undefined) {
                 if (typeof val === "boolean") {
                     this.localChecked = val;
                 }
@@ -182,6 +196,10 @@ export default defineComponent({
          * @param {Event} event The click event.
          */
         onClick(event: Event) {
+            if (!this.clickable) {
+                return;
+            }
+
             if (this.variant === "card") {
                 event.stopPropagation();
             }

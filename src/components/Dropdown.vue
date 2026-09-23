@@ -16,7 +16,7 @@
                 v-bind="buttonAtributes"
                 class="w-full"
                 :class="{
-                    'ring-[3px]! ring-ring/50! ring-offset-0!': isOpen
+                    'hover-ring': isOpen
                 }"
                 :hover-effect="false"
 
@@ -66,7 +66,6 @@
         >
             <OptionsList
                 v-model:search-query="searchQuery"
-
                 :options="options"
                 :search="search"
                 :show-checkmark="showCheckmark"
@@ -171,7 +170,9 @@ export default defineComponent({
          * Reports whether an option is selected when `showCheckmark` is on.
          */
         isOptionSelected: {
-            type: Function as PropType<(value: string | undefined, item?: OptionItem, parent?: OptionItem) => boolean>,
+            type: Function as PropType<
+                (value: string | undefined, item?: OptionItem, parent?: OptionItem) => boolean
+            >,
             required: false
         },
 

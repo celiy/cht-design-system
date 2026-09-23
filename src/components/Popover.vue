@@ -14,7 +14,7 @@
                 v-bind="buttonAtributes"
                 class="w-full"
                 :class="{
-                    'ring-[3px]! ring-ring/50! ring-offset-0!': isOpen
+                    'hover-ring': isOpen
                 }"
                 :hover-effect="false"
 

@@ -225,8 +225,9 @@ export default defineComponent({
             if (this.type === "alert") {
                 return [
                     "font-bold!",
-                    this.disabled ? "text-muted-foreground!" : "text-foreground!",
                     {
+                        "text-foreground!": !this.disabled && !this.variant,
+                        "text-muted-foreground!": this.disabled,
                         "text-info!": this.variant === "info",
                         "text-success!": this.variant === "success",
                         "text-warning!": this.variant === "warning",

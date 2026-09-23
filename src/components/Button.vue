@@ -1,6 +1,6 @@
 <template>
     <button
-        class="w-fit cursor-pointer font-semibold shadow-sm transition-all select-none hover:shadow-md! dark:hover:brightness-125 light:hover:brightness-90"
+        class="w-fit cursor-pointer font-semibold shadow-sm transition-all select-none hover:shadow-md dark:hover:brightness-125 light:hover:brightness-90"
         :class="[
             {
                 'bg-primary/95 text-primary-foreground': variant === 'primary',
@@ -21,7 +21,13 @@
                 'p-1.5 px-3 text-sm': size === 'medium' && shape !== 'rounded',
                 'p-2 px-3.5 text-base': size === 'large' && shape !== 'rounded',
 
-                'hover-ring': hoverEffect,
+                'hover-ring':
+                    hoverEffect && hovered && (variant === 'default' || variant === 'secondary'),
+                'hover-ring-primary': hoverEffect && hovered && variant === 'primary',
+                'hover-ring-destructive': hoverEffect && hovered && variant === 'destructive',
+                'hover-ring-success': hoverEffect && hovered && variant === 'success',
+                'hover-ring-info': hoverEffect && hovered && variant === 'info',
+                'hover-ring-warning': hoverEffect && hovered && variant === 'warning',
 
                 rounded: shape === 'square',
                 'flex aspect-square items-center justify-center justify-items-center rounded-full p-0':
@@ -44,7 +50,8 @@
 
         @mousedown="handleMouseDown"
         @mouseup="handleMouseUp"
-        @mouseleave="handleMouseUp"
+        @mouseenter="handleMouseEnter"
+        @mouseleave="handleMouseLeave"
         @touchstart="handleMouseDown"
         @touchend="handleMouseUp"
         @touchleave="handleMouseUp"
@@ -166,7 +173,8 @@ export default defineComponent({
 
     data() {
         return {
-            isPressed: false
+            isPressed: false,
+            hovered: false
         };
     },
 
@@ -206,8 +214,13 @@ export default defineComponent({
             this.isPressed = false;
         },
 
+        handleMouseEnter() {
+            this.hovered = true;
+        },
+
         handleMouseLeave() {
             this.isPressed = false;
+            this.hovered = false;
         }
     }
 });
