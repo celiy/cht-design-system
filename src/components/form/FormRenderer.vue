@@ -134,8 +134,8 @@
                             class="flex w-full flex-col gap-2"
                         >
                             <Select
-                                :ref="(el) => registerSelectRef(field.id, el)"
                                 :id="field.id"
+                                :ref="(el) => registerSelectRef(field.id, el)"
                                 :label="field.label"
                                 :placeholder="field.placeholder || 'Selecione...'"
                                 :header="field.placeholder || field.label"
@@ -161,6 +161,16 @@
                                 <template
                                     v-if="$slots['select-inside-empty-panel']"
                                     #inside-empty-panel
+                                >
+                                    <slot
+                                        name="select-inside-empty-panel"
+                                        :field="field"
+                                    />
+                                </template>
+
+                                <template
+                                    v-if="$slots['select-inside-empty-panel']"
+                                    #panel-footer
                                 >
                                     <slot
                                         name="select-inside-empty-panel"

@@ -26,13 +26,16 @@
                     >
                         <Input
                             :id="id"
-                            type="text"
+                            :type="comboboxMultiline ? 'textarea' : 'text'"
                             :label="header || label"
                             :variant="variant"
                             :value="comboboxQuery"
                             :disabled="disabled"
                             :readonly="comboboxSelectionLocked"
                             :error="error"
+                            :expand-on-typing="comboboxMultiline"
+                            :hide-resize="comboboxMultiline"
+                            input-class="break-words whitespace-normal"
 
                             @focus="onComboboxFocus"
                             @click="onComboboxClick"
@@ -43,7 +46,8 @@
                             v-if="comboboxSelectionLocked && !disabled"
 
                             type="button"
-                            class="absolute right-2 bottom-1.5 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+                            class="absolute right-2 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+                            :class="comboboxMultiline ? 'top-2' : 'bottom-1.5'"
                             aria-label="Limpar seleção"
 
                             @click.stop="clearComboboxSelection"
@@ -146,6 +150,7 @@
                 :search="listSearch"
                 :show-checkmark="panelShowCheckmark"
                 :is-option-selected="isOptionSelected"
+                :max-height-px="maxHeightPx"
 
                 @select="selectOption"
                 @search:external="onSearchExternal"
@@ -155,6 +160,13 @@
                     #insideEmptyPanel
                 >
                     <slot name="inside-empty-panel" />
+                </template>
+
+                <template
+                    v-if="$slots['panel-footer']"
+                    #panelFooter
+                >
+                    <slot name="panel-footer" />
                 </template>
             </OptionsList>
 
@@ -388,6 +400,14 @@ export default defineComponent({
          * can keep a value that is not in `options`; picking an option fills the input.
          */
         combobox: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * Combobox: use a growing textarea so long labels wrap inside narrow containers.
+         */
+        comboboxMultiline: {
             type: Boolean,
             default: false
         },

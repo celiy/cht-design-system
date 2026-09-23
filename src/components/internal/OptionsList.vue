@@ -1,9 +1,14 @@
 <template>
-    <div class="flex min-h-0 min-w-0 flex-1 flex-col">
+    <div
+        ref="optionsScrollRef"
+
+        class="flex w-full min-w-0 flex-col overflow-y-auto overscroll-contain"
+        :style="optionsScrollStyle"
+    >
         <div
             v-if="search"
 
-            class="shrink-0"
+            class="sticky top-0 z-10 shrink-0 bg-popover"
         >
             <div class="flex items-center px-4">
                 <span class="fa fa-search text-sm text-muted-foreground!" />
@@ -24,56 +29,58 @@
             <Marker separator />
         </div>
 
+        <template v-if="visibleOptions.length > 0">
+            <div
+                v-for="(item, idx) of visibleOptions"
+                :key="item.value ?? item.label ?? String(idx)"
+                :ref="(el) => setOptionRef(idx, el)"
+
+                @mouseenter="onItemMouseEnter(idx, item)"
+                @mouseleave="onItemMouseLeave(item)"
+            >
+                <Option
+                    v-tooltip="optionTooltip(item)"
+                    :label="item.label"
+                    :icon="item.icon"
+                    :indicator="item.indicator"
+                    :separator="item.separator"
+                    :value="item.value"
+                    :variant="item.variant"
+                    :show-checkmark="showCheckmark"
+                    :selected="isItemSelected(item)"
+                    :highlighted="isItemHighlighted(idx, item)"
+                    :first="idx === 0"
+                    :last="idx === visibleOptions.length - 1"
+                    :disabled="item.disabled"
+                    :has-children="hasChildren(item)"
+
+                    @click="onItemClick(item)"
+                />
+            </div>
+        </template>
+
         <div
-            ref="optionsScrollRef"
+            v-else
 
-            class="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+            class="px-3 py-2 text-center text-sm text-muted-foreground!"
         >
-            <template v-if="visibleOptions.length > 0">
-                <div
-                    v-for="(item, idx) of visibleOptions"
-                    :key="item.value ?? item.label ?? String(idx)"
-                    :ref="(el) => setOptionRef(idx, el)"
-
-                    @mouseenter="onItemMouseEnter(idx, item)"
-                    @mouseleave="onItemMouseLeave(item)"
-                >
-                    <Option
-                        v-tooltip="optionTooltip(item)"
-                        :label="item.label"
-                        :icon="item.icon"
-                        :indicator="item.indicator"
-                        :separator="item.separator"
-                        :value="item.value"
-                        :variant="item.variant"
-                        :show-checkmark="showCheckmark"
-                        :selected="isItemSelected(item)"
-                        :highlighted="isItemHighlighted(idx, item)"
-                        :first="idx === 0"
-                        :last="idx === visibleOptions.length - 1"
-                        :disabled="item.disabled"
-                        :has-children="hasChildren(item)"
-
-                        @click="onItemClick(item)"
-                    />
-                </div>
-            </template>
+            <small class="text-muted-foreground!">Nenhum resultado encontrado.</small>
 
             <div
-                v-else
+                v-if="$slots.insideEmptyPanel"
 
-                class="flex flex-col gap-2 px-3 py-2 text-center text-sm text-muted-foreground!"
+                class="contents"
             >
-                <small class="text-muted-foreground!">Nenhum resultado encontrado.</small>
-
-                <div
-                    v-if="$slots.insideEmptyPanel"
-
-                    class="pt-1"
-                >
-                    <slot name="insideEmptyPanel" />
-                </div>
+                <slot name="insideEmptyPanel" />
             </div>
+        </div>
+
+        <div
+            v-if="$slots.panelFooter && visibleOptions.length > 0"
+
+            class="sticky bottom-0 shrink-0 border-t border-border bg-popover px-3 py-2"
+        >
+            <slot name="panelFooter" />
         </div>
 
         <Teleport to="body">
@@ -81,7 +88,7 @@
                 v-if="nestedItem"
                 ref="nestedPanelRef"
 
-                class="absolute z-[1200] flex max-h-[280px] min-w-[11rem] flex-col overflow-hidden rounded border border-border bg-popover shadow-md"
+                class="absolute z-[1200] flex max-h-[280px] min-w-[11rem] flex-col overflow-y-auto overscroll-contain rounded border border-border bg-popover shadow-md"
                 :style="nestedPanelStyle"
                 data-cht-floating-panel
 
@@ -211,6 +218,15 @@ export default defineComponent({
         showCheckmark: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * Caps the option list so the panel scrolls instead of growing past the
+         * floating shell. Omit for nested lists that inherit a parent max-height.
+         */
+        maxHeightPx: {
+            type: Number,
+            required: false
         }
     },
 
@@ -229,6 +245,14 @@ export default defineComponent({
     },
 
     computed: {
+        optionsScrollStyle(): Record<string, string> | undefined {
+            if (this.maxHeightPx == null) {
+                return undefined;
+            }
+
+            return { maxHeight: `${this.maxHeightPx}px` };
+        },
+
         visibleOptions(): OptionItem[] {
             const source = this.options ?? [];
 

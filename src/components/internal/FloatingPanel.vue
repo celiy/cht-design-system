@@ -6,12 +6,7 @@
                 ref="panelRef"
 
                 class="absolute left-0 z-[1100] flex min-w-fit flex-col overflow-hidden rounded border border-border bg-popover shadow-md"
-                :class="[
-                    panelClass,
-                    positionAbove
-                        ? 'dropdown-origin-bottom bottom-full'
-                        : 'dropdown-origin-top top-full'
-                ]"
+                :class="[panelClass, positionAbove ? 'dropdown-origin-bottom' : 'dropdown-origin-top']"
                 :style="{ maxHeight: maxHeightPx + 'px', ...panelStyle }"
                 data-cht-floating-panel
 
@@ -51,7 +46,7 @@
             <div
                 v-if="isOpen"
 
-                class="mt-1 flex min-h-0 flex-col overflow-hidden"
+                class="mt-1 flex min-h-0 flex-col overflow-hidden overscroll-contain"
                 :style="{ maxHeight: maxHeightPx + 'px' }"
 
                 @click.stop="onPanelClick"
@@ -428,12 +423,8 @@ export default defineComponent({
 
             let ancestor: HTMLElement | null = trigger.parentElement;
 
-            while (ancestor) {
+            while (ancestor && ancestor !== document.body) {
                 this.layoutObserver.observe(ancestor);
-
-                if (ancestor === document.body) {
-                    break;
-                }
 
                 ancestor = ancestor.parentElement;
             }
@@ -519,14 +510,22 @@ export default defineComponent({
 
             this.positionAbove = spaceAbove >= spaceBelow && spaceBelow < estimatedPanelHeight;
 
+            const available = this.positionAbove
+                ? spaceAbove - gap - viewportPadding
+                : spaceBelow - gap - viewportPadding;
+            const maxHeight = Math.max(48, Math.min(this.maxHeightPx, available));
+
             this.panelStyle = {
                 position: "fixed",
                 left: `${clampedLeft}px`,
                 width: `${minWidth}px`,
                 maxWidth: `calc(100vw - ${viewportPadding * 2}px)`,
-                ...(this.positionAbove
-                    ? { bottom: `${window.innerHeight - rect.top + gap}px` }
-                    : { top: `${rect.bottom + gap}px` })
+                height: "auto",
+                maxHeight: `${maxHeight}px`,
+                top: this.positionAbove ? "auto" : `${rect.bottom + gap}px`,
+                bottom: this.positionAbove
+                    ? `${window.innerHeight - rect.top + gap}px`
+                    : "auto"
             };
         },
 

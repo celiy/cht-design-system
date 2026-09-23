@@ -71,6 +71,7 @@
                 :search="search"
                 :show-checkmark="showCheckmark"
                 :is-option-selected="isOptionSelected"
+                :max-height-px="maxHeightPx"
 
                 @select="onSelect"
                 @search:external="onSearchExternal"
