@@ -1,7 +1,8 @@
 <template>
     <div
         class="flex items-center rounded px-2 py-0.5 text-xs font-semibold select-none"
-        :class="[colorClass]"
+        :class="rootClass"
+        :style="rootStyle"
 
         @click="handleClick"
     >
@@ -16,6 +17,51 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 
+type BadgeVariant =
+    | "primary"
+    | "secondary"
+    | "destructive"
+    | "warning"
+    | "info"
+    | "success"
+    | "chart-1"
+    | "chart-2"
+    | "chart-3"
+    | "chart-4"
+    | "chart-5";
+
+const FILL_VARIANT_CLASS: Record<BadgeVariant, string> = {
+    primary: "bg-primary text-primary-foreground",
+    secondary: "bg-secondary text-secondary-foreground",
+    destructive: "bg-destructive text-destructive-foreground",
+    warning: "bg-warning text-warning-foreground",
+    info: "bg-info text-info-foreground",
+    success: "bg-success text-success-foreground",
+    "chart-1": "bg-chart-1 text-contrast",
+    "chart-2": "bg-chart-2 text-contrast",
+    "chart-3": "bg-chart-3 text-contrast",
+    "chart-4": "bg-chart-4 text-contrast",
+    "chart-5": "bg-chart-5 text-contrast"
+};
+
+const BORDERED_VARIANT_CLASS: Record<BadgeVariant, string> = {
+    primary: "border-2 border-primary! bg-transparent text-primary",
+    secondary: "border-2 border-secondary! bg-transparent text-secondary-foreground",
+    destructive: "border-2 border-destructive! bg-transparent text-destructive",
+    warning: "border-2 border-warning! bg-transparent text-warning",
+    info: "border-2 border-info! bg-transparent text-info",
+    success: "border-2 border-success! bg-transparent text-success",
+    "chart-1": "border-2 border-chart-1! bg-transparent text-chart-1",
+    "chart-2": "border-2 border-chart-2! bg-transparent text-chart-2",
+    "chart-3": "border-2 border-chart-3! bg-transparent text-chart-3",
+    "chart-4": "border-2 border-chart-4! bg-transparent text-chart-4",
+    "chart-5": "border-2 border-chart-5! bg-transparent text-chart-5"
+};
+
+function cssColorToken(token: string): string {
+    return `var(--color-${token})`;
+}
+
 export default defineComponent({
     name: "Badge",
 
@@ -26,25 +72,15 @@ export default defineComponent({
         },
 
         variant: {
-            type: String as PropType<
-                | "primary"
-                | "secondary"
-                | "destructive"
-                | "warning"
-                | "info"
-                | "success"
-                | "chart-1"
-                | "chart-2"
-                | "chart-3"
-                | "chart-4"
-                | "chart-5"
-            >,
+            type: String as PropType<BadgeVariant>,
             default: "primary",
             required: false
         },
 
         variantStyle: {
-            type: String as PropType<"fill" | "bordered">
+            type: String as PropType<"fill" | "bordered">,
+            default: "fill",
+            required: false
         },
 
         /**
@@ -70,37 +106,63 @@ export default defineComponent({
             type: Boolean,
             default: false,
             required: false
+        },
+
+        textColor: {
+            type: String,
+            required: false
         }
     },
 
     emits: ["click"],
 
     computed: {
-        colorClass(): string | object {
-            if (!this.color) {
-                return {
-                    "bg-primary text-primary-foreground": !this.color && this.variant === "primary",
-                    "border bg-secondary text-secondary-foreground":
-                        !this.color && this.variant === "secondary",
-                    "bg-destructive text-destructive-foreground":
-                        !this.color && this.variant === "destructive",
-                    "bg-warning text-warning-foreground": !this.color && this.variant === "warning",
-                    "bg-info text-info-foreground": !this.color && this.variant === "info",
-                    "bg-success text-success-foreground": !this.color && this.variant === "success",
-                    "text-contrast bg-chart-1": !this.color && this.variant === "chart-1",
-                    "text-contrast bg-chart-2": !this.color && this.variant === "chart-2",
-                    "text-contrast bg-chart-3": !this.color && this.variant === "chart-3",
-                    "text-contrast bg-chart-4": !this.color && this.variant === "chart-4",
-                    "text-contrast bg-chart-5": !this.color && this.variant === "chart-5",
-                    "cursor-pointer hover:underline": this.type === "link"
-                };
+        isBordered(): boolean {
+            return this.variantStyle === "bordered";
+        },
+
+        rootClass(): Array<string | Record<string, boolean>> {
+            const classes: Array<string | Record<string, boolean>> = [];
+
+            if (this.color) {
+                classes.push(this.isBordered ? "border-2 bg-transparent" : "text-contrast");
+            } else if (this.isBordered) {
+                classes.push(BORDERED_VARIANT_CLASS[this.variant] ?? BORDERED_VARIANT_CLASS.primary);
+            } else {
+                classes.push(FILL_VARIANT_CLASS[this.variant] ?? FILL_VARIANT_CLASS.primary);
             }
 
-            if (this.variantStyle === "bordered") {
-                return `border-${this.color}! border-2 bg-card text-${this.color}`;
+            if (this.textColor === "contrast") {
+                classes.push("text-contrast");
             }
 
-            return `bg-${this.color} text-contrast`;
+            if (this.type === "link") {
+                classes.push("cursor-pointer hover:underline");
+            }
+
+            return classes;
+        },
+
+        rootStyle(): Record<string, string> {
+            const style: Record<string, string> = {};
+
+            if (this.color) {
+                const paint = cssColorToken(this.color);
+
+                if (this.isBordered) {
+                    style.borderColor = paint;
+                } else {
+                    style.backgroundColor = paint;
+                }
+            }
+
+            if (this.textColor && this.textColor !== "contrast") {
+                style.color = cssColorToken(this.textColor);
+            } else if (this.color && this.isBordered && this.textColor !== "contrast") {
+                style.color = cssColorToken(this.color);
+            }
+
+            return style;
         }
     },
 
@@ -113,7 +175,7 @@ export default defineComponent({
                     newWindow.focus();
                 }
             } else if (this.link && !this.external) {
-                (this as any).$router?.push(this.link);
+                this.$router?.push(this.link);
             }
 
             this.$emit("click");

@@ -164,6 +164,16 @@ import {
     popModalLayer,
     pushModalLayer
 } from "@shared/frontend/keybinds";
+import {
+    MODAL_QUERY_PARAM,
+    addModalToQuery,
+    parseModalQueryParam,
+    registerModalUrlInstance,
+    releaseModalUrlInstance,
+    removeModalFromQuery,
+    serializeModalQueryParam
+} from "@shared/frontend/modalQuery";
+import type { RouteLocationNormalizedLoaded, Router } from "vue-router";
 
 const DRAWER_MOVE_LISTENER_OPTS = { passive: false, capture: true };
 const DRAWER_UP_LISTENER_OPTS = { capture: true };
@@ -248,7 +258,14 @@ export default defineComponent({
             drawerDragStartY: 0,
             drawerDragX: 0,
             drawerDragY: 0,
-            drawerCapturedPointerId: null as number | null
+            drawerCapturedPointerId: null as number | null,
+
+            modalUrlId: 0,
+
+            urlSyncReady: false,
+            urlSyncFromRoute: false,
+            modalUrlPushedHistory: false,
+            urlNavGen: 0
         };
     },
 
@@ -412,6 +429,10 @@ export default defineComponent({
                     this.closeDescendantFloatingPanels();
                 }
 
+                if (this.urlSyncReady && !this.urlSyncFromRoute) {
+                    this.syncOpenStateToUrl(newVal, { reason: "state" });
+                }
+
                 this.$emit("update:value", newVal);
             },
 
@@ -427,13 +448,151 @@ export default defineComponent({
         }
     },
 
+    created() {
+        this.modalUrlId = registerModalUrlInstance();
+    },
+
+    mounted() {
+        if (!this.shouldSyncModalUrl()) {
+            this.urlSyncReady = true;
+
+            return;
+        }
+
+        this.syncOpenFromUrl();
+        this.urlSyncReady = true;
+
+        this.$watch(
+            () => this.$route?.query[MODAL_QUERY_PARAM],
+            () => {
+                this.syncOpenFromUrl();
+            }
+        );
+    },
+
     beforeUnmount() {
+        if (this.modalOpen && this.urlSyncReady) {
+            this.syncOpenStateToUrl(false, { reason: "unmount" });
+        }
+
+        if (this.modalUrlId !== 0) {
+            releaseModalUrlInstance(this.modalUrlId);
+        }
+
         document.removeEventListener("click", this.handleClickOutside, OUTSIDE_CLICK_LISTENER_OPTS);
         this.teardownDrawerPointerListeners();
         popModalLayer(this.modalLayerId);
     },
 
     methods: {
+        shouldSyncModalUrl(): boolean {
+            return Boolean(this.$router) && Boolean(this.$route);
+        },
+
+        modalIdsFromRoute(): number[] {
+            const route = this.$route as RouteLocationNormalizedLoaded | undefined;
+
+            if (!route) {
+                return [];
+            }
+
+            const raw = route.query[MODAL_QUERY_PARAM];
+            const text = Array.isArray(raw) ? raw[0] : raw;
+
+            return parseModalQueryParam(typeof text === "string" ? text : undefined);
+        },
+
+        syncOpenStateToUrl(
+            open: boolean,
+            options: { reason: "state" | "unmount" } = { reason: "state" }
+        ) {
+            if (!this.shouldSyncModalUrl()) {
+                return;
+            }
+
+            const router = this.$router as Router;
+            const route = this.$route as RouteLocationNormalizedLoaded;
+            const id = this.modalUrlId;
+            const current = this.modalIdsFromRoute();
+
+            if (open) {
+                if (current.includes(id)) {
+                    return;
+                }
+
+                const nextIds = addModalToQuery(current, id);
+                const query = { ...route.query };
+                query[MODAL_QUERY_PARAM] = serializeModalQueryParam(nextIds);
+
+                this.urlNavGen += 1;
+                const gen = this.urlNavGen;
+                this.modalUrlPushedHistory = true;
+
+                void router.push({ query }).then(() => {
+                    if (gen !== this.urlNavGen) {
+                        const ids = removeModalFromQuery(this.modalIdsFromRoute(), id);
+                        const rollback = { ...this.$route.query };
+
+                        if (ids.length === 0) {
+                            delete rollback[MODAL_QUERY_PARAM];
+                        } else {
+                            rollback[MODAL_QUERY_PARAM] = serializeModalQueryParam(ids);
+                        }
+
+                        void router.replace({ query: rollback });
+                        return;
+                    }
+
+                    this.modalUrlPushedHistory = true;
+                });
+
+                return;
+            }
+
+            this.urlNavGen += 1;
+            this.modalUrlPushedHistory = false;
+
+            if (!current.includes(id)) {
+                return;
+            }
+
+            const nextIds = removeModalFromQuery(current, id);
+            const query = { ...route.query };
+
+            if (nextIds.length === 0) {
+                delete query[MODAL_QUERY_PARAM];
+            } else {
+                query[MODAL_QUERY_PARAM] = serializeModalQueryParam(nextIds);
+            }
+
+            if (options.reason === "unmount") {
+                void router.replace({ query });
+                return;
+            }
+
+            void router.replace({ query });
+        },
+
+        syncOpenFromUrl() {
+            if (!this.shouldSyncModalUrl()) {
+                return;
+            }
+
+            const shouldOpen = this.modalIdsFromRoute().includes(this.modalUrlId);
+
+            if (shouldOpen === this.modalOpen) {
+                return;
+            }
+
+            if (!shouldOpen) {
+                this.modalUrlPushedHistory = false;
+            }
+
+            this.urlSyncFromRoute = true;
+            this.modalOpen = shouldOpen;
+            this.urlSyncFromRoute = false;
+        },
+
         /**
          * Scrolls the modal body slot container to the top (overflow area around `#body`).
          */

@@ -1,96 +1,162 @@
 <template>
     <div class="flex w-full flex-col gap-2">
+        <div class="w-full gap-2">
+            <label
+                v-if="label && !isCombobox"
+
+                class="mb-2 block text-sm font-semibold text-foreground"
+                :for="id"
+            >
+                {{ label }}
+            </label>
+
+            <div
+                class="flex w-full items-stretch gap-2"
+                :class="{ 'flex-row-reverse': hasActionButton && actionSide === 'left' }"
+            >
+                <div
+                    ref="anchorRef"
+
+                    class="min-w-0 flex-1"
+                >
+                    <div
+                        v-if="isCombobox"
+
+                        class="relative w-full"
+                    >
+                        <Input
+                            :id="id"
+                            type="text"
+                            :label="header || label"
+                            :variant="variant"
+                            :value="comboboxQuery"
+                            :disabled="disabled"
+                            :readonly="comboboxSelectionLocked"
+                            :error="error"
+
+                            @focus="onComboboxFocus"
+                            @click="onComboboxClick"
+                            @update:value="onComboboxInput"
+                        />
+
+                        <button
+                            v-if="comboboxSelectionLocked && !disabled"
+
+                            type="button"
+                            class="absolute right-2 bottom-1.5 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+                            aria-label="Limpar seleção"
+
+                            @click.stop="clearComboboxSelection"
+                        >
+                            <i class="fa-solid fa-xmark text-sm" />
+                        </button>
+                    </div>
+
+                    <Button
+                        v-else
+
+                        v-bind="mergedButtonAtributes"
+                        class="w-full"
+                        :class="{
+                            'ring-[3px]! ring-ring/50! ring-offset-0!': isPanelOpen
+                        }"
+                        :hover-effect="false"
+
+                        @click.stop="toggleOpenClose"
+                        @keydown.enter="onTriggerActivate"
+                        @keydown.space="onTriggerActivate"
+                    >
+                        <div class="flex w-full items-center justify-between gap-2">
+                            <div class="min-w-0 flex-1 text-left">
+                                <div class="flex min-w-0 items-center gap-2 text-left">
+                                    <span
+                                        v-if="selectTriggerIndicator"
+
+                                        class="block shrink-0 rounded-full border border-current/10"
+                                        :style="selectTriggerIndicatorStyle"
+                                    />
+
+                                    <span
+                                        class="block min-w-0 truncate"
+                                        :class="{
+                                            'text-muted-foreground': selectTriggerMuted
+                                        }"
+                                    >
+                                        {{ selectTriggerLabel }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <i
+                                v-if="!hideDropdownArrow"
+
+                                class="fa-solid fa-chevron-down ml-2 text-xs transition-all"
+                                :class="{ 'rotate-180': isPanelOpen }"
+                            />
+                        </div>
+                    </Button>
+                </div>
+
+                <div
+                    v-if="hasActionButton"
+
+                    class="flex min-h-0 shrink-0 self-stretch"
+                >
+                    <Button
+                        v-tooltip="actionTooltip || undefined"
+                        type="button"
+                        class="min-h-0 self-stretch"
+                        :class="actionButtonLayoutClass"
+                        :hover-effect="false"
+                        :left-icon="actionIcon"
+                        :label="actionLabel"
+                        :disabled="disabled"
+                        :aria-label="actionAriaLabel"
+                        :button-class="actionButtonClass"
+
+                        @click.stop="onActionClick"
+                    />
+                </div>
+            </div>
+
+            <small
+                v-if="helperText"
+
+                class="mt-2 text-muted-foreground!"
+            >
+                {{ helperText }}
+            </small>
+        </div>
+
         <FloatingPanel
-            :id="id"
             ref="panelRef"
 
-            :label="isCombobox ? undefined : label"
-            :helper-text="helperText"
-            :header="isCombobox ? undefined : header"
-            :button-atributes="mergedButtonAtributes"
-            :hide-dropdown-arrow="isCombobox || hideDropdownArrow"
+            :anchor="triggerEl"
             :max-height-px="maxHeightPx"
             :panel-class="panelClass"
             :mobile-modal="mobileModal"
             :force-modal="forceModal"
-            :action-side="actionSide"
+            :open="internalOpen"
+
+            @update:open="onPanelOpenUpdate"
         >
-            <template
-                v-if="isCombobox"
-                #button="{ open }"
+            <OptionsList
+                v-model:search-query="searchQuery"
+                :options="panelOptions"
+                :search="listSearch"
+                :show-checkmark="panelShowCheckmark"
+                :is-option-selected="isOptionSelected"
+
+                @select="selectOption"
+                @search:external="onSearchExternal"
             >
-                <div class="relative w-full">
-                    <Input
-                        :id="id"
-                        type="text"
-                        :label="header || label"
-                        :variant="variant"
-                        :value="comboboxQuery"
-                        :disabled="disabled"
-                        :readonly="comboboxSelectionLocked"
-                        :error="error"
-
-                        @focus="onComboboxFocus(open)"
-                        @click="onComboboxClick(open)"
-                        @update:value="onComboboxInput"
-                    />
-
-                    <button
-                        v-if="comboboxSelectionLocked && !disabled"
-
-                        type="button"
-                        class="absolute right-2 bottom-1.5 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
-                        aria-label="Limpar seleção"
-
-                        @click.stop="clearComboboxSelection"
-                    >
-                        <i class="fa-solid fa-xmark text-sm" />
-                    </button>
-                </div>
-            </template>
-
-            <template
-                v-else
-                #triggerLabel
-            >
-                <div class="flex min-w-0 items-center gap-2 text-left">
-                    <span
-                        v-if="selectTriggerIndicator"
-
-                        class="block shrink-0 rounded-full border border-current/10"
-                        :style="selectTriggerIndicatorStyle"
-                    />
-
-                    <span
-                        class="block min-w-0 truncate"
-                        :class="{
-                            'text-muted-foreground': selectTriggerMuted
-                        }"
-                    >
-                        {{ selectTriggerLabel }}
-                    </span>
-                </div>
-            </template>
-
-            <template #default>
-                <OptionsList
-                    v-model:search-query="searchQuery"
-                    :options="panelOptions"
-                    :search="listSearch"
-                    :show-checkmark="panelShowCheckmark"
-                    :is-option-selected="isOptionSelected"
-
-                    @select="selectOption"
-                    @search:external="onSearchExternal"
+                <template
+                    v-if="$slots['inside-empty-panel']"
+                    #insideEmptyPanel
                 >
-                    <template
-                        v-if="$slots['inside-empty-panel']"
-                        #insideEmptyPanel
-                    >
-                        <slot name="inside-empty-panel" />
-                    </template>
-                </OptionsList>
-            </template>
+                    <slot name="inside-empty-panel" />
+                </template>
+            </OptionsList>
 
             <template #helperText>
                 <small
@@ -100,26 +166,6 @@
                 >
                     {{ inHelperText }}
                 </small>
-            </template>
-
-            <template
-                v-if="hasActionButton"
-                #action
-            >
-                <Button
-                    v-tooltip="actionTooltip || undefined"
-                    type="button"
-                    class="min-h-0 self-stretch"
-                    :class="actionButtonLayoutClass"
-                    :hover-effect="false"
-                    :left-icon="actionIcon"
-                    :label="actionLabel"
-                    :disabled="disabled"
-                    :aria-label="actionAriaLabel"
-                    :button-class="actionButtonClass"
-
-                    @click.stop="onActionClick"
-                />
             </template>
         </FloatingPanel>
 
@@ -400,11 +446,17 @@ export default defineComponent({
             multiModelValueProvided: false,
             searchQuery: "",
             comboboxQuery: this.query ?? "",
-            comboboxSearchTimer: null as number | null
+            comboboxSearchTimer: null as number | null,
+            triggerEl: null as HTMLElement | null,
+            internalOpen: false
         };
     },
 
     computed: {
+        isPanelOpen(): boolean {
+            return this.internalOpen;
+        },
+
         isSelectMultiple(): boolean {
             return this.selectMultiple != null;
         },
@@ -719,9 +771,14 @@ export default defineComponent({
             }
         }
 
+        this.syncTriggerEl();
         this.$nextTick(() => {
             this.applyInitialAllSelected();
         });
+    },
+
+    updated() {
+        this.syncTriggerEl();
     },
 
     beforeUnmount() {
@@ -999,6 +1056,33 @@ export default defineComponent({
             return this.value === val;
         },
 
+        onPanelOpenUpdate(next: boolean) {
+            this.internalOpen = next;
+        },
+
+        syncTriggerEl() {
+            const el = this.$refs.anchorRef as HTMLElement | undefined;
+
+            if (el !== this.triggerEl) {
+                this.triggerEl = el ?? null;
+            }
+        },
+
+        onTriggerActivate(event: KeyboardEvent) {
+            if (this.isPanelOpen) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            this.open();
+        },
+
+        toggleOpenClose() {
+            const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
+            panel?.toggleOpenClose();
+        },
+
         open() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.openPanel();
@@ -1027,20 +1111,20 @@ export default defineComponent({
             this.comboboxSearchTimer = null;
         },
 
-        onComboboxFocus(open: () => void) {
-            this.openComboboxPanel(open);
+        onComboboxFocus() {
+            this.openComboboxPanel();
         },
 
-        onComboboxClick(open: () => void) {
-            this.openComboboxPanel(open);
+        onComboboxClick() {
+            this.openComboboxPanel();
         },
 
-        openComboboxPanel(open: () => void) {
+        openComboboxPanel() {
             if (this.comboboxSelectionLocked) {
                 return;
             }
 
-            open();
+            this.open();
             this.emitComboboxExternalSearch(this.comboboxQuery.trim(), true);
         },
 

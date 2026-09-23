@@ -1,5 +1,5 @@
 <template>
-    <div class="relative inline-flex shrink-0 w-fit">
+    <div class="relative inline-flex w-fit shrink-0">
         <Skeleton
             v-if="loading"
 
@@ -12,24 +12,24 @@
 
             class="overflow-hidden rounded-full"
             :class="{
-                'w-8 h-8': size === 'small',
-                'w-10 h-10': size === 'medium',
-                'w-12 h-12': size === 'large'
+                'h-8 w-8': size === 'small',
+                'h-10 w-10': size === 'medium',
+                'h-12 w-12': size === 'large'
             }"
         >
-            <img
+            <Image
                 v-if="image"
 
-                class="w-full h-full object-cover"
-
+                class="h-full w-full"
+                image-class="h-full w-full object-cover"
                 :src="image"
-                alt=""
+                :draggable="false"
             />
 
             <svg
                 v-else
 
-                class="w-full h-full"
+                class="h-full w-full"
                 viewBox="0 0 40 40"
                 xmlns="http://www.w3.org/2000/svg"
                 aria-hidden="true"
@@ -60,11 +60,11 @@
         <div
             v-if="hasStatus"
 
-            class="bottom-0 absolute border-2 border-background rounded-full"
+            class="absolute bottom-0 rounded-full border-2 border-background"
             :class="{
-                'left-5 w-3 h-3': size === 'small',
-                'left-7 w-3.5 h-3.5': size === 'medium',
-                'left-9 w-4 h-4': size === 'large',
+                'left-5 h-3 w-3': size === 'small',
+                'left-7 h-3.5 w-3.5': size === 'medium',
+                'left-9 h-4 w-4': size === 'large',
 
                 'bg-green-500': status === 'online',
                 'bg-yellow-500': status === 'away',
@@ -78,6 +78,7 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Skeleton from "./Skeleton.vue";
+import Image from "./Image.vue";
 
 type AvatarStatus = "online" | "away" | "do-not-disturb" | "offline";
 
@@ -85,7 +86,8 @@ export default defineComponent({
     name: "Avatar",
 
     components: {
-        Skeleton
+        Skeleton,
+        Image
     },
 
     props: {
@@ -123,10 +125,12 @@ export default defineComponent({
                 return false;
             }
 
-            return this.status === "online"
-                || this.status === "away"
-                || this.status === "do-not-disturb"
-                || this.status === "offline";
+            return (
+                this.status === "online" ||
+                this.status === "away" ||
+                this.status === "do-not-disturb" ||
+                this.status === "offline"
+            );
         }
     }
 });

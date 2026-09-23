@@ -67,11 +67,14 @@
                         <i class="fa-solid fa-xmark" />
                     </button>
 
-                    <img
+                    <Image
                         v-if="item.previewUrl"
+
+                        class="h-full w-full"
+                        image-class="h-full w-full object-cover"
                         :src="item.previewUrl"
                         :alt="item.file.name"
-                        class="w-full h-full object-cover"
+                        :draggable="false"
                     />
 
                     <div
@@ -121,6 +124,7 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
+import Image from "./Image.vue";
 
 type RejectedFileReason = "invalid-type" | "max-files";
 
@@ -140,6 +144,10 @@ interface MediaItem {
 
 export default defineComponent({
     name: "MediaUploader",
+
+    components: {
+        Image
+    },
 
     props: {
         id: {

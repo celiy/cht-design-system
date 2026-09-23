@@ -1,5 +1,5 @@
 import type { Directive } from "vue";
-import type { Router } from "vue-router";
+import type { RouteLocationNormalizedLoaded, Router } from "vue-router";
 import type { AriaAttributes } from "@vue/runtime-dom";
 import type { ProjectState } from "@base/project";
 import type { ToastApi } from "../toast/toast";
@@ -35,6 +35,7 @@ declare module "vue" {
          * Available when the host app registers vue-router (e.g. `cht-base`).
          */
         $router?: Router;
+        $route?: RouteLocationNormalizedLoaded;
     }
 
     interface GlobalDirectives {
@@ -49,6 +50,7 @@ declare module "@vue/runtime-core" {
         $project: ProjectState;
         $toast: ToastApi;
         $router?: Router;
+        $route?: RouteLocationNormalizedLoaded;
     }
 
     interface GlobalDirectives {

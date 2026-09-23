@@ -21,7 +21,7 @@
                 />
             </div>
 
-            <div class="separator" />
+            <Marker separator />
         </div>
 
         <div

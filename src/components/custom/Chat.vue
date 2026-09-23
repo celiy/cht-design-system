@@ -116,12 +116,11 @@
 
                                             @click="openGallery(message.images, 3)"
                                         >
-                                            <img
+                                            <Image
+                                                class="absolute inset-0 h-full w-full"
+                                                image-class="h-full w-full rounded object-cover blur-[4px]"
                                                 :src="message.images[3]"
-                                                alt=""
-                                                class="absolute inset-0 h-full w-full rounded object-cover"
-                                                style="filter: blur(4px)"
-                                                draggable="false"
+                                                :draggable="false"
                                             />
 
                                             <span
@@ -345,11 +344,11 @@
                         :key="idx"
                         #[`item-${idx}`]
                     >
-                        <img
-                            class="max-h-[90vh] max-w-[90vw] object-contain"
+                        <Image
+                            class="max-h-[90vh] max-w-[90vw]"
+                            image-class="max-h-[90vh] max-w-[90vw] object-contain"
                             :src="src"
-                            alt=""
-                            draggable="false"
+                            :draggable="false"
                         />
                     </template>
                 </Carousel>

@@ -1,175 +1,76 @@
 <template>
-    <div
-        ref="rootRef"
-
-        :class="rootClass"
-    >
-        <div
-            v-if="showTrigger"
-
-            class="w-full"
-        >
+    <Teleport to="body">
+        <Transition :name="panelTransitionName">
             <div
-                class="w-full gap-2"
+                v-if="isOpen && !useSheetModal"
+                ref="panelRef"
 
-                @mouseenter="openOnHover ? openPanel() : undefined"
-                @mouseleave="openOnHover ? close() : undefined"
+                class="absolute left-0 z-[1100] flex min-w-fit flex-col overflow-hidden rounded border border-border bg-popover shadow-md"
+                :class="[
+                    panelClass,
+                    positionAbove
+                        ? 'dropdown-origin-bottom bottom-full'
+                        : 'dropdown-origin-top top-full'
+                ]"
+                :style="{ maxHeight: maxHeightPx + 'px', ...panelStyle }"
+                data-cht-floating-panel
+
+                @click.stop="onPanelClick"
+                @mouseenter="onPanelMouseEnter"
+                @mouseleave="onPanelMouseLeave"
             >
-                <label
-                    v-if="label"
+                <slot
+                    :is-open="isOpen"
+                    :close="close"
+                />
 
-                    class="mb-2 block text-sm font-semibold text-foreground"
-                    :for="id"
-                >
-                    {{ label }}
-                </label>
-
-                <!--
-                    Anchor used to size and position the floating panel.
-                    Wraps only the actual control (default Button or #button slot),
-                    so label/helperText do not inflate the measured width.
-                -->
                 <div
-                    class="flex w-full items-stretch gap-2"
-                    :class="{ 'flex-row-reverse': $slots.action && actionSide === 'left' }"
+                    v-if="$slots.helperText"
+
+                    class="shrink-0"
                 >
-                    <div
-                        ref="panelAnchorRef"
-
-                        class="min-w-0 flex-1"
-                    >
-                        <Button
-                            v-if="!$slots.button && !isControlled"
-
-                            v-bind="buttonAtributes"
-                            class="w-full"
-                            :class="{
-                                'ring-[3px]! ring-ring/50! ring-offset-0!': isOpen
-                            }"
-                            :hover-effect="false"
-
-                            @click.stop="toggleOpenClose"
-                            @keydown.enter="onTriggerActivate"
-                            @keydown.space="onTriggerActivate"
-                        >
-                            <div class="flex w-full items-center justify-between gap-2">
-                                <div class="min-w-0 flex-1 text-left">
-                                    <slot
-                                        name="triggerLabel"
-                                        :is-open="isOpen"
-                                    >
-                                        <span>{{ header }}</span>
-                                    </slot>
-                                </div>
-
-                                <i
-                                    v-if="!hideDropdownArrow"
-
-                                    class="fa-solid fa-chevron-down ml-2 text-xs transition-all"
-                                    :class="{ 'rotate-180': isOpen }"
-                                />
-                            </div>
-                        </Button>
-
-                        <slot
-                            name="button"
-                            :is-open="isOpen"
-                            :toggle="toggleOpenClose"
-                            :open="openPanel"
-                            :close="close"
-                        />
-                    </div>
-
-                    <div
-                        v-if="$slots.action"
-
-                        class="flex min-h-0 shrink-0 self-stretch"
-                    >
-                        <slot name="action" />
-                    </div>
+                    <slot name="helperText" />
                 </div>
-
-                <small
-                    v-if="helperText"
-
-                    class="mt-2 text-muted-foreground!"
-                >
-                    {{ helperText }}
-                </small>
             </div>
-        </div>
+        </Transition>
+    </Teleport>
 
-        <Teleport to="body">
-            <Transition :name="panelTransitionName">
+    <!--
+        Keep the list unmounted while closed. Modal uses v-show, so a
+        permanent #body slot would leave OptionsList listening to Enter.
+    -->
+    <Modal
+        v-if="useSheetModal"
+        variant="blank"
+        size="small"
+        :is-open="isOpen"
+
+        @update:value="onSheetModalUpdate"
+    >
+        <template #body>
+            <div
+                v-if="isOpen"
+
+                class="mt-1 flex min-h-0 flex-col overflow-hidden"
+                :style="{ maxHeight: maxHeightPx + 'px' }"
+
+                @click.stop="onPanelClick"
+            >
+                <slot
+                    :is-open="isOpen"
+                    :close="close"
+                />
+
                 <div
-                    v-if="isOpen && !useSheetModal"
-                    ref="panelRef"
+                    v-if="$slots.helperText"
 
-                    class="absolute left-0 z-[1100] flex min-w-fit flex-col overflow-hidden rounded border border-border bg-popover shadow-md"
-                    :class="[
-                        panelClass,
-                        positionAbove
-                            ? 'dropdown-origin-bottom bottom-full'
-                            : 'dropdown-origin-top top-full'
-                    ]"
-                    :style="{ maxHeight: maxHeightPx + 'px', ...panelStyle }"
-                    data-cht-floating-panel
-
-                    @click.stop="onPanelClick"
+                    class="shrink-0"
                 >
-                    <slot
-                        :is-open="isOpen"
-                        :close="close"
-                    />
-
-                    <div
-                        v-if="$slots.helperText"
-
-                        class="shrink-0"
-                    >
-                        <slot name="helperText" />
-                    </div>
+                    <slot name="helperText" />
                 </div>
-            </Transition>
-        </Teleport>
-
-        <!--
-            Keep the list unmounted while closed. Modal uses v-show, so a
-            permanent #body slot would leave OptionsList listening to Enter.
-        -->
-        <Modal
-            v-if="useSheetModal"
-            variant="blank"
-            size="small"
-            :is-open="isOpen"
-
-            @update:value="onSheetModalUpdate"
-        >
-            <template #body>
-                <div
-                    v-if="isOpen"
-
-                    class="mt-1 flex min-h-0 flex-col overflow-hidden"
-                    :style="{ maxHeight: maxHeightPx + 'px' }"
-
-                    @click.stop="onPanelClick"
-                >
-                    <slot
-                        :is-open="isOpen"
-                        :close="close"
-                    />
-
-                    <div
-                        v-if="$slots.helperText"
-
-                        class="shrink-0"
-                    >
-                        <slot name="helperText" />
-                    </div>
-                </div>
-            </template>
-        </Modal>
-    </div>
+            </div>
+        </template>
+    </Modal>
 </template>
 
 <script lang="ts">
@@ -179,16 +80,15 @@ import {
     registerOpenFloatingPanel,
     unregisterOpenFloatingPanel
 } from "@shared/frontend/floatingPanels";
-import Button from "../Button.vue";
 import Modal from "../Modal.vue";
 
 const NARROW_VIEWPORT = "(max-width: 767px)";
+const HOVER_CLOSE_DELAY_MS = 120;
 
 export default defineComponent({
     name: "FloatingPanel",
 
     components: {
-        Button,
         Modal
     },
 
@@ -206,59 +106,11 @@ export default defineComponent({
 
     props: {
         /**
-         * Identifier forwarded to the label's `for` attribute.
+         * Element used to size and position the floating panel.
          */
-        id: {
-            type: String,
-            required: false
-        },
-
-        /**
-         * Label rendered above the trigger.
-         */
-        label: {
-            type: String,
-            required: false
-        },
-
-        /**
-         * Secondary text rendered below the trigger.
-         */
-        helperText: {
-            type: String,
-            required: false
-        },
-
-        /**
-         * Default text shown inside the built-in Button trigger.
-         */
-        header: {
-            type: String,
-            required: false
-        },
-
-        /**
-         * When true, hides the built-in chevron on the default trigger.
-         */
-        hideDropdownArrow: {
-            type: Boolean,
-            default: false
-        },
-
-        /**
-         * Opens the panel on mouse enter and closes on mouse leave instead of on click.
-         */
-        openOnHover: {
-            type: Boolean,
-            default: false
-        },
-
-        /**
-         * Attributes forwarded to the built-in Button trigger.
-         */
-        buttonAtributes: {
-            type: Object,
-            required: false
+        anchor: {
+            type: Object as PropType<HTMLElement | null>,
+            default: null
         },
 
         /**
@@ -310,20 +162,19 @@ export default defineComponent({
         },
 
         /**
-         * Side of the trigger where the `#action` slot is placed.
-         */
-        actionSide: {
-            type: String as PropType<"left" | "right">,
-            default: "right"
-        },
-
-        /**
          * When defined, the panel is controlled by the parent (`v-model:open`).
-         * The built-in trigger is hidden unless `#button` is provided.
          */
         open: {
             type: Boolean as PropType<boolean | undefined>,
             default: undefined
+        },
+
+        /**
+         * Keeps the panel open while the pointer is over the panel after a hover open.
+         */
+        openOnHover: {
+            type: Boolean,
+            default: false
         }
     },
 
@@ -338,6 +189,7 @@ export default defineComponent({
             outsideClickTimer: null as number | null,
             layoutObserver: null as ResizeObserver | null,
             positionFrame: null as number | null,
+            hoverCloseTimer: null as number | null,
             unregisterFloatingPanelCloser: null as (() => void) | null,
             floatingPanelId: Symbol("cht-floating-panel")
         };
@@ -350,24 +202,6 @@ export default defineComponent({
 
         isOpen(): boolean {
             return this.isControlled ? Boolean(this.open) : this.localOpen;
-        },
-
-        showTrigger(): boolean {
-            return Boolean(
-                this.label
-                || this.helperText
-                || this.$slots.button
-                || this.$slots.action
-                || !this.isControlled
-            );
-        },
-
-        rootClass(): string {
-            if (!this.showTrigger) {
-                return "pointer-events-none absolute inset-0";
-            }
-
-            return "relative inline-block w-full";
         },
 
         useSheetModal(): boolean {
@@ -393,6 +227,13 @@ export default defineComponent({
         ancestorModalOpen(open: boolean) {
             if (!open && this.isOpen) {
                 this.close();
+            }
+        },
+
+        anchor() {
+            if (this.isOpen && !this.useSheetModal) {
+                this.attachLayoutObservers();
+                this.schedulePositionUpdate();
             }
         },
 
@@ -464,6 +305,7 @@ export default defineComponent({
         },
 
         openPanel() {
+            this.cancelHoverClose();
             closeOtherFloatingPanels(this.floatingPanelId);
 
             if (!this.useSheetModal) {
@@ -474,6 +316,7 @@ export default defineComponent({
         },
 
         close() {
+            this.cancelHoverClose();
             this.setOpen(false);
         },
 
@@ -487,18 +330,37 @@ export default defineComponent({
             this.setOpen(opening);
         },
 
-        /**
-         * Closed trigger: Enter/Space open the panel instead of falling
-         * through to a list that is not on screen (or submitting a form).
-         */
-        onTriggerActivate(event: KeyboardEvent) {
-            if (this.isOpen) {
+        requestHoverClose() {
+            if (!this.openOnHover) {
                 return;
             }
 
-            event.preventDefault();
-            event.stopPropagation();
-            this.openPanel();
+            this.cancelHoverClose();
+            this.hoverCloseTimer = window.setTimeout(() => {
+                this.hoverCloseTimer = null;
+                this.close();
+            }, HOVER_CLOSE_DELAY_MS);
+        },
+
+        cancelHoverClose() {
+            if (this.hoverCloseTimer == null) {
+                return;
+            }
+
+            window.clearTimeout(this.hoverCloseTimer);
+            this.hoverCloseTimer = null;
+        },
+
+        onPanelMouseEnter() {
+            if (this.openOnHover) {
+                this.cancelHoverClose();
+            }
+        },
+
+        onPanelMouseLeave() {
+            if (this.openOnHover) {
+                this.requestHoverClose();
+            }
         },
 
         setOpen(next: boolean) {
@@ -587,6 +449,8 @@ export default defineComponent({
         },
 
         detachFloatingListeners() {
+            this.cancelHoverClose();
+
             if (this.outsideClickTimer != null) {
                 window.clearTimeout(this.outsideClickTimer);
                 this.outsideClickTimer = null;
@@ -608,18 +472,8 @@ export default defineComponent({
             }
         },
 
-        /**
-         * DOM box used to size and place the floating panel — only the control
-         * that opens it (excludes label and helperText).
-         */
         getPanelAnchorElement(): HTMLElement | null {
-            const anchor = this.$refs.panelAnchorRef as HTMLElement | undefined;
-
-            if (anchor) {
-                return anchor;
-            }
-
-            return (this.$refs.rootRef as HTMLElement | undefined) ?? null;
+            return this.anchor ?? null;
         },
 
         /**
@@ -677,11 +531,11 @@ export default defineComponent({
         },
 
         handleClickOutside(event: MouseEvent) {
-            const root = this.$refs.rootRef as HTMLElement | undefined;
+            const trigger = this.getPanelAnchorElement();
             const panel = this.$refs.panelRef as HTMLElement | undefined;
             const target = event.target as Node;
 
-            if (root?.contains(target) || panel?.contains(target)) {
+            if (trigger?.contains(target) || panel?.contains(target)) {
                 return;
             }
 

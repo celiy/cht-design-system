@@ -1,31 +1,69 @@
 <template>
-    <FloatingPanel
-        ref="panelRef"
+    <div
+        ref="rootRef"
 
-        :header="header"
-        :button-atributes="buttonAtributes"
-        :hide-dropdown-arrow="hideDropdownArrow"
-        :max-height-px="maxHeightPx"
-        :min-width-px="minWidthPx"
-        :mobile-modal="mobileModal"
-        :force-modal="forceModal"
-        v-bind="open === undefined ? {} : { open }"
-
-        @update:open="$emit('update:open', $event)"
+        :class="rootClass"
     >
-        <template
-            v-if="$slots.button"
+        <div
+            v-if="showTrigger"
+            ref="anchorRef"
 
-            #button="slotProps"
+            class="w-full"
         >
+            <Button
+                v-if="!$slots.button && !isControlled"
+
+                v-bind="buttonAtributes"
+                class="w-full"
+                :class="{
+                    'ring-[3px]! ring-ring/50! ring-offset-0!': isOpen
+                }"
+                :hover-effect="false"
+
+                @click.stop="toggleOpenClose"
+                @keydown.enter="onTriggerActivate"
+                @keydown.space="onTriggerActivate"
+            >
+                <div class="flex w-full items-center justify-between gap-2">
+                    <div class="min-w-0 flex-1 text-left">
+                        <slot
+                            name="triggerLabel"
+                            :is-open="isOpen"
+                        >
+                            <span>{{ header }}</span>
+                        </slot>
+                    </div>
+
+                    <i
+                        v-if="!hideDropdownArrow"
+
+                        class="fa-solid fa-chevron-down ml-2 text-xs transition-all"
+                        :class="{ 'rotate-180': isOpen }"
+                    />
+                </div>
+            </Button>
+
             <slot
                 name="button"
-
-                v-bind="slotProps"
+                :is-open="isOpen"
+                :toggle="toggleOpenClose"
+                :open="openPanel"
+                :close="close"
             />
-        </template>
+        </div>
 
-        <template #default>
+        <FloatingPanel
+            ref="panelRef"
+
+            :anchor="triggerEl"
+            :max-height-px="maxHeightPx"
+            :min-width-px="minWidthPx"
+            :mobile-modal="mobileModal"
+            :force-modal="forceModal"
+            :open="panelBindOpen"
+
+            @update:open="onPanelOpenUpdate"
+        >
             <OptionsList
                 v-model:search-query="searchQuery"
 
@@ -37,12 +75,13 @@
                 @select="onSelect"
                 @search:external="onSearchExternal"
             />
-        </template>
-    </FloatingPanel>
+        </FloatingPanel>
+    </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
+import Button from "./Button.vue";
 import FloatingPanel from "./internal/FloatingPanel.vue";
 import OptionsList, {
     type OptionItem,
@@ -54,6 +93,7 @@ export default defineComponent({
     name: "Dropdown",
 
     components: {
+        Button,
         FloatingPanel,
         OptionsList
     },
@@ -148,11 +188,70 @@ export default defineComponent({
 
     data() {
         return {
-            searchQuery: ""
+            searchQuery: "",
+            triggerEl: null as HTMLElement | null,
+            internalOpen: false
         };
     },
 
+    computed: {
+        isControlled(): boolean {
+            return this.open !== undefined;
+        },
+
+        panelBindOpen(): boolean {
+            return this.isControlled ? Boolean(this.open) : this.internalOpen;
+        },
+
+        isOpen(): boolean {
+            return this.panelBindOpen;
+        },
+
+        showTrigger(): boolean {
+            return Boolean(this.$slots.button || !this.isControlled);
+        },
+
+        /**
+         * Controlled menus without `#button` overlay the wrapping parent
+         * (`relative` + the external trigger) so the panel can measure it.
+         */
+        rootClass(): string {
+            if (!this.showTrigger) {
+                return "pointer-events-none absolute inset-0";
+            }
+
+            return "relative inline-block w-full";
+        }
+    },
+
+    mounted() {
+        this.syncTriggerEl();
+    },
+
+    updated() {
+        this.syncTriggerEl();
+    },
+
     methods: {
+        syncTriggerEl() {
+            const trigger = this.$refs.anchorRef as HTMLElement | undefined;
+
+            if (trigger) {
+                if (trigger !== this.triggerEl) {
+                    this.triggerEl = trigger;
+                }
+
+                return;
+            }
+
+            const root = this.$refs.rootRef as HTMLElement | undefined;
+            const el = root?.parentElement ?? root ?? null;
+
+            if (el !== this.triggerEl) {
+                this.triggerEl = el;
+            }
+        },
+
         onSelect(value: string, item?: OptionItem, parent?: OptionItem) {
             this.$emit("click:value", value, item, parent);
 
@@ -163,6 +262,26 @@ export default defineComponent({
 
         onSearchExternal(payload: SearchExternalPayload) {
             this.$emit("search:external", payload);
+        },
+
+        onPanelOpenUpdate(next: boolean) {
+            if (this.isControlled) {
+                this.$emit("update:open", next);
+
+                return;
+            }
+
+            this.internalOpen = next;
+        },
+
+        onTriggerActivate(event: KeyboardEvent) {
+            if (this.isOpen) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            this.openPanel();
         },
 
         openPanel() {

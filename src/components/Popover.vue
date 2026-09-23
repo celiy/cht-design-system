@@ -1,45 +1,87 @@
 <template>
-    <FloatingPanel
-        ref="panelRef"
+    <div class="relative inline-block w-full">
+        <div
+            ref="anchorRef"
 
-        :header="header"
-        :button-atributes="buttonAtributes"
-        :hide-dropdown-arrow="hideDropdownArrow"
-        :open-on-hover="openOnHover"
-        :close-on-content-click="closeOnContentClick"
-        :max-height-px="maxHeightPx"
-        :min-width-px="minWidthPx"
-        :mobile-modal="mobileModal"
-        :force-modal="forceModal"
+            class="w-full"
 
-        :panel-class="panelClass"
-    >
-        <template
-            v-if="$slots.button"
-
-            #button="slotProps"
+            @mouseenter="onTriggerEnter"
+            @mouseleave="onTriggerLeave"
         >
+            <Button
+                v-if="!$slots.button"
+
+                v-bind="buttonAtributes"
+                class="w-full"
+                :class="{
+                    'ring-[3px]! ring-ring/50! ring-offset-0!': isOpen
+                }"
+                :hover-effect="false"
+
+                @click.stop="toggleOpenClose"
+                @keydown.enter="onTriggerActivate"
+                @keydown.space="onTriggerActivate"
+            >
+                <div class="flex w-full items-center justify-between gap-2">
+                    <div class="min-w-0 flex-1 text-left">
+                        <slot
+                            name="triggerLabel"
+                            :is-open="isOpen"
+                        >
+                            <span>{{ header }}</span>
+                        </slot>
+                    </div>
+
+                    <i
+                        v-if="!hideDropdownArrow"
+
+                        class="fa-solid fa-chevron-down ml-2 text-xs transition-all"
+                        :class="{ 'rotate-180': isOpen }"
+                    />
+                </div>
+            </Button>
+
             <slot
                 name="button"
-
-                v-bind="slotProps"
+                :is-open="isOpen"
+                :toggle="toggleOpenClose"
+                :open="openPanel"
+                :close="close"
             />
-        </template>
+        </div>
 
-        <template #default="slotProps">
-            <slot v-bind="slotProps" />
-        </template>
-    </FloatingPanel>
+        <FloatingPanel
+            ref="panelRef"
+
+            :anchor="triggerEl"
+            :open-on-hover="openOnHover"
+            :close-on-content-click="closeOnContentClick"
+            :max-height-px="maxHeightPx"
+            :min-width-px="minWidthPx"
+            :mobile-modal="mobileModal"
+            :force-modal="forceModal"
+            :panel-class="panelClass"
+            :open="internalOpen"
+
+            @update:open="onPanelOpenUpdate"
+        >
+            <template #default="slotProps">
+                <slot v-bind="slotProps" />
+            </template>
+        </FloatingPanel>
+    </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import Button from "./Button.vue";
 import FloatingPanel from "./internal/FloatingPanel.vue";
 
 export default defineComponent({
     name: "Popover",
 
     components: {
+        Button,
         FloatingPanel
     },
 
@@ -117,10 +159,70 @@ export default defineComponent({
         }
     },
 
+    data() {
+        return {
+            triggerEl: null as HTMLElement | null,
+            internalOpen: false
+        };
+    },
+
+    computed: {
+        isOpen(): boolean {
+            return this.internalOpen;
+        }
+    },
+
+    mounted() {
+        this.syncTriggerEl();
+    },
+
+    updated() {
+        this.syncTriggerEl();
+    },
+
     methods: {
-        open() {
+        onPanelOpenUpdate(next: boolean) {
+            this.internalOpen = next;
+        },
+
+        syncTriggerEl() {
+            const el = this.$refs.anchorRef as HTMLElement | undefined;
+
+            if (el !== this.triggerEl) {
+                this.triggerEl = el ?? null;
+            }
+        },
+
+        onTriggerEnter() {
+            if (this.openOnHover) {
+                this.openPanel();
+            }
+        },
+
+        onTriggerLeave() {
+            if (this.openOnHover) {
+                const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
+                panel?.requestHoverClose();
+            }
+        },
+
+        onTriggerActivate(event: KeyboardEvent) {
+            if (this.isOpen) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            this.openPanel();
+        },
+
+        openPanel() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.openPanel();
+        },
+
+        open() {
+            this.openPanel();
         },
 
         close() {
@@ -129,6 +231,10 @@ export default defineComponent({
         },
 
         toggleOpenClose() {
+            if (this.openOnHover) {
+                return;
+            }
+
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.toggleOpenClose();
         }

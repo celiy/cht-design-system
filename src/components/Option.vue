@@ -38,10 +38,11 @@
                     :class="`fa-solid ${icon} mr-1 text-sm`"
                 />
 
-                <div
+                <Marker
                     v-if="separator"
 
-                    class="separator my-1"
+                    class="my-1 w-full"
+                    separator
                 />
 
                 <span
@@ -57,7 +58,11 @@
                 </span>
             </div>
 
-            <div class="flex shrink-0 items-center gap-2">
+            <div
+                v-if="showCheckmark || hasChildren"
+
+                class="flex shrink-0 items-center gap-2"
+            >
                 <i
                     v-if="showCheckmark && !hasChildren"
 
