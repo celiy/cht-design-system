@@ -602,6 +602,14 @@ export default defineComponent({
             }
 
             this.onItemClick(item);
+
+            if (item.separator || item.disabled || this.hasChildren(item) || !item.value) {
+                return;
+            }
+
+            this.localSearchQuery = "";
+            this.$emit("update:searchQuery", "");
+            this.scheduleExternalSearch("");
         },
 
         onItemClick(item: OptionItem) {

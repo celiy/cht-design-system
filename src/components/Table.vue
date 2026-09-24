@@ -209,6 +209,7 @@
                                         }"
                                     >
                                         <Badge
+                                            v-tooltip="badgeTooltip(cell.value) || undefined"
                                             v-bind="tableBadgeProps(cell.head, cell.value)"
                                             :color="badgeColor(cell.value)"
                                             :variant="badgeVariant(cell.value)"
@@ -314,6 +315,7 @@ type ResolvedBadgeValue = {
     type?: "normal" | "link";
     link?: string;
     external?: boolean;
+    tooltip?: string;
 };
 
 export default defineComponent({
@@ -553,7 +555,8 @@ export default defineComponent({
                 "label" in value ||
                 "variant" in value ||
                 "color" in value ||
-                "variantStyle" in value
+                "variantStyle" in value ||
+                "tooltip" in value
             ) {
                 return value as ResolvedBadgeValue;
             }
@@ -582,6 +585,10 @@ export default defineComponent({
 
         badgeLabel(value: unknown): string | undefined {
             return this.resolveBadgeValue(value)?.label;
+        },
+
+        badgeTooltip(value: unknown): string {
+            return this.resolveBadgeValue(value)?.tooltip ?? "";
         },
 
         badgeColor(value: unknown): string | undefined {

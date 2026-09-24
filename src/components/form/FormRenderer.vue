@@ -217,6 +217,10 @@ import { validateCPF, validateCNPJ, isCnpjDocument } from "@shared/validators/do
 import type { FormField as FormFieldType } from "@shared/interfaces/FormField";
 import { INPUT_TYPES } from "@shared/constants/InputTypes";
 import type { SearchExternalPayload } from "../internal/OptionsList.vue";
+import { cepDigits, parseViaCepResponse, viaCepUrl } from "@shared/cep/viaCep";
+
+const CEP_LOOKUP_DEBOUNCE_MS = 400;
+const CEP_ADDRESS_FIELDS = ["estado", "cidade", "bairro", "rua"] as const;
 
 interface FormSection {
     key?: string;
@@ -294,7 +298,10 @@ export default defineComponent({
             formValues: {} as Record<string, any>,
             fieldErrors: {} as Record<string, string>,
             activeSectionColumns: 1,
-            selectRefByFieldId: {} as Record<string, { close?: () => void } | null>
+            selectRefByFieldId: {} as Record<string, { close?: () => void } | null>,
+            cepLookupTimer: null as number | null,
+            cepLookupAbort: null as AbortController | null,
+            cepLookupSeq: 0
         };
     },
 
@@ -357,6 +364,7 @@ export default defineComponent({
 
     beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
+        this.clearCepLookup();
     },
 
     methods: {
@@ -569,6 +577,86 @@ export default defineComponent({
                 const nextErrors = { ...this.fieldErrors };
                 delete nextErrors[fieldId];
                 this.fieldErrors = nextErrors;
+            }
+
+            if (field?.type === "cep") {
+                this.scheduleCepLookup(value);
+            }
+        },
+
+        clearCepLookup() {
+            if (this.cepLookupTimer != null) {
+                window.clearTimeout(this.cepLookupTimer);
+                this.cepLookupTimer = null;
+            }
+
+            this.cepLookupAbort?.abort();
+            this.cepLookupAbort = null;
+        },
+
+        scheduleCepLookup(value: unknown) {
+            const digits = cepDigits(value);
+
+            this.clearCepLookup();
+
+            if (digits.length !== 8 || this.isViewMode) {
+                return;
+            }
+
+            this.cepLookupTimer = window.setTimeout(() => {
+                this.cepLookupTimer = null;
+                void this.lookupCep(digits);
+            }, CEP_LOOKUP_DEBOUNCE_MS);
+        },
+
+        async lookupCep(digits: string) {
+            const hasAddressFields = CEP_ADDRESS_FIELDS.some((id) =>
+                this.allFields.some((field) => field.id === id)
+            );
+
+            if (!hasAddressFields) {
+                return;
+            }
+
+            this.cepLookupSeq += 1;
+            const seq = this.cepLookupSeq;
+            const abort = new AbortController();
+            this.cepLookupAbort = abort;
+
+            try {
+                const response = await fetch(viaCepUrl(digits), { signal: abort.signal });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const payload: unknown = await response.json();
+
+                if (seq !== this.cepLookupSeq) {
+                    return;
+                }
+
+                const address = parseViaCepResponse(payload);
+
+                if (!address) {
+                    return;
+                }
+
+                for (const id of CEP_ADDRESS_FIELDS) {
+                    if (!this.allFields.some((field) => field.id === id)) {
+                        continue;
+                    }
+
+                    this.formValues[id] = address[id];
+                }
+            } catch (error) {
+                if (error instanceof DOMException && error.name === "AbortError") {
+                    return;
+                }
+            } finally {
+                if (this.cepLookupAbort === abort) {
+                    this.cepLookupAbort = null;
+                }
             }
         },
 
