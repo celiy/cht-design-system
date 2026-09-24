@@ -3,13 +3,16 @@
         class="w-fit cursor-pointer font-semibold shadow-sm transition-all select-none disabled:cursor-not-allowed disabled:opacity-80"
         :class="[
             {
-                'bg-primary/95 text-primary-foreground': variant === 'primary',
+                'border border-primary/95 bg-primary/95 text-primary-foreground':
+                    variant === 'primary',
                 'bg-destructive/25 text-destructive hover:bg-destructive/40':
                     variant === 'destructive',
                 'text-destructive hover:bg-destructive/40': variant === 'transparent-destructive',
-                'bg-success/95 text-success-foreground': variant === 'success',
-                'bg-info/95 text-info-foreground': variant === 'info',
-                'bg-warning/95 text-warning-foreground': variant === 'warning',
+                'border border-success/95 bg-success/95 text-success-foreground':
+                    variant === 'success',
+                'border border-info/95 bg-info/95 text-info-foreground': variant === 'info',
+                'border border-warning/95 bg-warning/95 text-warning-foreground':
+                    variant === 'warning',
                 'border bg-secondary text-secondary-foreground': variant === 'secondary',
                 'border bg-input/30 text-foreground/90 hover:bg-input/50': variant === 'default',
                 'border border-transparent! bg-transparent text-secondary-foreground shadow-none! hover:bg-accent':

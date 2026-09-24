@@ -117,6 +117,41 @@
                             />
                         </div>
 
+                        <Toggle
+                            v-else-if="field.type === 'toggle'"
+
+                            :label="field.label"
+                            :variant="(field.variant as ButtonVariants) || 'default'"
+                            :disabled="isViewMode || field.disabled"
+                            :model-value="Boolean(formValues[field.id])"
+
+                            @update:model-value="updateValue(field.id, $event)"
+                        />
+
+                        <Input
+                            v-else-if="field.type === 'toggleable' && isViewMode"
+
+                            :id="field.id"
+                            type="text"
+                            :label="field.label"
+                            variant="display"
+                            readonly
+                            copiable
+                            :value="selectDisplayValue(field)"
+                        />
+
+                        <Toggleable
+                            v-else-if="field.type === 'toggleable'"
+
+                            :label="field.label"
+                            :options="field.options ?? []"
+                            :variant="(field.variant as ButtonVariants) || 'default'"
+                            :disabled="field.disabled"
+                            :model-value="formValues[field.id] as string | number | boolean | null"
+
+                            @update:model-value="updateValue(field.id, $event)"
+                        />
+
                         <Input
                             v-else-if="field.type === 'select' && isViewMode && !field.selectSeparateSelected"
 
@@ -214,10 +249,13 @@ import Input from "../Input.vue";
 import Checkbox from "../Checkbox.vue";
 import Radio from "../Radio.vue";
 import Select from "../Select.vue";
+import Toggle from "../Toggle.vue";
+import Toggleable from "../Toggleable.vue";
 import validateEmail from "@shared/validators/email";
 import validatePhone from "@shared/validators/phone";
 import { validateCPF, validateCNPJ, isCnpjDocument } from "@shared/validators/documents";
 import type { FormField as FormFieldType } from "@shared/interfaces/FormField";
+import type { ButtonVariants } from "@shared/constants/ButtonTypes";
 import { INPUT_TYPES } from "@shared/constants/InputTypes";
 import type { SearchExternalPayload } from "../internal/OptionsList.vue";
 import { cepDigits, parseViaCepResponse, viaCepUrl } from "@shared/cep/viaCep";
@@ -240,7 +278,9 @@ export default defineComponent({
         Input,
         Checkbox,
         Radio,
-        Select
+        Select,
+        Toggle,
+        Toggleable
     },
 
     props: {
@@ -722,7 +762,7 @@ export default defineComponent({
         },
 
         isEmptyValue(field: FormFieldType, value: any): boolean {
-            if (field.type === "checkbox") {
+            if (field.type === "checkbox" || field.type === "toggle") {
                 return !value;
             }
 
@@ -730,7 +770,7 @@ export default defineComponent({
                 return value.length === 0;
             }
 
-            if (field.type === "radio" || field.type === "select") {
+            if (field.type === "radio" || field.type === "select" || field.type === "toggleable") {
                 return value === "" || value === undefined || value === null;
             }
 
@@ -742,7 +782,7 @@ export default defineComponent({
         },
 
         requiredErrorMessage(field: FormFieldType): string {
-            if (field.type === "radio" || field.type === "select") {
+            if (field.type === "radio" || field.type === "select" || field.type === "toggleable") {
                 return `Selecione uma opção em "${field.label}".`;
             }
 
@@ -873,7 +913,7 @@ export default defineComponent({
         },
 
         getFieldStyle(field: FormFieldType): Record<string, string> {
-            if (["checkbox", "radio", "textarea"].includes(field.type)) {
+            if (["checkbox", "radio", "textarea", "toggle", "toggleable"].includes(field.type)) {
                 return { gridColumn: "1 / -1" };
             }
 

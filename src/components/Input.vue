@@ -169,7 +169,7 @@
         <small
             v-if="helperText"
 
-            class="mt-2 text-sm! text-muted-foreground!"
+            class="mt-1.5 text-sm! text-muted-foreground!"
         >
             {{ helperText }}
         </small>
