@@ -38,6 +38,7 @@
             buttonClass
         ]"
         :disabled="disabled"
+        :form="form"
         :type="type"
         :style="
             shape === 'rounded'
@@ -166,6 +167,14 @@ export default defineComponent({
         },
 
         rightIcon: {
+            type: String,
+            required: false
+        },
+
+        /**
+         * Associates the button with a form element (`id` of `<form>`).
+         */
+        form: {
             type: String,
             required: false
         }

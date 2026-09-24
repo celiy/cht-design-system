@@ -209,7 +209,7 @@
                                         }"
                                     >
                                         <Badge
-                                            v-tooltip="badgeTooltip(cell.value) || undefined"
+                                            v-tooltip="badgeTooltip(cell.value)"
                                             v-bind="tableBadgeProps(cell.head, cell.value)"
                                             :color="badgeColor(cell.value)"
                                             :variant="badgeVariant(cell.value)"

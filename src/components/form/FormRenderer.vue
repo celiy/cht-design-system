@@ -225,6 +225,7 @@ import { cepDigits, parseViaCepResponse, viaCepUrl } from "@shared/cep/viaCep";
 const CEP_LOOKUP_DEBOUNCE_MS = 400;
 const CEP_LOOKUP_TIMEOUT_MS = 6000;
 const CEP_ADDRESS_FIELDS = ["estado", "cidade", "bairro", "rua", "numero", "complemento"] as const;
+const CEP_FILL_FIELDS = ["estado", "cidade", "bairro", "rua"] as const;
 
 interface FormSection {
     key?: string;
@@ -686,7 +687,7 @@ export default defineComponent({
                     return;
                 }
 
-                for (const id of CEP_ADDRESS_FIELDS) {
+                for (const id of CEP_FILL_FIELDS) {
                     if (!this.allFields.some((field) => field.id === id)) {
                         continue;
                     }

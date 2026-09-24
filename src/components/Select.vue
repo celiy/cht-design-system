@@ -39,6 +39,7 @@
 
                             @focus="onComboboxFocus"
                             @click="onComboboxClick"
+                            @keydown="onComboboxKeydown"
                             @update:value="onComboboxInput"
                         />
 
@@ -466,7 +467,8 @@ export default defineComponent({
         "click:action",
         "click:selected",
         "remove:selected",
-        "search:external"
+        "search:external",
+        "keydown"
     ],
 
     data() {
@@ -1157,6 +1159,10 @@ export default defineComponent({
 
         onComboboxClick() {
             this.openComboboxPanel();
+        },
+
+        onComboboxKeydown(event: KeyboardEvent) {
+            this.$emit("keydown", event);
         },
 
         openComboboxPanel() {

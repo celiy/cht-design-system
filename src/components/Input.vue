@@ -63,6 +63,7 @@
                     @focus="onFocus"
                     @blur="onBlur"
                     @input="onInput($event)"
+                    @keydown="onKeydown"
                 />
 
                 <!-- Input/textarea content -->
@@ -89,6 +90,7 @@
                         @focus="onFocus"
                         @blur="onBlur"
                         @input="onInput($event)"
+                        @keydown="onKeydown"
                     />
 
                     <!-- Password toggle -->
@@ -436,7 +438,7 @@ export default defineComponent({
         }
     },
 
-    emits: ["update:value", "update:modelValue", "focus", "click"],
+    emits: ["update:value", "update:modelValue", "focus", "click", "keydown"],
 
     data() {
         return {
@@ -801,6 +803,10 @@ export default defineComponent({
          */
         onBlur() {
             this.isFocused = false;
+        },
+
+        onKeydown(event: KeyboardEvent) {
+            this.$emit("keydown", event);
         },
 
         togglePasswordVisibility() {
