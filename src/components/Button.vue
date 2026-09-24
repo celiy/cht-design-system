@@ -1,6 +1,6 @@
 <template>
     <button
-        class="w-fit cursor-pointer font-semibold shadow-sm transition-all select-none hover:shadow-md dark:hover:brightness-125 light:hover:brightness-90"
+        class="w-fit cursor-pointer font-semibold shadow-sm transition-all select-none disabled:cursor-not-allowed disabled:opacity-80"
         :class="[
             {
                 'bg-primary/95 text-primary-foreground': variant === 'primary',
@@ -31,7 +31,9 @@
 
                 rounded: shape === 'square',
                 'flex aspect-square items-center justify-center justify-items-center rounded-full p-0':
-                    shape === 'rounded'
+                    shape === 'rounded',
+
+                'hover:shadow-md dark:hover:brightness-125 light:hover:brightness-90': !disabled
             },
             buttonClass
         ]"

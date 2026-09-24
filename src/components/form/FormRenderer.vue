@@ -147,6 +147,7 @@
                                 :model-value="formValues[field.id]"
                                 :select-multiple="field.selectMultiple"
                                 :separate-selected="Boolean(field.selectSeparateSelected)"
+                                :show-selected-labels="field.selectShowSelectedLabels ?? true"
                                 :hide-dropdown-arrow="isViewMode"
                                 :disabled="isViewMode || field.disabled"
                                 :action-icon="isViewMode ? undefined : field.selectAction?.icon"
@@ -223,7 +224,7 @@ import { cepDigits, parseViaCepResponse, viaCepUrl } from "@shared/cep/viaCep";
 
 const CEP_LOOKUP_DEBOUNCE_MS = 400;
 const CEP_LOOKUP_TIMEOUT_MS = 6000;
-const CEP_ADDRESS_FIELDS = ["estado", "cidade", "bairro", "rua"] as const;
+const CEP_ADDRESS_FIELDS = ["estado", "cidade", "bairro", "rua", "numero", "complemento"] as const;
 
 interface FormSection {
     key?: string;
@@ -602,7 +603,7 @@ export default defineComponent({
             }
         },
 
-        clearCepLookup() {
+        stopCepLookupTimers() {
             if (this.cepLookupTimer != null) {
                 window.clearTimeout(this.cepLookupTimer);
                 this.cepLookupTimer = null;
@@ -615,18 +616,24 @@ export default defineComponent({
 
             this.cepLookupAbort?.abort();
             this.cepLookupAbort = null;
+        },
+
+        clearCepLookup() {
+            this.stopCepLookupTimers();
             this.cepLookupLoading = false;
         },
 
         scheduleCepLookup(value: unknown) {
             const digits = cepDigits(value);
 
-            this.clearCepLookup();
+            this.stopCepLookupTimers();
 
             if (digits.length !== 8 || this.isViewMode) {
+                this.cepLookupLoading = false;
                 return;
             }
 
+            this.cepLookupLoading = true;
             this.cepLookupTimer = window.setTimeout(() => {
                 this.cepLookupTimer = null;
                 void this.lookupCep(digits);

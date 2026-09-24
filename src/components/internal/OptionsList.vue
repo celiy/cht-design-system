@@ -605,7 +605,14 @@ export default defineComponent({
 
             this.consumeKey(event);
 
-            const item = this.visibleOptions[this.highlightedIndex];
+            let item = this.visibleOptions[this.highlightedIndex];
+
+            if (!item || !this.isSelectable(item)) {
+                const fallbackIndex = this.visibleOptions.findIndex((option) =>
+                    this.isSelectable(option)
+                );
+                item = fallbackIndex >= 0 ? this.visibleOptions[fallbackIndex] : undefined;
+            }
 
             if (!item || !this.isSelectable(item)) {
                 return;

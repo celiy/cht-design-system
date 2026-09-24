@@ -43,7 +43,7 @@
                         />
 
                         <button
-                            v-if="comboboxSelectionLocked && !disabled"
+                            v-if="comboboxSelectionLocked && comboboxClearable && !disabled"
 
                             type="button"
                             class="absolute right-2 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
@@ -65,6 +65,7 @@
                             'hover-ring': isPanelOpen
                         }"
                         :hover-effect="false"
+                        :disabled="disabled"
 
                         @click.stop="toggleOpenClose"
                         @keydown.enter="onTriggerActivate"
@@ -425,6 +426,14 @@ export default defineComponent({
         comboboxOption: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * Combobox + comboboxOption: show the X that clears the locked selection.
+         */
+        comboboxClearable: {
+            type: Boolean,
+            default: true
         },
 
         /**
@@ -1184,6 +1193,10 @@ export default defineComponent({
         },
 
         clearComboboxSelection() {
+            if (!this.comboboxClearable) {
+                return;
+            }
+
             this.value = "";
             this.comboboxQuery = "";
             this.clearComboboxSearchTimer();

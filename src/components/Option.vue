@@ -54,7 +54,7 @@
                 <span
                     v-if="label"
 
-                    class="w-full truncate text-sm font-medium"
+                    class="flex w-full flex-col truncate text-sm font-medium"
                 >
                     <template v-if="labelHelper && label && labelHelperPosition === 'left'">
                         <div class="flex gap-2">
@@ -86,7 +86,11 @@
                         </span>
                     </template>
 
-                    <span class="text-xs text-muted-foreground!">
+                    <span
+                        v-if="optionHelperText"
+
+                        class="text-xs text-muted-foreground!"
+                    >
                         {{ optionHelperText }}
                     </span>
                 </span>
