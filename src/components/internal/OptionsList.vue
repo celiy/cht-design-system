@@ -11,7 +11,10 @@
             class="sticky top-0 z-10 shrink-0 bg-popover"
         >
             <div class="flex items-center px-4">
-                <span class="fa fa-search text-sm text-muted-foreground!" />
+                <span
+                    class="text-sm text-muted-foreground!"
+                    :class="externalSearchLoading ? 'fa-solid fa-spinner fa-spin' : 'fa fa-search'"
+                />
 
                 <Input
                     id="options-list-search"
@@ -53,6 +56,7 @@
                     :last="idx === visibleOptions.length - 1"
                     :disabled="item.disabled"
                     :has-children="hasChildren(item)"
+                    :option-helper-text="item.optionHelperText"
 
                     @click="onItemClick(item)"
                 />
@@ -139,6 +143,7 @@ export type OptionItem = {
      * Omit or use `"hover"` for hover and click.
      */
     openOn?: "hover" | "click";
+    optionHelperText?: string;
 };
 
 export type SearchConfig = {
@@ -227,6 +232,11 @@ export default defineComponent({
         maxHeightPx: {
             type: Number,
             required: false
+        },
+
+        externalSearchLoading: {
+            type: Boolean,
+            default: false
         }
     },
 

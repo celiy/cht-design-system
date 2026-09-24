@@ -352,6 +352,11 @@ export default defineComponent({
             required: false
         },
 
+        autocomplete: {
+            type: String,
+            required: false
+        },
+
         /**
          * Additional classes applied to the inner input/textarea.
          */
@@ -538,6 +543,10 @@ export default defineComponent({
         },
 
         inputAutocomplete(): string {
+            if (this.autocomplete) {
+                return this.autocomplete;
+            }
+
             switch (this.type) {
                 case "password":
                     return "current-password";

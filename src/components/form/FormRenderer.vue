@@ -50,7 +50,6 @@
                             :helper-text="field.helperText"
                             :error="fieldError(field)"
                             :required="!isViewMode && field.required"
-                            :disabled="field.disabled"
                             :readonly="isFieldReadonly(field)"
                             :variant="isFieldReadonly(field) ? 'display' : 'secondary'"
                             :max-size="field.maxSize"
@@ -58,6 +57,8 @@
                             :input-class="field.inputClass"
                             :text-mask="field.textMask"
                             :copiable="isFieldReadonly(field) || field.copiable"
+                            :autocomplete="field.autocomplete"
+                            :disabled="isInputDisabled(field)"
                             :value="formValues[field.id] ?? ''"
 
                             @update:value="updateValue(field.id, $event)"
@@ -142,6 +143,7 @@
                                 :helper-text="field.helperText"
                                 :options="field.options"
                                 :search="field.selectSearch"
+                                :external-search-loading="Boolean(field.selectSearchLoading)"
                                 :model-value="formValues[field.id]"
                                 :select-multiple="field.selectMultiple"
                                 :separate-selected="Boolean(field.selectSeparateSelected)"
@@ -220,6 +222,7 @@ import type { SearchExternalPayload } from "../internal/OptionsList.vue";
 import { cepDigits, parseViaCepResponse, viaCepUrl } from "@shared/cep/viaCep";
 
 const CEP_LOOKUP_DEBOUNCE_MS = 400;
+const CEP_LOOKUP_TIMEOUT_MS = 6000;
 const CEP_ADDRESS_FIELDS = ["estado", "cidade", "bairro", "rua"] as const;
 
 interface FormSection {
@@ -291,7 +294,7 @@ export default defineComponent({
         }
     },
 
-    emits: ["submit", "click:select-action", "click:select-option", "click:select-remove", "search:external"],
+    emits: ["submit", "click:select-action", "click:select-option", "click:select-remove", "search:external", "update:field"],
 
     data() {
         return {
@@ -300,8 +303,10 @@ export default defineComponent({
             activeSectionColumns: 1,
             selectRefByFieldId: {} as Record<string, { close?: () => void } | null>,
             cepLookupTimer: null as number | null,
+            cepLookupTimeout: null as number | null,
             cepLookupAbort: null as AbortController | null,
-            cepLookupSeq: 0
+            cepLookupSeq: 0,
+            cepLookupLoading: false
         };
     },
 
@@ -374,6 +379,18 @@ export default defineComponent({
 
         isFieldReadonly(field: FormFieldType): boolean {
             return this.isViewMode || Boolean(field.readonly) || Boolean(field.disabled);
+        },
+
+        isAddressField(fieldId: string): boolean {
+            return (CEP_ADDRESS_FIELDS as readonly string[]).includes(fieldId);
+        },
+
+        isInputDisabled(field: FormFieldType): boolean {
+            if (field.disabled || this.isViewMode) {
+                return true;
+            }
+
+            return this.cepLookupLoading && this.isAddressField(field.id);
         },
 
         selectDisplayValue(field: FormFieldType): string {
@@ -572,6 +589,7 @@ export default defineComponent({
             }
 
             this.formValues[fieldId] = value;
+            this.$emit("update:field", { id: fieldId, value });
 
             if (this.fieldErrors[fieldId]) {
                 const nextErrors = { ...this.fieldErrors };
@@ -590,8 +608,14 @@ export default defineComponent({
                 this.cepLookupTimer = null;
             }
 
+            if (this.cepLookupTimeout != null) {
+                window.clearTimeout(this.cepLookupTimeout);
+                this.cepLookupTimeout = null;
+            }
+
             this.cepLookupAbort?.abort();
             this.cepLookupAbort = null;
+            this.cepLookupLoading = false;
         },
 
         scheduleCepLookup(value: unknown) {
@@ -622,6 +646,19 @@ export default defineComponent({
             const seq = this.cepLookupSeq;
             const abort = new AbortController();
             this.cepLookupAbort = abort;
+            this.cepLookupLoading = true;
+
+            this.cepLookupTimeout = window.setTimeout(() => {
+                this.cepLookupTimeout = null;
+                abort.abort();
+
+                if (seq !== this.cepLookupSeq) {
+                    return;
+                }
+
+                this.cepLookupLoading = false;
+                this.notifyCepTimeout();
+            }, CEP_LOOKUP_TIMEOUT_MS);
 
             try {
                 const response = await fetch(viaCepUrl(digits), { signal: abort.signal });
@@ -654,10 +691,22 @@ export default defineComponent({
                     return;
                 }
             } finally {
+                if (this.cepLookupTimeout != null) {
+                    window.clearTimeout(this.cepLookupTimeout);
+                    this.cepLookupTimeout = null;
+                }
+
                 if (this.cepLookupAbort === abort) {
                     this.cepLookupAbort = null;
+                    this.cepLookupLoading = false;
                 }
             }
+        },
+
+        notifyCepTimeout() {
+            const toast = (this as { $toast?: { error: (message: string) => void } }).$toast;
+
+            toast?.error("Não foi possível buscar o endereço pelo CEP. Tente novamente.");
         },
 
         fieldError(field: FormFieldType): string {

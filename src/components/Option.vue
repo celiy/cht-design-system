@@ -85,6 +85,10 @@
                             {{ label }}
                         </span>
                     </template>
+
+                    <span class="text-xs text-muted-foreground!">
+                        {{ optionHelperText }}
+                    </span>
                 </span>
             </div>
 
@@ -153,6 +157,11 @@ export default defineComponent({
         labelHelperPosition: {
             type: String as PropType<"left" | "right">,
             default: "left",
+            required: false
+        },
+
+        optionHelperText: {
+            type: String,
             required: false
         },
 

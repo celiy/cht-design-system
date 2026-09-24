@@ -151,6 +151,7 @@
                 :show-checkmark="panelShowCheckmark"
                 :is-option-selected="isOptionSelected"
                 :max-height-px="maxHeightPx"
+                :external-search-loading="externalSearchLoading"
 
                 @select="selectOption"
                 @search:external="onSearchExternal"
@@ -349,6 +350,11 @@ export default defineComponent({
         maxHeightPx: {
             type: Number,
             default: 280
+        },
+
+        externalSearchLoading: {
+            type: Boolean,
+            default: false
         },
 
         panelClass: {
