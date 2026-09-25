@@ -5,6 +5,11 @@ type DesignSystemApp = {
     component: (name: string, component: Component) => void;
 };
 
+/**
+ * Extract the file name from a path.
+ * @param path The path to extract the file name from.
+ * @returns The file name.
+ */
 function fileNameFromPath(path: string): string {
     const file = path.split("/").pop() ?? "";
 
