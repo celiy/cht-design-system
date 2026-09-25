@@ -77,7 +77,39 @@
                                     'text-right': head.position === 'end'
                                 }"
                             >
-                                {{ head.label }}
+                                <span
+                                    class="w-fit"
+                                    :class="{
+                                        'cursor-pointer select-none hover:dark:brightness-120 hover:light:brightness-90':
+                                            head.canSort
+                                    }"
+
+                                    @mouseenter="hoverField = head.field ?? ''"
+                                    @mouseleave="hoverField = ''"
+                                    @click="sortField(head.field ?? '')"
+                                >
+                                    {{ head.label }}
+                                    <span
+                                        v-if="head.canSort"
+
+                                        class="fa-solid fa-arrow-down text-xs transition-all"
+                                        :class="{
+                                            'rotate-180':
+                                                sortedField.field === head.field &&
+                                                sortedField.direction === 'asc',
+                                            'opacity-100':
+                                                hoverField === head.field &&
+                                                sortedField.field === head.field,
+                                            'opacity-60':
+                                                hoverField === head.field &&
+                                                sortedField.field !== head.field,
+                                            'opacity-40':
+                                                hoverField !== head.field &&
+                                                sortedField.field === head.field,
+                                            'opacity-0': hoverField !== head.field
+                                        }"
+                                    />
+                                </span>
                             </span>
                         </th>
 
@@ -146,7 +178,9 @@
                             >
                                 <slot name="empty">
                                     <div class="flex flex-col items-center justify-center gap-2">
-                                        <span class="font-medium text-foreground">Nenhum dado encontrado.</span>
+                                        <span class="font-medium text-foreground"
+                                            >Nenhum dado encontrado.</span
+                                        >
                                         <span>Não há registros para exibir neste momento.</span>
                                     </div>
                                 </slot>
@@ -305,6 +339,8 @@ export type TableHeader = Record<string, unknown> & {
     format?: TableCellMaskFormat;
     /** Applied to every badge cell in this column (e.g. `variantStyle: "bordered"`). */
     badgeProps?: TableHeaderBadgeProps;
+    /** Whether the column can be sorted. */
+    canSort?: boolean;
 };
 
 type ResolvedBadgeValue = {
@@ -385,14 +421,16 @@ export default defineComponent({
         }
     },
 
-    emits: ["click:action", "click:selectableAction"],
+    emits: ["click:action", "click:selectableAction", "sort:field"],
 
     data() {
         return {
             atributeFields: ["isCard", "isActions", "actions"],
             selectedHeaders: [] as string[],
+            hoverField: "" as string,
+            selectedRows: [] as number[],
 
-            selectedRows: [] as number[]
+            sortedField: {} as { field: string; direction: "asc" | "desc" }
         };
     },
 
@@ -570,9 +608,7 @@ export default defineComponent({
 
             return {
                 ...fromHeader,
-                ...(fromCell?.variantStyle != null
-                    ? { variantStyle: fromCell.variantStyle }
-                    : {}),
+                ...(fromCell?.variantStyle != null ? { variantStyle: fromCell.variantStyle } : {}),
                 ...(fromCell?.type != null ? { type: fromCell.type } : {}),
                 ...(fromCell?.link != null ? { link: fromCell.link } : {}),
                 ...(fromCell?.external != null ? { external: fromCell.external } : {})
@@ -659,6 +695,20 @@ export default defineComponent({
 
         onSelectableActionClick(value: string) {
             this.$emit("click:selectableAction", value, this.selectedItems);
+        },
+
+        sortField(field: string) {
+            if (!this.headers.find((head) => head.field === field)?.canSort) {
+                return;
+            }
+
+            if (this.sortedField.field === field) {
+                this.sortedField.direction = this.sortedField.direction === "desc" ? "asc" : "desc";
+            } else {
+                this.sortedField = { field: field as string, direction: "desc" };
+            }
+
+            this.$emit("sort:field", this.sortedField);
         }
     }
 });

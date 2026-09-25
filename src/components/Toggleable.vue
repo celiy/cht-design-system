@@ -93,7 +93,7 @@ export default defineComponent({
 
         toggleablePosition: {
             type: String as PropType<"center" | "left" | "right">,
-            default: "center",
+            default: "left",
             required: false
         },
 
