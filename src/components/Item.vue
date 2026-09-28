@@ -37,7 +37,7 @@
 
                     :class="titleClass"
                 >
-                    {{ label }}
+                    <b>{{ label }}</b>
                 </p>
 
                 <!-- Description -->

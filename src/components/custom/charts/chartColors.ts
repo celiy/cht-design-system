@@ -3,13 +3,23 @@ export const CHART_COLORS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-
 export type ChartColor = (typeof CHART_COLORS)[number];
 
 /**
- * CSS custom property for a chart palette token.
+ * CSS custom property for a color token (`chart-3`, `green-500`, `success`, …).
  *
- * @param color Palette key such as `"chart-3"`
- * @returns `var(--color-chart-n)`
+ * @param color Token name without the `--color-` prefix
+ * @returns `var(--color-…)`
  */
-export function chartColorCssVar(color: ChartColor): string {
+export function chartColorCssVar(color: string): string {
     return `var(--color-${color})`;
+}
+
+/**
+ * Inline background paint for bar fills (works with any theme token).
+ *
+ * @param color Token name such as `"green-500"`
+ * @returns Style object for `:style`
+ */
+export function chartPaintStyle(color: string): { backgroundColor: string } {
+    return { backgroundColor: chartColorCssVar(color) };
 }
 
 /**
@@ -18,7 +28,7 @@ export function chartColorCssVar(color: ChartColor): string {
  * @param color Palette key
  * @returns Class map for `:class`
  */
-export function chartColorBgClass(color: ChartColor): Record<string, boolean> {
+export function chartColorBgClass(color: string): Record<string, boolean> {
     return {
         "bg-chart-1": color === "chart-1",
         "bg-chart-2": color === "chart-2",
@@ -34,7 +44,7 @@ export function chartColorBgClass(color: ChartColor): Record<string, boolean> {
  * @param color Palette key
  * @returns Class map for `:class`
  */
-export function chartColorBorderClass(color: ChartColor): Record<string, boolean> {
+export function chartColorBorderClass(color: string): Record<string, boolean> {
     return {
         "border-chart-1!": color === "chart-1",
         "border-chart-2!": color === "chart-2",

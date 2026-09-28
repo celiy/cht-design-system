@@ -97,7 +97,7 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
-import { chartColorBorderClass, chartColorCssVar, type ChartColor } from "./chartColors";
+import { chartColorBorderClass, chartColorCssVar } from "./chartColors";
 import { chartUsesGroups, groupChartItems, type ChartSeries } from "./groupChartItems";
 
 export type WaveChartData = ChartSeries;
@@ -114,10 +114,10 @@ export default defineComponent({
         },
 
         /**
-         * Palette token for the stroke and the 50% fill under the line.
+         * Theme/Tailwind color token for the stroke and the 50% fill under the line.
          */
         color: {
-            type: String as PropType<ChartColor>,
+            type: String as PropType<string>,
             default: "chart-3"
         },
 

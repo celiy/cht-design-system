@@ -2,8 +2,8 @@
     <div
         v-if="icon"
 
-        class="flex shrink-0 items-center justify-center"
-        :class="iconWrapClass"
+        class="flex h-fit shrink-0 items-center justify-center"
+        :class="backgroundClass"
     >
         <i
             class="text-md"
@@ -37,6 +37,14 @@ export default defineComponent({
         disabled: {
             type: Boolean,
             default: false
+        },
+
+        backgroundStyle: {
+            type: String
+        },
+
+        iconStyle: {
+            type: String
         }
     },
 
@@ -44,7 +52,7 @@ export default defineComponent({
         /**
          * Font Awesome icon class.
          */
-        iconClass(): string {
+        iconLabel(): string {
             if (!this.icon) {
                 return "";
             }
@@ -62,30 +70,42 @@ export default defineComponent({
             return `fa-solid fa-${icon}`;
         },
 
-        iconWrapClass() {
+        iconClass() {
+            if (this.iconStyle) {
+                return [this.iconLabel, this.iconStyle];
+            }
+
+            return [
+                this.iconLabel,
+                {
+                    "text-primary": this.variant === "primary",
+                    "text-secondary-foreground": this.variant === "secondary",
+                    "text-success": this.variant === "success",
+                    "text-warning": this.variant === "warning",
+                    "text-destructive": this.variant === "destructive",
+                    "text-info": this.variant === "info"
+                }
+            ];
+        },
+
+        backgroundClass() {
             if (this.type === "icon") {
-                return [
-                    "pt-1",
-                    {
-                        "text-primary": this.variant === "primary",
-                        "text-secondary-foreground": this.variant === "secondary",
-                        "text-success": this.variant === "success",
-                        "text-warning": this.variant === "warning",
-                        "text-destructive": this.variant === "destructive",
-                        "text-info": this.variant === "info"
-                    }
-                ];
+                return ["pt-1"];
+            }
+
+            if (this.type === "card" && this.backgroundStyle) {
+                return ["p-3.5 rounded", this.backgroundStyle];
             }
 
             return [
                 "p-3.5 rounded",
                 {
-                    "bg-primary/15 text-primary": this.variant === "primary",
-                    "bg-secondary text-secondary-foreground": this.variant === "secondary",
-                    "bg-success/15 text-success": this.variant === "success",
-                    "bg-warning/15 text-warning": this.variant === "warning",
-                    "bg-destructive/15 text-destructive": this.variant === "destructive",
-                    "bg-info/15 text-info": this.variant === "info",
+                    "bg-primary/15": this.variant === "primary",
+                    "bg-secondary": this.variant === "secondary",
+                    "bg-success/15": this.variant === "success",
+                    "bg-warning/15": this.variant === "warning",
+                    "bg-destructive/15": this.variant === "destructive",
+                    "bg-info/15": this.variant === "info",
                     "opacity-50": this.disabled
                 }
             ];

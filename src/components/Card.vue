@@ -1,14 +1,11 @@
 <template>
-    <div 
-        class="border border-border/50! rounded w-full shadow-md"
-        :class="{
-            'bg-card': variant === 'default',
-            'bg-transparent': variant === 'transparent'
-        }"
+    <div
+        class="w-full rounded shadow-md"
+        :class="[borderClass, backgroundClass, stretchClass]"
     >
         <!-- Header -->
         <template v-if="$slots.header">
-            <div 
+            <div
                 class="grid"
                 :class="$slots.headerRightSide ? 'grid-cols-2' : ''"
             >
@@ -16,13 +13,14 @@
                 <div class="px-4 pt-3">
                     <slot name="header" />
                 </div>
-            
+
                 <!-- Header right side -->
-                <div 
+                <div
                     v-if="$slots.headerRightSide"
-                    class="pt-4 px-4"
+
+                    class="px-4 pt-4"
                 >
-                    <slot name="headerRightSide"/>
+                    <slot name="headerRightSide" />
                 </div>
             </div>
         </template>
@@ -34,13 +32,15 @@
 
         <!-- Body -->
         <template v-if="$slots.body">
-            <div 
+            <div
                 class="px-4 pb-4"
-
-                :class="{
-                    'pt-4': $slots.description || !$slots.header,
-                    'pt-2': !$slots.description || !$slots.header
-                }"
+                :class="[
+                    {
+                        'pt-4': $slots.description || !$slots.header,
+                        'pt-2': !$slots.description || !$slots.header
+                    },
+                    bodyStretchClass
+                ]"
             >
                 <slot name="body" />
             </div>
@@ -48,7 +48,7 @@
 
         <!-- Footer -->
         <template v-if="$slots.footer">
-            <div class="p-4 bg-muted/50 border-t rounded-b">
+            <div class="rounded-b border-t bg-muted/50 p-4">
                 <slot name="footer" />
             </div>
         </template>
@@ -59,13 +59,63 @@
 import { defineComponent, type PropType } from "vue";
 
 export default defineComponent({
-    name: 'Card',
+    name: "Card",
 
     props: {
         variant: {
             type: String as PropType<"default" | "transparent">,
             default: "default",
             required: false
+        },
+
+        borderStyle: {
+            type: String,
+            required: false
+        },
+
+        backgroundStyle: {
+            type: String,
+            required: false
+        },
+
+        /**
+         * Fill parent height and make `#body` a column so children can use `mt-auto`.
+         * Off by default — stretching every Card breaks equal-height grids (e.g. docs home).
+         */
+        stretch: {
+            type: Boolean,
+            default: false
+        }
+    },
+
+    computed: {
+        stretchClass() {
+            return this.stretch ? "flex h-full flex-col" : "";
+        },
+
+        bodyStretchClass() {
+            return this.stretch ? "flex flex-1 flex-col" : "";
+        },
+
+        borderClass() {
+            if (this.borderStyle) {
+                return this.borderStyle;
+            }
+
+            return {
+                "border border-border/50!": this.variant === "default"
+            };
+        },
+
+        backgroundClass() {
+            if (this.backgroundStyle) {
+                return this.backgroundStyle;
+            }
+
+            return {
+                "bg-card": this.variant === "default",
+                "bg-transparent": this.variant === "transparent"
+            };
         }
     }
 });

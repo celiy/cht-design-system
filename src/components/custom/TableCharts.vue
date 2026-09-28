@@ -1,31 +1,42 @@
 <template>
-    <Card>
+    <Card v-bind="cardAtributes">
         <template #header>
             <h4>{{ header }}</h4>
             <p class="text-muted-foreground!">{{ description }}</p>
         </template>
 
         <template #headerRightSide>
-            <div v-if="variant === 'wave' && !usesGroups" class="flex w-full justify-end">
-                <Select
-                    class="lg:max-w-1/2"
-                    :model-value="filter"
-                    :options="dateFilters"
-                    @update:value="filter = String($event) as WaveFilter"
-                />
-            </div>
+            <slot name="headerRightSide">
+                <div
+                    v-if="variant === 'wave' && !usesGroups"
+
+                    class="flex w-full justify-end"
+                >
+                    <Select
+                        class="lg:max-w-1/2"
+                        :model-value="filter"
+                        :options="dateFilters"
+
+                        @update:value="filter = String($event) as WaveFilter"
+                    />
+                </div>
+            </slot>
         </template>
 
         <template #body>
             <BarChart
                 v-if="variant === 'bars'"
+
                 :data="data"
                 :hide-label="hideLabel"
                 :color="color"
+                :negative-color="negativeColor"
+                :direction="direction"
             />
 
             <WaveChart
                 v-else
+
                 :data="data"
                 :filter="filter"
                 :color="color"
@@ -38,9 +49,8 @@
 import { defineComponent, type PropType } from "vue";
 import Card from "../Card.vue";
 import Select from "../Select.vue";
-import BarChart from "./charts/BarChart.vue";
+import BarChart, { type BarChartDirection } from "./charts/BarChart.vue";
 import WaveChart, { type WaveFilter } from "./charts/WaveChart.vue";
-import { type ChartColor } from "./charts/chartColors";
 import { chartUsesGroups, type ChartSeries } from "./charts/groupChartItems";
 
 export default defineComponent({
@@ -80,11 +90,30 @@ export default defineComponent({
         },
 
         /**
-         * Palette token forwarded to BarChart / WaveChart (`chart-1` … `chart-5`).
+         * Theme/Tailwind color token forwarded to BarChart / WaveChart
+         * (`chart-3`, `green-500`, `success`, …).
          */
         color: {
-            type: String as PropType<ChartColor>,
+            type: String as PropType<string>,
             default: "chart-3"
+        },
+
+        /**
+         * Negative bar token (BarChart vertical only).
+         */
+        negativeColor: {
+            type: String as PropType<string>,
+            default: "chart-5"
+        },
+
+        direction: {
+            type: String as PropType<BarChartDirection>,
+            default: "vertical"
+        },
+
+        cardAtributes: {
+            type: Object,
+            required: false
         }
     },
 
@@ -94,7 +123,7 @@ export default defineComponent({
                 { label: "3 meses", value: "3m" },
                 { label: "1 mês", value: "1m" },
                 { label: "2 semanas", value: "2s" },
-                { label: "7 dias", value: "7d" },
+                { label: "7 dias", value: "7d" }
             ],
             filter: "3m" as WaveFilter
         };

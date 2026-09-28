@@ -1,4 +1,4 @@
-<!-- 
+<!--
 Example on how to use this component:
 
 <TabsComponent>
@@ -17,23 +17,23 @@ Example on how to use this component:
     <template #tab-content-1>
         CONTENT 1
     </template>
-</TabsComponent> 
+</TabsComponent>
 -->
 
 <template>
     <div class="w-full">
-        <div 
-            class="flex w-fit overflow-x-auto scrollbar-thin rounded mb-2 p-1"
+        <div
+            class="mb-2 flex w-fit scrollbar-thin overflow-x-auto rounded p-1"
             :class="{
                 'bg-secondary': variant === 'secondary',
                 'bg-transparent': variant === 'transparent'
             }"
         >
-            <button 
-                v-for="(_, index) in tabCount" 
-                :key="index" 
+            <button
+                v-for="(_, index) in tabCount"
+                :key="index"
 
-                class="p-3 bg-transparent text-sm font-medium leading-1 rounded transition-all border light:hover:brightness-50 dark:hover:brightness-150"
+                class="rounded border bg-transparent p-3 text-sm leading-1 font-medium transition-all dark:hover:brightness-150 light:hover:brightness-50"
                 :class="{
                     'text-foreground': index === activeTab,
                     'text-muted-foreground': index !== activeTab,
@@ -41,19 +41,18 @@ Example on how to use this component:
 
                     'border-ring/50!': index === activeTab && variant === 'secondary',
 
-                    'text-primary border-primary!': index === activeTab && variant === 'transparent',
-                    'border-b-2 border-t-0 border-x-0 rounded-none!': variant === 'transparent'
+                    'border-primary! text-primary':
+                        index === activeTab && variant === 'transparent',
+                    'rounded-none! border-x-0 border-t-0 border-b-2': variant === 'transparent'
                 }"
-                
+
                 @click="switchTab(index)"
             >
                 <slot :name="`tab-title-${index}`" />
             </button>
         </div>
-        
-        <div class="rounded shadow-sm">
-            <slot :name="`tab-content-${activeTab}`" />
-        </div>
+
+        <slot :name="`tab-content-${activeTab}`" />
     </div>
 </template>
 
@@ -70,11 +69,11 @@ export default defineComponent({
             required: false
         }
     },
-    
+
     data() {
         return {
             activeTab: 0,
-            tabCount: 0,
+            tabCount: 0
         };
     },
 
