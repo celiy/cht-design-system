@@ -12,7 +12,7 @@
 
             <div
                 class="flex w-full items-stretch gap-2"
-                :class="{ 'flex-row-reverse': hasActionButton && actionSide === 'left' }"
+                :class="{ 'flex-row-reverse': $slots['trigger-aside'] && triggerAsideSide === 'left' }"
             >
                 <div
                     ref="anchorRef"
@@ -104,24 +104,11 @@
                 </div>
 
                 <div
-                    v-if="hasActionButton"
+                    v-if="$slots['trigger-aside']"
 
                     class="flex min-h-0 shrink-0 self-stretch"
                 >
-                    <Button
-                        v-tooltip="actionTooltip || undefined"
-                        type="button"
-                        class="min-h-0 self-stretch"
-                        :class="actionButtonLayoutClass"
-                        :hover-effect="false"
-                        :left-icon="actionIcon"
-                        :label="actionLabel"
-                        :disabled="disabled"
-                        :aria-label="actionAriaLabel"
-                        :button-class="actionButtonClass"
-
-                        @click.stop="onActionClick"
-                    />
+                    <slot name="trigger-aside" />
                 </div>
             </div>
 
@@ -142,6 +129,7 @@
             :panel-class="panelClass"
             :mobile-modal="mobileModal"
             :force-modal="forceModal"
+            :prefer-above="Boolean(separateSelected)"
             :open="internalOpen"
 
             @update:open="onPanelOpenUpdate"
@@ -375,32 +363,17 @@ export default defineComponent({
             default: false
         },
 
-        /**
-         * Icon class suffix for the side action (e.g. `fa-plus`). Same trigger style as the select.
-         */
-        actionIcon: {
-            type: String,
-            required: false
-        },
-
-        actionLabel: {
-            type: String,
-            required: false
-        },
-
-        actionSide: {
-            type: String as PropType<"left" | "right">,
-            default: "right"
-        },
-
-        actionTooltip: {
-            type: String,
-            required: false
-        },
-
         disabled: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * Side of the `#trigger-aside` slot relative to the trigger.
+         */
+        triggerAsideSide: {
+            type: String as PropType<"left" | "right">,
+            default: "right"
         },
 
         /**
@@ -464,7 +437,6 @@ export default defineComponent({
         "update:modelValue",
         "update:value",
         "update:query",
-        "click:action",
         "click:selected",
         "remove:selected",
         "search:external",
@@ -679,26 +651,6 @@ export default defineComponent({
                 backgroundColor,
                 borderColor: color
             };
-        },
-
-        hasActionButton(): boolean {
-            return Boolean(this.actionIcon || this.actionLabel);
-        },
-
-        actionAriaLabel(): string {
-            return this.actionLabel || this.actionTooltip || "Adicionar";
-        },
-
-        actionButtonLayoutClass(): string {
-            if (this.actionLabel) {
-                return "h-full";
-            }
-
-            return "aspect-square h-auto w-auto p-1.5!";
-        },
-
-        actionButtonClass(): string {
-            return "box-border h-full";
         },
 
         mergedButtonAtributes(): Record<string, unknown> {
@@ -1133,11 +1085,6 @@ export default defineComponent({
         close() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.close();
-        },
-
-        onActionClick(event: MouseEvent) {
-            this.close();
-            this.$emit("click:action", event);
         },
 
         onSearchExternal(payload: SearchExternalPayload) {

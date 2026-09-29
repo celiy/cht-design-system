@@ -3,7 +3,8 @@
         <div
             v-show="modalOpen"
 
-            class="fixed top-0 left-0 h-full w-full"
+            class="fixed top-0 left-0 h-full w-full transition-all"
+            :class="showModal ? 'opacity-100' : 'opacity-0'"
             :style="{ zIndex: overlayZIndex }"
         >
             <Transition name="fade-modal">
@@ -18,8 +19,11 @@
             </Transition>
 
             <div
-                class="pointer-events-none absolute inset-0 flex"
-                :class="shellAlignClass"
+                class="pointer-events-none absolute inset-0 flex transition-all"
+                :class="[
+                    shellAlignClass,
+                    showModal ? 'scale-x-100 scale-y-100' : 'scale-x-80 scale-y-80'
+                ]"
             >
                 <Transition :name="panelTransitionName">
                     <!-- Modal panel: preview -->
@@ -263,7 +267,9 @@ export default defineComponent({
             modalUrlId: 0,
 
             urlSyncReady: false,
-            urlSyncFromRoute: false
+            urlSyncFromRoute: false,
+
+            showModal: true
         };
     },
 
@@ -306,7 +312,7 @@ export default defineComponent({
                 this.variant === "preview" ||
                 this.variant === "blank"
             ) {
-                return "fade-modal";
+                return "fade-scale-modal";
             }
 
             if (this.side === "bottom") {
@@ -442,8 +448,9 @@ export default defineComponent({
         },
 
         isOpen: {
-            handler(newVal: boolean) {
+            async handler(newVal: boolean) {
                 this.modalOpen = newVal;
+                this.showModal = newVal;
             },
 
             immediate: true
@@ -547,13 +554,18 @@ export default defineComponent({
          * Opens the modal.
          */
         open() {
+            this.showModal = true;
             this.modalOpen = true;
         },
 
         /**
          * Closes the modal.
          */
-        close() {
+        async close() {
+            this.showModal = false;
+
+            await new Promise((resolve) => setTimeout(resolve, 250));
+
             this.modalOpen = false;
         },
 
@@ -847,10 +859,10 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Backdrop / modal panel — mesma curva que o overlay da Sidebar (opacity 0.2s ease) */
+/* Backdrop — mesma curva que o overlay da Sidebar (opacity 0.2s ease) */
 .fade-modal-enter-active,
 .fade-modal-leave-active {
-    transition: opacity 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .fade-modal-enter-from,
@@ -861,6 +873,24 @@ export default defineComponent({
 .fade-modal-enter-to,
 .fade-modal-leave-from {
     opacity: 1;
+}
+
+/* Backdrop — mesma curva que o overlay da Sidebar (opacity 0.2s ease) */
+.fade-scale-modal-enter-active,
+.fade-scale-modal-leave-active {
+    transition: all 0.2s ease;
+}
+
+.fade-scale-modal-enter-from,
+.fade-scale-modal-leave-to {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.fade-scale-modal-enter-to,
+.fade-scale-modal-leave-from {
+    opacity: 1;
+    transform: scale(1);
 }
 
 /*

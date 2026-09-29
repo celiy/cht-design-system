@@ -76,6 +76,7 @@ import {
     unregisterOpenFloatingPanel
 } from "@shared/frontend/floatingPanels";
 import Modal from "../Modal.vue";
+import { shouldPositionAbove } from "./floatingPanelPlacement.js";
 
 const NARROW_VIEWPORT = "(max-width: 767px)";
 const HOVER_CLOSE_DELAY_MS = 120;
@@ -168,6 +169,15 @@ export default defineComponent({
          * Keeps the panel open while the pointer is over the panel after a hover open.
          */
         openOnHover: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * Prefer opening above the anchor. Still flips below when above cannot fit
+         * and the viewport has more room underneath.
+         */
+        preferAbove: {
             type: Boolean,
             default: false
         }
@@ -482,7 +492,12 @@ export default defineComponent({
             const spaceBelow = window.innerHeight - rect.bottom;
             const spaceAbove = rect.top;
 
-            this.positionAbove = spaceAbove >= spaceBelow && spaceBelow < estimatedPanelHeight;
+            this.positionAbove = shouldPositionAbove(
+                spaceAbove,
+                spaceBelow,
+                estimatedPanelHeight,
+                this.preferAbove
+            );
         },
 
         updatePosition() {
@@ -508,7 +523,12 @@ export default defineComponent({
             );
             const clampedLeft = Math.min(Math.max(rect.left, viewportPadding), maxLeft);
 
-            this.positionAbove = spaceAbove >= spaceBelow && spaceBelow < estimatedPanelHeight;
+            this.positionAbove = shouldPositionAbove(
+                spaceAbove,
+                spaceBelow,
+                estimatedPanelHeight,
+                this.preferAbove
+            );
 
             const available = this.positionAbove
                 ? spaceAbove - gap - viewportPadding

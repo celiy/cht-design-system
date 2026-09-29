@@ -33,17 +33,19 @@ Example on how to use this component:
                 v-for="(_, index) in tabCount"
                 :key="index"
 
-                class="rounded border bg-transparent p-3 text-sm leading-1 font-medium transition-all dark:hover:brightness-150 light:hover:brightness-50"
+                class="bg-transparent p-3 text-sm leading-1 font-medium transition-all dark:hover:brightness-150 light:hover:brightness-50"
                 :class="{
                     'text-foreground': index === activeTab,
                     'text-muted-foreground': index !== activeTab,
-                    'border-transparent!': index !== activeTab,
 
-                    'border-ring/50!': index === activeTab && variant === 'secondary',
+                    rounded: variant === 'secondary',
+                    'border-ring/50': index === activeTab && variant === 'secondary',
+                    'border-transparent': index !== activeTab && variant === 'secondary',
 
-                    'border-primary! text-primary':
+                    'border-b-2-transparent': index !== activeTab && variant === 'transparent',
+                    'border-b-2-primary text-primary':
                         index === activeTab && variant === 'transparent',
-                    'rounded-none! border-x-0 border-t-0 border-b-2': variant === 'transparent'
+                    'rounded-none!': variant === 'transparent'
                 }"
 
                 @click="switchTab(index)"
@@ -52,7 +54,13 @@ Example on how to use this component:
             </button>
         </div>
 
-        <slot :name="`tab-content-${activeTab}`" />
+        <div
+            v-for="(_, index) in tabCount"
+            v-show="activeTab === index"
+            :key="index"
+        >
+            <slot :name="`tab-content-${index}`" />
+        </div>
     </div>
 </template>
 

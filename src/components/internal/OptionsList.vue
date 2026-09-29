@@ -161,7 +161,7 @@ export type SearchExternalPayload = {
     value: string;
 };
 
-const SEARCH_EXTERNAL_DEBOUNCE_MS = 300;
+const SEARCH_EXTERNAL_DEBOUNCE_MS = 100;
 
 type IsOptionSelected = (
     value: string | undefined,

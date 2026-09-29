@@ -48,7 +48,7 @@
 
         <!-- Footer -->
         <template v-if="$slots.footer">
-            <div class="rounded-b border-t bg-muted/50 p-4">
+            <div :class="footerClass">
                 <slot name="footer" />
             </div>
         </template>
@@ -74,6 +74,11 @@ export default defineComponent({
         },
 
         backgroundStyle: {
+            type: String,
+            required: false
+        },
+
+        footerStyle: {
             type: String,
             required: false
         },
@@ -116,6 +121,14 @@ export default defineComponent({
                 "bg-card": this.variant === "default",
                 "bg-transparent": this.variant === "transparent"
             };
+        },
+
+        footerClass() {
+            if (this.footerStyle) {
+                return this.footerStyle;
+            }
+
+            return "rounded-b border-t bg-muted/50 p-4";
         }
     }
 });

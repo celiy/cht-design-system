@@ -185,17 +185,33 @@
                                 :show-selected-labels="field.selectShowSelectedLabels ?? true"
                                 :hide-dropdown-arrow="isViewMode"
                                 :disabled="isViewMode || field.disabled"
-                                :action-icon="isViewMode ? undefined : field.selectAction?.icon"
-                                :action-label="isViewMode ? undefined : field.selectAction?.label"
-                                :action-side="field.selectAction?.side ?? 'right'"
-                                :action-tooltip="isViewMode ? undefined : field.selectAction?.tooltip"
+                                :trigger-aside-side="field.selectAction?.side ?? 'right'"
 
                                 @update:value="updateValue(field.id, $event)"
-                                @click:action="onSelectAction(field)"
                                 @click:selected="onSelectSelected(field, $event)"
                                 @remove:selected="onSelectRemove(field, $event)"
                                 @search:external="onSelectSearchExternal(field, $event)"
                             >
+                                <template
+                                    v-if="selectActionVisible(field)"
+                                    #trigger-aside
+                                >
+                                    <Button
+                                        v-tooltip="field.selectAction?.tooltip || undefined"
+                                        type="button"
+                                        class="min-h-0 self-stretch"
+                                        :class="selectActionLayoutClass(field)"
+                                        button-class="box-border h-full"
+                                        :hover-effect="false"
+                                        :left-icon="field.selectAction?.icon"
+                                        :label="field.selectAction?.label"
+                                        :disabled="isViewMode || field.disabled"
+                                        :aria-label="selectActionAriaLabel(field)"
+
+                                        @click.stop="onSelectAction(field)"
+                                    />
+                                </template>
+
                                 <template
                                     v-if="$slots['select-inside-empty-panel']"
                                     #inside-empty-panel
@@ -247,6 +263,7 @@
 import { defineComponent, type PropType } from "vue";
 import Input from "../Input.vue";
 import Checkbox from "../Checkbox.vue";
+import Button from "../Button.vue";
 import Radio from "../Radio.vue";
 import Select from "../Select.vue";
 import Toggle from "../Toggle.vue";
@@ -275,6 +292,7 @@ export default defineComponent({
     name: "FormRenderer",
 
     components: {
+        Button,
         Input,
         Checkbox,
         Radio,
@@ -563,7 +581,28 @@ export default defineComponent({
             this.selectRefByFieldId[fieldId]?.close?.();
         },
 
+        selectActionVisible(field: FormFieldType): boolean {
+            if (this.isViewMode) {
+                return false;
+            }
+
+            return Boolean(field.selectAction?.icon || field.selectAction?.label);
+        },
+
+        selectActionAriaLabel(field: FormFieldType): string {
+            return field.selectAction?.label || field.selectAction?.tooltip || "Adicionar";
+        },
+
+        selectActionLayoutClass(field: FormFieldType): string {
+            if (field.selectAction?.label) {
+                return "h-full";
+            }
+
+            return "aspect-square h-auto w-auto p-1.5!";
+        },
+
         onSelectAction(field: FormFieldType) {
+            this.closeSelect(field.id);
             this.$emit("click:select-action", {
                 id: field.id,
                 field

@@ -1,6 +1,6 @@
 <template>
     <div
-        class="flex items-start gap-3 rounded border p-3 transition-all"
+        class="flex items-start gap-3 rounded p-3 transition-all"
         :class="[
             cardClass,
             {
@@ -206,18 +206,18 @@ export default defineComponent({
         cardClass(): Record<string, boolean> {
             if (this.disabled) {
                 return {
-                    "bg-transparent border-border/50 cursor-not-allowed!": true
+                    "border bg-transparent cursor-not-allowed!": true
                 };
             }
 
             return {
-                "border-primary/40! border-2 bg-muted/40": this.variant === "primary",
-                "border-secondary! bg-muted/40 border-2": this.variant === "secondary",
-                "border-success/30! border-2 bg-muted/40": this.variant === "success",
-                "border-warning/30! border-2 bg-muted/40": this.variant === "warning",
-                "border-destructive/30! border-2 bg-muted/40": this.variant === "destructive",
-                "border-info/30! border-2 bg-muted/40": this.variant === "info",
-                "border-input bg-muted/40": true
+                "bg-muted/40": true,
+                "border-2-primary/40": this.variant === "primary",
+                "border-2-secondary": this.variant === "secondary",
+                "border-2-success/30": this.variant === "success",
+                "border-2-warning/30": this.variant === "warning",
+                "border-2-destructive/30": this.variant === "destructive",
+                "border-2-info/30": this.variant === "info"
             };
         },
 
