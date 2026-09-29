@@ -5,6 +5,7 @@
         class="flex w-full justify-center gap-1 md:gap-2"
     >
         <Button
+            v-tooltip="'Ir para primeira página'"
             variant="transparent"
             :class="[{ transparent: selectedPage > 1 }, { invisible: selectedPage === 1 }]"
 
@@ -14,6 +15,7 @@
         </Button>
 
         <Button
+            v-tooltip="'Voltar uma página'"
             variant="transparent"
             :class="[{ transparent: selectedPage > 1 }, { invisible: selectedPage === 1 }]"
 
@@ -94,6 +96,7 @@
         </Popover>
 
         <Button
+            v-tooltip="'Avançar uma página'"
             variant="transparent"
             :class="[
                 { transparent: selectedPage < amount },
@@ -108,6 +111,7 @@
         </Button>
 
         <Button
+            v-tooltip="'Ir para a última página'"
             variant="transparent"
             :class="[
                 { transparent: selectedPage < amount },
