@@ -208,7 +208,11 @@ export default defineComponent({
             const base = sizeMap[this.size as "extra-small" | "small" | "medium" | "large"] ?? 34;
 
             return `${base}px`;
-        }
+        },
+
+        backgroundClass() {},
+
+        borderClass() {}
     },
 
     methods: {

@@ -623,10 +623,6 @@ export default defineComponent({
             if (item.separator || item.disabled || this.hasChildren(item) || !item.value) {
                 return;
             }
-
-            this.localSearchQuery = "";
-            this.$emit("update:searchQuery", "");
-            this.scheduleExternalSearch("");
         },
 
         onItemClick(item: OptionItem) {
@@ -652,6 +648,9 @@ export default defineComponent({
             }
 
             this.$emit("select", item.value, item);
+            this.localSearchQuery = "";
+            this.$emit("update:searchQuery", "");
+            this.scheduleExternalSearch("");
         },
 
         onNestedSelect(value: string, item: OptionItem, parent?: OptionItem) {
