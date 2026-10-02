@@ -5,10 +5,11 @@
         @pointerenter="onPointerEnter"
         @pointermove="onPointerMove"
         @pointerleave="onPointerLeave"
-        @mouseleave="onPointerLeave"
+        @mouseleave="hideUnlessCaptured"
         @pointerdown="onPointerDown"
         @pointerup="onPointerUp"
         @pointercancel="onPointerUp"
+        @click="$emit('click', $event)"
     >
         <slot />
 
@@ -70,6 +71,8 @@ export default defineComponent({
         }
     },
 
+    emits: ["click", "pointerenter", "pointerleave"],
+
     data() {
         return {
             visible: false,
@@ -109,6 +112,7 @@ export default defineComponent({
         },
 
         onPointerEnter(event: PointerEvent) {
+            this.$emit("pointerenter", event);
             this.beginShow(event);
         },
 
@@ -123,7 +127,12 @@ export default defineComponent({
             this.scheduleFollow();
         },
 
-        onPointerLeave() {
+        onPointerLeave(event: PointerEvent) {
+            this.$emit("pointerleave", event);
+            this.hideUnlessCaptured();
+        },
+
+        hideUnlessCaptured() {
             if (this.capturedPointerId != null) {
                 return;
             }

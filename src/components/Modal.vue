@@ -47,9 +47,7 @@
                         :class="[
                             backgroundClass,
                             panelSurfaceClass,
-                            variant === 'preview'
-                                ? ''
-                                : 'flex min-h-0 flex-col',
+                            'flex min-h-0 flex-col',
                             variant === 'modal' || variant === 'blank' ? 'max-h-[90vh]' : ''
                         ]"
                         :style="drawerDragStyle"
