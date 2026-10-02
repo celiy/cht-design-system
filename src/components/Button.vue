@@ -2,41 +2,14 @@
     <button
         class="w-fit cursor-pointer font-semibold shadow-sm transition-all select-none disabled:cursor-not-allowed disabled:opacity-80"
         :class="[
+            hoverClass,
+            backgroundClass,
+            borderClass,
+            shapeClass,
             {
-                'border border-primary/95 bg-primary/95 text-primary-foreground':
-                    variant === 'primary',
-                'bg-destructive/25 text-destructive hover:bg-destructive/40':
-                    variant === 'destructive',
-                'text-destructive hover:bg-destructive/40': variant === 'transparent-destructive',
-                'border border-success/95 bg-success/95 text-success-foreground':
-                    variant === 'success',
-                'border border-info/95 bg-info/95 text-info-foreground': variant === 'info',
-                'border border-warning/95 bg-warning/95 text-warning-foreground':
-                    variant === 'warning',
-                'border bg-secondary text-secondary-foreground': variant === 'secondary',
-                'border bg-input/30 text-foreground/90 hover:bg-input/50': variant === 'default',
-                'border border-transparent! bg-transparent text-secondary-foreground shadow-none! hover:bg-accent':
-                    variant === 'transparent',
-                'border border-border bg-transparent text-foreground hover:bg-accent':
-                    variant === 'outline' || variant === 'bordered',
-
                 'p-1 px-2.5 text-xs': size === 'small' && shape !== 'rounded',
                 'p-1.5 px-3 text-sm': size === 'medium' && shape !== 'rounded',
-                'p-2 px-3.5 text-base': size === 'large' && shape !== 'rounded',
-
-                'hover-ring':
-                    hoverEffect && hovered && (variant === 'default' || variant === 'secondary'),
-                'hover-ring-primary': hoverEffect && hovered && variant === 'primary',
-                'hover-ring-destructive': hoverEffect && hovered && variant === 'destructive',
-                'hover-ring-success': hoverEffect && hovered && variant === 'success',
-                'hover-ring-info': hoverEffect && hovered && variant === 'info',
-                'hover-ring-warning': hoverEffect && hovered && variant === 'warning',
-
-                rounded: shape === 'square',
-                'flex aspect-square items-center justify-center justify-items-center rounded-full p-0':
-                    shape === 'rounded',
-
-                'hover:shadow-md dark:hover:brightness-125 light:hover:brightness-90': !disabled
+                'p-2 px-3.5 text-base': size === 'large' && shape !== 'rounded'
             },
             buttonClass
         ]"
@@ -180,6 +153,26 @@ export default defineComponent({
         form: {
             type: String,
             required: false
+        },
+
+        hoverStyle: {
+            type: String,
+            required: false
+        },
+
+        backgroundStyle: {
+            type: String,
+            required: false
+        },
+
+        borderStyle: {
+            type: String,
+            required: false
+        },
+
+        radiusStyle: {
+            type: String,
+            required: false
         }
     },
 
@@ -210,9 +203,101 @@ export default defineComponent({
             return `${base}px`;
         },
 
-        backgroundClass() {},
+        hoverClass() {
+            if (this.hoverStyle) {
+                return this.hoverStyle;
+            }
 
-        borderClass() {}
+            if (this.backgroundStyle) {
+                return "hover:brightness-120";
+            }
+
+            if (this.disabled) {
+                return "hover:brightness-80";
+            }
+
+            return {
+                "hover-ring":
+                    this.hoverEffect &&
+                    this.hovered &&
+                    (this.variant === "default" || this.variant === "secondary"),
+                "hover-ring-primary":
+                    this.hoverEffect && this.hovered && this.variant === "primary",
+                "hover-ring-destructive":
+                    this.hoverEffect && this.hovered && this.variant === "destructive",
+                "hover-ring-success":
+                    this.hoverEffect && this.hovered && this.variant === "success",
+                "hover-ring-info": this.hoverEffect && this.hovered && this.variant === "info",
+                "hover-ring-warning":
+                    this.hoverEffect && this.hovered && this.variant === "warning",
+
+                "hover:shadow-md": !this.disabled,
+                "hover:bg-destructive/40":
+                    this.variant === "transparent-destructive" || this.variant === "destructive",
+                "hover:bg-input/50": this.variant === "default",
+                "hover:bg-accent": this.variant === "transparent",
+                "bg-accent! hover-ring":
+                    this.hoverEffect &&
+                    this.hovered &&
+                    (this.variant === "outline" || this.variant === "bordered")
+            };
+        },
+
+        backgroundClass() {
+            if (this.backgroundStyle) {
+                return this.backgroundStyle;
+            }
+
+            return {
+                "bg-primary/95 text-primary-foreground": this.variant === "primary",
+                "bg-destructive/25 text-destructive": this.variant === "destructive",
+                "text-destructive": this.variant === "transparent-destructive",
+                "bg-success/95 text-success-foreground": this.variant === "success",
+                "bg-info/95 text-info-foreground": this.variant === "info",
+                "bg-warning/95 text-warning-foreground": this.variant === "warning",
+                "bg-secondary text-secondary-foreground": this.variant === "secondary",
+                "bg-input/30 text-foreground/90": this.variant === "default",
+                "bg-transparent text-secondary-foreground shadow-none!":
+                    this.variant === "transparent",
+                "bg-transparent text-foreground":
+                    this.variant === "outline" || this.variant === "bordered"
+            };
+        },
+
+        borderClass() {
+            if (this.borderStyle) {
+                return this.borderStyle;
+            }
+
+            if (this.backgroundStyle) {
+                return "";
+            }
+
+            return {
+                "border-primary": this.variant === "primary",
+                "border-success": this.variant === "success",
+                "border-info": this.variant === "info",
+                "border-warning": this.variant === "warning",
+                "border ":
+                    this.variant === "secondary" ||
+                    this.variant === "default" ||
+                    this.variant === "outline" ||
+                    this.variant === "bordered",
+                "border-transparent": this.variant === "transparent"
+            };
+        },
+
+        shapeClass() {
+            if (this.radiusStyle) {
+                return this.radiusStyle;
+            }
+
+            return {
+                rounded: this.shape === "square",
+                "flex aspect-square items-center justify-center justify-items-center rounded-full p-0":
+                    this.shape === "rounded"
+            };
+        }
     },
 
     methods: {

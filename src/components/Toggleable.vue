@@ -26,8 +26,8 @@
             ]"
         >
             <div
-                class="inline-flex w-fit flex-wrap items-center gap-1 rounded border bg-input/30 p-1"
-                :class="borderClass"
+                class="inline-flex w-fit flex-wrap items-center"
+                :class="[borderClass, backgroundClass, radiusClass]"
             >
                 <Toggle
                     v-for="option in options"
@@ -36,6 +36,7 @@
                     :label="option.label"
                     :model-value="isSelected(option.value)"
                     :variant="variant"
+                    :radius-style="radiusClass"
                     :size="size"
                     :disabled="disabled || Boolean(option.disabled)"
                     :hover-effect="false"
@@ -108,13 +109,28 @@ export default defineComponent({
 
         size: {
             type: String as PropType<"small" | "medium" | "large">,
-            default: "medium",
+            default: "small",
             required: false
         },
 
         disabled: {
             type: Boolean,
             default: false,
+            required: false
+        },
+
+        borderStyle: {
+            type: String,
+            required: false
+        },
+
+        radiusStyle: {
+            type: String,
+            required: false
+        },
+
+        backgroundStyle: {
+            type: String,
             required: false
         }
     },
@@ -123,21 +139,34 @@ export default defineComponent({
 
     computed: {
         borderClass(): string {
-            const map: Record<ButtonVariants, string> = {
-                default: "border-border",
-                primary: "border-primary",
-                secondary: "border-secondary",
-                success: "border-success",
-                info: "border-info",
-                warning: "border-warning",
-                destructive: "border-destructive",
-                outline: "border-border",
-                bordered: "border-border",
-                transparent: "border-border",
-                "transparent-destructive": "border-destructive"
-            };
+            if (this.borderStyle) {
+                return this.borderStyle;
+            }
 
-            return map[this.variant] ?? "border-border";
+            return "border";
+        },
+
+        backgroundClass() {
+            if (this.backgroundStyle) {
+                return this.backgroundStyle;
+            }
+
+            return [
+                "bg-input/30 gap-1",
+                {
+                    "p-1.5": this.size === "small",
+                    "p-1": this.size === "medium",
+                    "p-0.5": this.size === "large"
+                }
+            ];
+        },
+
+        radiusClass(): string {
+            if (this.radiusStyle) {
+                return this.radiusStyle;
+            }
+
+            return "rounded-full";
         }
     },
 

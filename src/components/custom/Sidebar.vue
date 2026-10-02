@@ -12,7 +12,7 @@
         </Transition>
 
         <Resizable
-            class="absolute top-0 left-0 z-50 box-border flex h-full flex-col overflow-hidden border-r border-sidebar-border shadow-lg transition-transform duration-300 ease-out"
+            class="absolute top-0 left-0 z-50 box-border flex h-full flex-col overflow-hidden border-r-sidebar-border shadow-lg transition-transform duration-300 ease-out"
             :class="[
                 open && $project.device.isMobile ? 'min-w-[80%] sm:min-w-[60%]' : '',
                 variant === 'minimalist' ? 'bg-background' : 'bg-sidebar'
@@ -31,20 +31,18 @@
         >
             <nav class="box-border flex h-full min-h-0 w-full flex-col px-2 pt-2 select-none">
                 <!-- Title and description -->
-                <div
-                    v-if="$slots.header"
-
-                    class="w-full shrink-0 rounded bg-transparent px-4 py-3 transition-all dark:hover:brightness-125 light:hover:brightness-90"
-                >
-                    <slot name="header" />
-                </div>
+                <slot name="header" />
 
                 <!-- Links -->
                 <div
-                    class="sidebar-links-scroll-hidden min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-1 pb-2 pl-2"
+                    v-if="resolvedNav"
+
+                    class="sidebar-links-scroll-hidden mb-8 min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-1 pb-2 pl-2"
                 >
                     <SideBarLinks :items="resolvedNav" />
                 </div>
+
+                <slot name="sidebar-body" />
 
                 <div
                     v-if="$slots.footer"

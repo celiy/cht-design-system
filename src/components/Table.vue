@@ -63,53 +63,40 @@
                             :key="head.label"
 
                             class="p-2 text-sm font-semibold"
-                            :class="{
-                                'text-left': head.position === 'start',
-                                'text-center': head.position === 'center',
-                                'text-right': head.position === 'end'
-                            }"
+                            :class="alignClass(head)"
                         >
                             <span
-                                class="block w-full min-w-0"
+                                class="inline-flex max-w-full items-center"
                                 :class="{
-                                    'text-left': head.position === 'start',
-                                    'text-center': head.position === 'center',
-                                    'text-right': head.position === 'end'
+                                    'cursor-pointer select-none hover:dark:brightness-120 hover:light:brightness-90':
+                                        head.canSort
                                 }"
+
+                                @mouseenter="hoverField = head.field ?? ''"
+                                @mouseleave="hoverField = ''"
+                                @click="sortField(head.field ?? '')"
                             >
+                                {{ head.label }}
                                 <span
-                                    class="w-fit"
+                                    v-if="head.canSort"
+
+                                    class="fa-solid fa-arrow-down text-xs transition-all"
                                     :class="{
-                                        'cursor-pointer select-none hover:dark:brightness-120 hover:light:brightness-90':
-                                            head.canSort
+                                        'rotate-180':
+                                            sortedField.field === head.field &&
+                                            sortedField.direction === 'asc',
+                                        'opacity-100':
+                                            hoverField === head.field &&
+                                            sortedField.field === head.field,
+                                        'opacity-60':
+                                            hoverField === head.field &&
+                                            sortedField.field !== head.field,
+                                        'opacity-40':
+                                            hoverField !== head.field &&
+                                            sortedField.field === head.field,
+                                        'opacity-0': hoverField !== head.field
                                     }"
-
-                                    @mouseenter="hoverField = head.field ?? ''"
-                                    @mouseleave="hoverField = ''"
-                                    @click="sortField(head.field ?? '')"
-                                >
-                                    {{ head.label }}
-                                    <span
-                                        v-if="head.canSort"
-
-                                        class="fa-solid fa-arrow-down text-xs transition-all"
-                                        :class="{
-                                            'rotate-180':
-                                                sortedField.field === head.field &&
-                                                sortedField.direction === 'asc',
-                                            'opacity-100':
-                                                hoverField === head.field &&
-                                                sortedField.field === head.field,
-                                            'opacity-60':
-                                                hoverField === head.field &&
-                                                sortedField.field !== head.field,
-                                            'opacity-40':
-                                                hoverField !== head.field &&
-                                                sortedField.field === head.field,
-                                            'opacity-0': hoverField !== head.field
-                                        }"
-                                    />
-                                </span>
+                                />
                             </span>
                         </th>
 
@@ -220,36 +207,50 @@
                                 :key="cell.head.label"
 
                                 class="p-2"
+                                :class="alignClass(cell.head)"
                             >
-                                <div
-                                    class="flex w-full"
-                                    :class="{
-                                        'justify-start': cell.head.position === 'start',
-                                        'justify-center': cell.head.position === 'center',
-                                        'justify-end': cell.head.position === 'end'
-                                    }"
-                                >
+                                <div class="inline-flex max-w-full items-center">
                                     <div v-if="isTextCellValue(cell.value)">
                                         {{ formatTextCell(cell.value, cell.head) }}
                                     </div>
 
                                     <div
-                                        v-if="isBadgeCellValue(cell.value)"
+                                        v-else-if="isToggleCellValue(cell.value)"
 
-                                        :class="{
-                                            'flex justify-start': cell.head.position === 'start',
-                                            'flex justify-center': cell.head.position === 'center',
-                                            'flex justify-end': cell.head.position === 'end'
-                                        }"
+                                        class="flex min-w-0 items-center gap-1"
                                     >
-                                        <Badge
-                                            v-tooltip="badgeTooltip(cell.value)"
-                                            v-bind="tableBadgeProps(cell.head, cell.value)"
-                                            :color="badgeColor(cell.value)"
-                                            :variant="badgeVariant(cell.value)"
-                                            :label="badgeLabel(cell.value)"
+                                        <span class="min-w-0 truncate">
+                                            {{ toggleCellText(cell.value, toggleKey(index, cell.head)) }}
+                                        </span>
+
+                                        <Button
+                                            v-bind="toggleButtonProps(cell.value)"
+
+                                            type="button"
+                                            :left-icon="
+                                                isToggleRevealed(toggleKey(index, cell.head))
+                                                    ? 'fa-eye-slash'
+                                                    : 'fa-eye'
+                                            "
+                                            :aria-label="
+                                                isToggleRevealed(toggleKey(index, cell.head))
+                                                    ? 'Ocultar valor'
+                                                    : 'Mostrar valor'
+                                            "
+
+                                            @click.stop="toggleCellReveal(index, cell.head)"
                                         />
                                     </div>
+
+                                    <Badge
+                                        v-else-if="isBadgeCellValue(cell.value)"
+
+                                        v-tooltip="badgeTooltip(cell.value)"
+                                        v-bind="tableBadgeProps(cell.head, cell.value)"
+                                        :color="badgeColor(cell.value)"
+                                        :variant="badgeVariant(cell.value)"
+                                        :label="badgeLabel(cell.value)"
+                                    />
                                 </div>
                             </td>
 
@@ -261,7 +262,7 @@
                             >
                                 <div class="flex w-full justify-end">
                                     <Dropdown
-                                        :options="actions"
+                                        :options="actionsForRow(item)"
 
                                         @click:value="onActionClick($event, item)"
                                     >
@@ -331,6 +332,20 @@ export type TableHeaderBadgeProps = {
     external?: boolean;
 };
 
+export type TableToggleCell = {
+    value: string | number;
+    altValue: string | number;
+    buttonProps?: Record<string, unknown>;
+};
+
+export function isTableToggleCell(value: unknown): value is TableToggleCell {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    return "value" in value && "altValue" in value;
+}
+
 export type TableHeader = Record<string, unknown> & {
     label: string;
     field?: string;
@@ -397,10 +412,13 @@ export default defineComponent({
 
         /**
          * Per-row menu options, same shape as Dropdown `options`.
+         * A function receives the row so the menu can depend on it.
          * Selecting an item emits `click:action` with `(value, row)`.
          */
         actions: {
-            type: Array as PropType<OptionItem[]>,
+            type: [Array, Function] as PropType<
+                OptionItem[] | ((row: Record<string, unknown>) => OptionItem[])
+            >,
             required: false
         },
 
@@ -429,6 +447,7 @@ export default defineComponent({
             selectedHeaders: [] as string[],
             hoverField: "" as string,
             selectedRows: [] as number[],
+            revealedToggleKeys: {} as Record<string, boolean>,
 
             sortedField: {} as { field: string; direction: "asc" | "desc" }
         };
@@ -436,6 +455,10 @@ export default defineComponent({
 
     computed: {
         hasActions(): boolean {
+            if (typeof this.actions === "function") {
+                return true;
+            }
+
             return Array.isArray(this.actions) && this.actions.length > 0;
         },
 
@@ -559,6 +582,18 @@ export default defineComponent({
             }));
         },
 
+        alignClass(head: TableHeader): string {
+            if (head.position === "center") {
+                return "text-center";
+            }
+
+            if (head.position === "end") {
+                return "text-right";
+            }
+
+            return "text-left";
+        },
+
         formatTextCell(value: string | number | boolean, head: TableHeader): string {
             const text = String(value);
             const format = head.format ?? tableCellMaskForField(head.field);
@@ -574,6 +609,35 @@ export default defineComponent({
             return (
                 typeof value === "string" || typeof value === "number" || typeof value === "boolean"
             );
+        },
+
+        isToggleCellValue(value: unknown): value is TableToggleCell {
+            return isTableToggleCell(value);
+        },
+
+        toggleKey(rowIndex: number, head: TableHeader): string {
+            return `${rowIndex}:${head.field ?? head.label}`;
+        },
+
+        isToggleRevealed(key: string): boolean {
+            return Boolean(this.revealedToggleKeys[key]);
+        },
+
+        toggleCellText(value: TableToggleCell, key: string): string {
+            return String(this.isToggleRevealed(key) ? value.altValue : value.value);
+        },
+
+        toggleButtonProps(value: TableToggleCell): Record<string, unknown> {
+            return value.buttonProps ?? {};
+        },
+
+        toggleCellReveal(rowIndex: number, head: TableHeader) {
+            const key = this.toggleKey(rowIndex, head);
+
+            this.revealedToggleKeys = {
+                ...this.revealedToggleKeys,
+                [key]: !this.revealedToggleKeys[key]
+            };
         },
 
         resolveBadgeValue(value: unknown): ResolvedBadgeValue | undefined {
@@ -687,6 +751,14 @@ export default defineComponent({
                 // Otherwise, select all
                 this.selectedRows = (this.data ?? []).map((_: any, index: number) => index);
             }
+        },
+
+        actionsForRow(item: Record<string, unknown>): OptionItem[] {
+            if (typeof this.actions === "function") {
+                return this.actions(item) ?? [];
+            }
+
+            return this.actions ?? [];
         },
 
         onActionClick(value: string, item: Record<string, any>) {

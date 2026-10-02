@@ -13,13 +13,41 @@ export function chartColorCssVar(color: string): string {
 }
 
 /**
- * Inline background paint for bar fills (works with any theme token).
- *
- * @param color Token name such as `"green-500"`
- * @returns Style object for `:style`
+ * Solid color along a series: index 0 is `color`, last index is `colorEnd`,
+ * in-between bars mix the two (oklab). Tokens stay as CSS vars.
  */
-export function chartPaintStyle(color: string): { backgroundColor: string } {
-    return { backgroundColor: chartColorCssVar(color) };
+export function chartMixCss(
+    color: string,
+    colorEnd: string | undefined,
+    index: number,
+    total: number
+): string {
+    const start = chartColorCssVar(color);
+
+    if (!colorEnd || total <= 1 || index <= 0) {
+        return start;
+    }
+
+    if (index >= total - 1) {
+        return chartColorCssVar(colorEnd);
+    }
+
+    const t = index / (total - 1);
+    const startPct = Number(((1 - t) * 100).toFixed(4));
+
+    return `color-mix(in oklab, ${start} ${startPct}%, ${chartColorCssVar(colorEnd)})`;
+}
+
+/**
+ * Inline background paint for bar fills (works with any theme token).
+ */
+export function chartPaintStyle(
+    color: string,
+    colorEnd?: string,
+    index = 0,
+    total = 1
+): { backgroundColor: string } {
+    return { backgroundColor: chartMixCss(color, colorEnd, index, total) };
 }
 
 /**

@@ -914,7 +914,4 @@ export default defineComponent({
     margin-top: 0.5rem;
 }
 
-input {
-    color-scheme: dark;
-}
 </style>

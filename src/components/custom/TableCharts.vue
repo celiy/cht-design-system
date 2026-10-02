@@ -30,8 +30,14 @@
                 :data="data"
                 :hide-label="hideLabel"
                 :color="color"
+                :color-end="colorEnd"
                 :negative-color="negativeColor"
+                :negative-color-end="negativeColorEnd"
                 :direction="direction"
+                :clickable="clickable"
+                :align="align"
+
+                @click:bar="$emit('click:bar', $event)"
             />
 
             <WaveChart
@@ -40,6 +46,7 @@
                 :data="data"
                 :filter="filter"
                 :color="color"
+                :color-end="colorEnd"
             />
         </template>
     </Card>
@@ -49,7 +56,10 @@
 import { defineComponent, type PropType } from "vue";
 import Card from "../Card.vue";
 import Select from "../Select.vue";
-import BarChart, { type BarChartDirection } from "./charts/BarChart.vue";
+import BarChart, {
+    type BarChartAlign,
+    type BarChartDirection
+} from "./charts/BarChart.vue";
 import WaveChart, { type WaveFilter } from "./charts/WaveChart.vue";
 import { chartUsesGroups, type ChartSeries } from "./charts/groupChartItems";
 
@@ -106,9 +116,32 @@ export default defineComponent({
             default: "chart-5"
         },
 
+        colorEnd: {
+            type: String,
+            default: ""
+        },
+
+        negativeColorEnd: {
+            type: String,
+            default: ""
+        },
+
         direction: {
             type: String as PropType<BarChartDirection>,
             default: "vertical"
+        },
+
+        clickable: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * Vertical BarChart only. Packed bar group: `left` / `center` / `right`.
+         */
+        align: {
+            type: String as PropType<BarChartAlign>,
+            default: "center"
         },
 
         cardAtributes: {
@@ -116,6 +149,8 @@ export default defineComponent({
             required: false
         }
     },
+
+    emits: ["click:bar"],
 
     data() {
         return {

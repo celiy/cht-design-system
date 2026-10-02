@@ -82,7 +82,7 @@
         <div
             v-if="$slots.panelFooter && visibleOptions.length > 0"
 
-            class="sticky bottom-0 shrink-0 border-t border-border bg-popover px-3 py-2"
+            class="sticky bottom-0 shrink-0 border-t bg-popover px-3 py-2"
         >
             <slot name="panelFooter" />
         </div>
@@ -131,6 +131,7 @@ export type OptionItem = {
     value?: string;
     selected?: boolean;
     tooltip?: string;
+    tooltipPlacement?: "top" | "bottom" | "left" | "right" | "center";
     variant?: "destructive";
     disabled?: boolean;
     indicator?: OptionIndicator;
@@ -664,7 +665,7 @@ export default defineComponent({
 
             return {
                 content: item.tooltip,
-                placement: "right" as const
+                placement: item.tooltipPlacement ?? "right"
             };
         }
     }

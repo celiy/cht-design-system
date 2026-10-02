@@ -123,7 +123,7 @@
                 </button>
 
                 <span
-                    class="min-w-16 border-x border-input px-2.5 py-1.5 text-center tabular-nums select-none"
+                    class="min-w-16 border-x-input px-2.5 py-1.5 text-center tabular-nums select-none"
                 >
                     {{ pos + 1 }} / {{ itemCount }}
                 </span>

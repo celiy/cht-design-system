@@ -5,10 +5,8 @@
         class="relative inline-block w-full"
     >
         <div
-            class="w-full flex flex-col"
-            :class="{
-                'rounded bg-card border shadow-md overflow-hidden': variant === 'default'
-            }"
+            class="flex w-full flex-col"
+            :class="[backgroundClass, borderClass, shellClass]"
         >
             <!-- Header -->
             <div
@@ -113,6 +111,16 @@ export default defineComponent({
             type: Boolean,
             default: false,
             required: false
+        },
+
+        backgroundStyle: {
+            type: String,
+            required: false
+        },
+
+        borderStyle: {
+            type: String,
+            required: false
         }
     },
 
@@ -123,6 +131,34 @@ export default defineComponent({
             isPinned: false,
             isPressed: false
         };
+    },
+
+    computed: {
+        backgroundClass() {
+            if (this.backgroundStyle) {
+                return this.backgroundStyle;
+            }
+
+            return {
+                "bg-card": this.variant === "default"
+            };
+        },
+
+        borderClass() {
+            if (this.borderStyle) {
+                return this.borderStyle;
+            }
+
+            return {
+                border: this.variant === "default"
+            };
+        },
+
+        shellClass() {
+            return {
+                "overflow-hidden rounded shadow-md": this.variant === "default"
+            };
+        }
     },
 
     watch: {

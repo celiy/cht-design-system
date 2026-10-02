@@ -1,11 +1,16 @@
 import { monthNamesLong, monthNamesShort } from "@shared/constants/DateStrings";
+import { addPolar } from "./chartPolarity";
 
 export type ChartItem = {
     value: number;
+    /** Down-bar amount (conjunto). Ignored when omitted; signed `value` is used instead. */
+    valueNegative?: number;
     date?: Date;
     group?: string;
     /** Optional Tailwind/theme color token for this bar (`green-500`, `success`, …). */
     color?: string;
+    /** Stable id forwarded to `click:bar` (e.g. date bucket). */
+    id?: string;
 };
 
 export type ChartSeries = {
@@ -17,11 +22,13 @@ export type ChartSeries = {
 
 export type ChartPoint = {
     value: number;
+    valueNegative: number;
     label: string;
     dateLong: string;
     dateShort: string;
     date?: Date;
     color?: string;
+    id?: string;
 };
 
 /**
@@ -44,7 +51,10 @@ export function chartUsesGroups(items: ChartItem[]): boolean {
  * @returns Aggregated points in first-appearance order
  */
 export function groupChartItems(items: ChartItem[], seriesLabel: string): ChartPoint[] {
-    const grouped = new Map<string, { label: string; value: number; color?: string }>();
+    const grouped = new Map<
+        string,
+        { label: string; value: number; valueNegative: number; color?: string; id?: string }
+    >();
     const order: string[] = [];
 
     for (const item of items) {
@@ -52,7 +62,7 @@ export function groupChartItems(items: ChartItem[], seriesLabel: string): ChartP
         const key = raw.toLowerCase();
 
         if (!grouped.has(key)) {
-            grouped.set(key, { label: raw, value: 0, color: item.color });
+            grouped.set(key, { label: raw, value: 0, valueNegative: 0, color: item.color, id: item.id });
             order.push(key);
         }
 
@@ -62,10 +72,14 @@ export function groupChartItems(items: ChartItem[], seriesLabel: string): ChartP
             continue;
         }
 
-        entry.value += item.value;
+        addPolar(entry, item.value, item.valueNegative);
 
         if (!entry.color && item.color) {
             entry.color = item.color;
+        }
+
+        if (!entry.id && item.id) {
+            entry.id = item.id;
         }
     }
 
@@ -75,10 +89,12 @@ export function groupChartItems(items: ChartItem[], seriesLabel: string): ChartP
 
         return {
             value: entry?.value ?? 0,
+            valueNegative: entry?.valueNegative ?? 0,
             label: seriesLabel,
             dateLong: label,
             dateShort: label,
-            color: entry?.color
+            color: entry?.color,
+            id: entry?.id
         };
     });
 }
@@ -91,7 +107,7 @@ export function groupChartItems(items: ChartItem[], seriesLabel: string): ChartP
  * @returns Aggregated monthly points
  */
 export function groupChartItemsByDate(items: ChartItem[], seriesLabel: string): ChartPoint[] {
-    const grouped = new Map<string, { value: number; color?: string }>();
+    const grouped = new Map<string, { value: number; valueNegative: number; color?: string }>();
 
     for (const item of items) {
         if (item.date == null) {
@@ -103,16 +119,25 @@ export function groupChartItemsByDate(items: ChartItem[], seriesLabel: string): 
         const current = grouped.get(key);
 
         if (!current) {
-            grouped.set(key, { value: item.value, color: item.color });
+            grouped.set(key, {
+                value: item.value,
+                valueNegative: item.valueNegative ?? 0,
+                color: item.color
+            });
             continue;
         }
 
-        current.value += item.value;
+        addPolar(current, item.value, item.valueNegative);
 
         if (!current.color && item.color) {
             current.color = item.color;
         }
     }
+
+    const years = new Set(
+        [...grouped.keys()].map((key) => key.split("-")[0])
+    );
+    const showYear = years.size > 1;
 
     return [...grouped.entries()]
         .sort((a, b) => {
@@ -127,13 +152,18 @@ export function groupChartItemsByDate(items: ChartItem[], seriesLabel: string): 
         })
         .map(([key, entry]) => {
             const parts = key.split("-");
+            const year = Number(parts[0] ?? 0);
             const month = Number(parts[1] ?? 0);
             const monthIndex = Math.min(Math.max(month, 0), 11);
+            const monthLong = monthNamesLong[monthIndex] ?? "";
+            const monthShort = monthNamesShort[monthIndex] ?? "";
+            const yearShort = String(year).slice(-2);
 
             return {
-                dateLong: monthNamesLong[monthIndex] ?? "",
-                dateShort: monthNamesShort[monthIndex] ?? "",
+                dateLong: year ? `${monthLong} ${year}` : monthLong,
+                dateShort: showYear ? `${monthShort}/${yearShort}` : monthShort,
                 value: entry.value,
+                valueNegative: entry.valueNegative,
                 label: seriesLabel,
                 color: entry.color
             };

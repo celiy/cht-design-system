@@ -20,11 +20,49 @@
                     viewBox="0 0 100 100"
                     preserveAspectRatio="none"
                 >
+                    <defs>
+                        <linearGradient
+                            :id="fillGradientId"
+                            x1="0"
+                            y1="0"
+                            x2="1"
+                            y2="0"
+                        >
+                            <stop
+                                offset="0%"
+                                :stop-color="strokeColor"
+                                stop-opacity="0.5"
+                            />
+                            <stop
+                                offset="100%"
+                                :stop-color="endColor"
+                                stop-opacity="0.5"
+                            />
+                        </linearGradient>
+
+                        <linearGradient
+                            :id="strokeGradientId"
+                            x1="0"
+                            y1="0"
+                            x2="1"
+                            y2="0"
+                        >
+                            <stop
+                                offset="0%"
+                                :stop-color="strokeColor"
+                            />
+                            <stop
+                                offset="100%"
+                                :stop-color="endColor"
+                            />
+                        </linearGradient>
+                    </defs>
+
                     <path
                         v-if="waveAreaPath"
                         :d="waveAreaPath"
-                        :fill="strokeColor"
-                        fill-opacity="0.5"
+                        :fill="fillPaint"
+                        :fill-opacity="colorEnd ? undefined : 0.5"
                         stroke="none"
                     />
 
@@ -32,7 +70,7 @@
                         v-if="wavePath"
                         :d="wavePath"
                         fill="none"
-                        :stroke="strokeColor"
+                        :stroke="strokePaint"
                         stroke-width="1.5"
                         vector-effect="non-scaling-stroke"
                         stroke-linejoin="round"
@@ -40,36 +78,29 @@
                     />
                 </svg>
 
-                <div
+                <Tooltip
                     v-for="point in wavePoints"
                     :key="`wave-point-${point.index}`"
-                    v-tooltip="{
-                        content: `
-                            <div>
-                                <span class='text-muted-foreground mr-2'>${point.dateLong}</span>
-                                ${formatValue(point.value)}
-                            </div>
-                        `,
-                        placement: 'center',
-                        html: true
-                    }"
+
                     class="absolute top-0 bottom-0 w-6 -translate-x-1/2"
                     :style="{ left: `${point.x}%` }"
 
-                    @mouseenter="() => hoveredPoint = point.index"
-                    @mouseout="() => hoveredPoint = null"
-                    @touchstart="() => hoveredPoint = point.index"
-                    @touchend="() => hoveredPoint = null"
-                    @touchleave="() => hoveredPoint = null"
+                    @pointerenter="hoveredPoint = point.index"
+                    @pointerleave="hoveredPoint = null"
                 >
                     <div
-                        class="absolute border h-full left-1/2 border-dashed pointer-events-none transition-colors"
+                        class="pointer-events-none absolute left-1/2 h-full border border-dashed transition-colors"
                         :class="hoverLineClass"
                         :style="{
-                            opacity: hoveredPoint === point.index ? 1 : 0,
+                            opacity: hoveredPoint === point.index ? 1 : 0
                         }"
                     />
-                </div>
+
+                    <template #tooltip>
+                        <span class="mr-2 text-muted-foreground">{{ point.dateLong }}</span>
+                        {{ formatValue(point.value) }}
+                    </template>
+                </Tooltip>
             </div>
         </div>
 
@@ -97,6 +128,7 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
+import Tooltip from "../Tooltip.vue";
 import { chartColorBorderClass, chartColorCssVar } from "./chartColors";
 import { chartUsesGroups, groupChartItems, type ChartSeries } from "./groupChartItems";
 
@@ -106,6 +138,10 @@ export type WaveFilter = "3m" | "1m" | "2s" | "7d";
 
 export default defineComponent({
     name: "WaveChart",
+
+    components: {
+        Tooltip
+    },
 
     props: {
         data: {
@@ -119,6 +155,14 @@ export default defineComponent({
         color: {
             type: String as PropType<string>,
             default: "chart-3"
+        },
+
+        /**
+         * Optional last-point token. Fill and stroke go from `color` (left) to this (right).
+         */
+        colorEnd: {
+            type: String,
+            default: ""
         },
 
         filter: {
@@ -142,6 +186,7 @@ export default defineComponent({
             waveContainerWidth: 0,
             waveResizeObserver: null as ResizeObserver | null,
             hoveredPoint: null as number | null,
+            paintNonce: `w${Math.random().toString(36).slice(2, 9)}`
         };
     },
 
@@ -277,6 +322,34 @@ export default defineComponent({
 
         strokeColor() {
             return chartColorCssVar(this.color);
+        },
+
+        endColor() {
+            return chartColorCssVar(this.colorEnd || this.color);
+        },
+
+        fillGradientId() {
+            return `${this.paintNonce}-fill`;
+        },
+
+        strokeGradientId() {
+            return `${this.paintNonce}-stroke`;
+        },
+
+        fillPaint() {
+            if (!this.colorEnd) {
+                return this.strokeColor;
+            }
+
+            return `url(#${this.fillGradientId})`;
+        },
+
+        strokePaint() {
+            if (!this.colorEnd) {
+                return this.strokeColor;
+            }
+
+            return `url(#${this.strokeGradientId})`;
         },
 
         hoverLineClass() {

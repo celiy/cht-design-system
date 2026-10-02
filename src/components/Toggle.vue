@@ -13,6 +13,7 @@
         :left-icon="leftIcon"
         :right-icon="rightIcon"
         :form="form"
+        :radius-style="radiusStyle"
 
         @click="onClick"
         @keydown="onKeydown"
@@ -112,6 +113,11 @@ export default defineComponent({
         modelValue: {
             type: Boolean,
             default: false
+        },
+
+        radiusStyle: {
+            type: String,
+            required: false
         }
     },
 

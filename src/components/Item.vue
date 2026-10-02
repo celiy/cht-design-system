@@ -1,13 +1,7 @@
 <template>
     <div
         class="flex items-start gap-3 rounded p-3 transition-all"
-        :class="[
-            cardClass,
-            {
-                'cursor-pointer dark:hover:brightness-125 light:hover:brightness-90':
-                    hoverEffect && !disabled
-            }
-        ]"
+        :class="[cardClass, hoverClass]"
 
         @click="onClick"
     >
@@ -141,6 +135,21 @@ export default defineComponent({
         hoverEffect: {
             type: Boolean,
             default: true
+        },
+
+        backgroundStyle: {
+            type: String,
+            required: false
+        },
+
+        borderStyle: {
+            type: String,
+            required: false
+        },
+
+        hoverStyle: {
+            type: String,
+            required: false
         }
     },
 
@@ -148,76 +157,45 @@ export default defineComponent({
 
     computed: {
         /**
-         * Font Awesome icon class.
-         */
-        iconClass(): string {
-            if (!this.icon) {
-                return "";
-            }
-
-            const icon = this.icon.trim();
-
-            if (icon.includes(" ")) {
-                return icon;
-            }
-
-            if (icon.startsWith("fa-")) {
-                return `fa-solid ${icon}`;
-            }
-
-            return `fa-solid fa-${icon}`;
-        },
-
-        /**
-         * Icon wrap class.
-         */
-        iconWrapClass() {
-            if (this.type === "alert") {
-                return [
-                    "pt-1",
-                    {
-                        "text-primary": this.variant === "primary",
-                        "text-secondary-foreground": this.variant === "secondary",
-                        "text-success": this.variant === "success",
-                        "text-warning": this.variant === "warning",
-                        "text-destructive": this.variant === "destructive",
-                        "text-info": this.variant === "info"
-                    }
-                ];
-            }
-
-            return [
-                "p-3.5 rounded",
-                {
-                    "bg-primary/15 text-primary": this.variant === "primary",
-                    "bg-secondary text-secondary-foreground": this.variant === "secondary",
-                    "bg-success/15 text-success": this.variant === "success",
-                    "bg-warning/15 text-warning": this.variant === "warning",
-                    "bg-destructive/15 text-destructive": this.variant === "destructive",
-                    "bg-info/15 text-info": this.variant === "info",
-                    "opacity-50": this.disabled
-                }
-            ];
-        },
-
-        /**
          * Card class.
          */
-        cardClass(): Record<string, boolean> {
+        cardClass() {
             if (this.disabled) {
                 return {
-                    "border bg-transparent cursor-not-allowed!": true
+                    "cursor-not-allowed! border bg-transparent": true
                 };
             }
 
-            return {
-                "bg-muted/40": true,
+            const defaultBorder = {
                 "border-2-primary/40": this.variant === "primary",
                 "border-2-secondary": this.variant === "secondary",
                 "border-2-success/30": this.variant === "success",
                 "border-2-warning/30": this.variant === "warning",
                 "border-2-destructive/30": this.variant === "destructive",
                 "border-2-info/30": this.variant === "info"
+            };
+
+            if (this.backgroundStyle || this.borderStyle) {
+                return [
+                    this.backgroundStyle || "bg-muted/40",
+                    this.borderStyle || defaultBorder
+                ];
+            }
+
+            return {
+                "bg-muted/40": true,
+                ...defaultBorder
+            };
+        },
+
+        hoverClass() {
+            if (this.hoverStyle) {
+                return this.hoverStyle;
+            }
+
+            return {
+                "cursor-pointer dark:hover:brightness-125 light:hover:brightness-90":
+                    this.hoverEffect && !this.disabled
             };
         },
 

@@ -43,10 +43,14 @@
                         v-show="modalOpen"
                         ref="modalRef"
 
-                        class="pointer-events-auto relative box-border bg-card p-0 shadow-2xl"
+                        class="pointer-events-auto relative box-border p-0 shadow-2xl"
                         :class="[
+                            backgroundClass,
                             panelSurfaceClass,
-                            variant === 'drawer' ? 'flex min-h-0 flex-col' : ''
+                            variant === 'preview'
+                                ? ''
+                                : 'flex min-h-0 flex-col',
+                            variant === 'modal' || variant === 'blank' ? 'max-h-[90vh]' : ''
                         ]"
                         :style="drawerDragStyle"
 
@@ -123,7 +127,10 @@
                                 'max-h-[80vh]':
                                     (variant === 'modal' || variant === 'blank') &&
                                     size === 'extra-large',
-                                'min-h-0 flex-1': variant === 'drawer'
+                                'min-h-0 flex-1':
+                                    variant === 'drawer' ||
+                                    variant === 'modal' ||
+                                    variant === 'blank'
                             }"
                         >
                             <slot name="body" />
@@ -136,10 +143,7 @@
                                 (variant === 'blank' || variant === 'modal' || variant === 'drawer')
                             "
 
-                            class="shrink-0 rounded-b border-t bg-muted/50 p-4"
-                            :class="{
-                                'mt-auto': variant === 'drawer'
-                            }"
+                            :class="[footerClass, { 'mt-auto': variant === 'drawer' }]"
                         >
                             <slot name="footer" />
                         </div>
@@ -171,6 +175,7 @@ import {
 import {
     MODAL_QUERY_PARAM,
     type ModalUrlRouter,
+    consumeInitialModalQuery,
     parseModalQueryParam,
     registerModalUrlInstance,
     releaseModalUrlInstance,
@@ -243,6 +248,32 @@ export default defineComponent({
         keepOpen: {
             type: Boolean,
             default: false,
+            required: false
+        },
+
+        /**
+         * Sync open state with `?modal=[id,...]` in the URL (history + Voltar).
+         * Off skips register/query updates. Default on.
+         * A full page reload always clears a leftover `?modal` and does not reopen.
+         */
+        urlSync: {
+            type: Boolean,
+            default: true,
+            required: false
+        },
+
+        backgroundStyle: {
+            type: String,
+            required: false
+        },
+
+        borderStyle: {
+            type: String,
+            required: false
+        },
+
+        footerStyle: {
+            type: String,
             required: false
         }
     },
@@ -326,12 +357,28 @@ export default defineComponent({
             return "drawer-slide-left";
         },
 
+        backgroundClass() {
+            if (this.backgroundStyle) {
+                return this.backgroundStyle;
+            }
+
+            return "bg-card";
+        },
+
+        footerClass() {
+            if (this.footerStyle) {
+                return this.footerStyle;
+            }
+
+            return "shrink-0 rounded-b border-t bg-muted/50 p-4";
+        },
+
         /**
          * Calculates the panel surface class.
-         * @returns {Record<string, boolean>} The panel surface class.
+         * @returns {Array<string | Record<string, boolean>>} The panel surface class.
          */
-        panelSurfaceClass(): Record<string, boolean> {
-            const c: Record<string, boolean> = {
+        panelSurfaceClass(): Array<string | Record<string, boolean>> {
+            const sizeLayout: Record<string, boolean> = {
                 "lg:w-[25%] md:w-[40%] sm:w-[60%] w-[80%]":
                     this.size === "extra-small" &&
                     (this.variant === "modal" || this.variant === "blank"),
@@ -345,13 +392,6 @@ export default defineComponent({
                 "lg:w-[80%] md:w-[85%] sm:w-[90%] w-[98%]":
                     this.size === "extra-large" &&
                     (this.variant === "modal" || this.variant === "blank"),
-                "rounded border border-border/60!":
-                    this.variant === "modal" || this.variant === "blank",
-
-                "border-warning/50! border-2!": this.color === "warning",
-                "border-destructive/50! border-2!": this.color === "destructive",
-                "border-success/50! border-2!": this.color === "success",
-                "border-info/50! border-2!": this.color === "info",
 
                 "lg:w-[30%] md:w-[50%] sm:w-[80%] w-[90%]":
                     this.variant === "drawer" && this.side !== "bottom" && this.size === "small",
@@ -368,17 +408,41 @@ export default defineComponent({
                 "w-full self-stretch max-h-[58vh] sm:max-h-[68vh] md:max-h-[72vh]":
                     this.variant === "drawer" && this.side === "bottom" && this.size === "medium",
                 "w-full self-stretch max-h-[78vh] sm:max-h-[85vh] md:max-h-[88vh]":
-                    this.variant === "drawer" && this.side === "bottom" && this.size === "large",
-
-                "rounded-r border-r border-border/60!":
-                    this.variant === "drawer" && this.side === "left",
-                "rounded-l border-l border-border/60!":
-                    this.variant === "drawer" && this.side === "right",
-                "rounded-t border-t border-border/60!":
-                    this.variant === "drawer" && this.side === "bottom"
+                    this.variant === "drawer" && this.side === "bottom" && this.size === "large"
             };
 
-            return c;
+            if (this.borderStyle) {
+                return [
+                    sizeLayout,
+                    this.borderStyle,
+                    {
+                        rounded: this.variant === "modal" || this.variant === "blank",
+                        "rounded-r": this.variant === "drawer" && this.side === "left",
+                        "rounded-l": this.variant === "drawer" && this.side === "right",
+                        "rounded-t": this.variant === "drawer" && this.side === "bottom"
+                    }
+                ];
+            }
+
+            return [
+                sizeLayout,
+                {
+                    "rounded border border-border/60!":
+                        this.variant === "modal" || this.variant === "blank",
+
+                    "border-warning/50! border-2!": this.color === "warning",
+                    "border-destructive/50! border-2!": this.color === "destructive",
+                    "border-success/50! border-2!": this.color === "success",
+                    "border-info/50! border-2!": this.color === "info",
+
+                    "rounded-r border-r border-border/60!":
+                        this.variant === "drawer" && this.side === "left",
+                    "rounded-l border-l border-border/60!":
+                        this.variant === "drawer" && this.side === "right",
+                    "rounded-t border-t border-border/60!":
+                        this.variant === "drawer" && this.side === "bottom"
+                }
+            ];
         },
 
         /**
@@ -433,7 +497,7 @@ export default defineComponent({
                     this.closeDescendantFloatingPanels();
                 }
 
-                if (this.urlSyncReady) {
+                if (this.urlSyncReady && this.shouldSyncModalUrl() && this.modalUrlId !== 0) {
                     trackModalUrlOpenState(this.modalUrlId, newVal);
 
                     if (!this.urlSyncFromRoute) {
@@ -458,7 +522,9 @@ export default defineComponent({
     },
 
     created() {
-        this.modalUrlId = registerModalUrlInstance();
+        if (this.urlSync) {
+            this.modalUrlId = registerModalUrlInstance();
+        }
     },
 
     mounted() {
@@ -468,8 +534,13 @@ export default defineComponent({
             return;
         }
 
-        this.syncOpenFromUrl();
+        consumeInitialModalQuery(this.$router as ModalUrlRouter);
         this.urlSyncReady = true;
+
+        if (this.modalOpen && this.modalUrlId !== 0) {
+            trackModalUrlOpenState(this.modalUrlId, true);
+            this.syncOpenStateToUrl(true, { reason: "state" });
+        }
 
         this.$watch(
             () => this.$route?.query[MODAL_QUERY_PARAM],
@@ -480,7 +551,7 @@ export default defineComponent({
     },
 
     beforeUnmount() {
-        if (this.modalOpen && this.urlSyncReady) {
+        if (this.modalOpen && this.urlSyncReady && this.shouldSyncModalUrl()) {
             trackModalUrlOpenState(this.modalUrlId, false);
             this.syncOpenStateToUrl(false, { reason: "unmount" });
         }
@@ -496,7 +567,7 @@ export default defineComponent({
 
     methods: {
         shouldSyncModalUrl(): boolean {
-            return Boolean(this.$router) && Boolean(this.$route);
+            return this.urlSync && Boolean(this.$router) && Boolean(this.$route);
         },
 
         modalIdsFromRoute(): number[] {

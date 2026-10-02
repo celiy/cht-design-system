@@ -4,10 +4,10 @@
         <div
             v-if="direction === 'vertical'"
 
-            class="relative"
+            class="overflow-x-auto"
         >
-            <div class="relative h-80">
-                <div class="pointer-events-none absolute inset-0">
+            <div class="relative w-max min-w-full">
+                <div class="pointer-events-none absolute inset-x-0 top-0 h-80">
                     <div class="flex h-full w-full flex-col justify-between">
                         <div
                             v-for="i in backgroundLinesCount"
@@ -18,23 +18,24 @@
                     </div>
                 </div>
 
-                <div class="relative h-full transition-all">
-                    <div class="flex h-full items-stretch gap-2">
-                        <div
-                            v-for="item in dateGroups"
-                            :key="item.dateShort + item.label"
+                <!-- Packed at max bar width; leftover space uses `align`. Overflow scrolls. -->
+                <div
+                    class="relative flex w-full gap-1"
+                    :class="barsJustifyClass"
+                >
+                    <div
+                        v-for="(item, index) in dateGroups"
+                        :key="item.dateShort + item.label"
 
-                            v-tooltip="{
-                                content: `
-                                    <div>
-                                        <span class=\'text-muted-foreground mr-2\'>${item.dateLong}</span>
-                                        ${data.displayAs === 'currency' ? 'R$ ' : ''}${item.value}
-                                    </div>
-                                `,
-                                placement: 'center',
-                                html: true
+                        class="flex w-max min-w-8 flex-col items-center"
+                    >
+                        <Tooltip
+                            class="relative flex h-80 w-20 max-w-full flex-col"
+                            :class="{
+                                'group cursor-pointer': clickable
                             }"
-                            class="relative flex h-full min-h-0 w-full flex-col"
+
+                            @click="onBarClick(item)"
                         >
                             <div
                                 v-if="hasNegativeValues"
@@ -43,11 +44,23 @@
                             >
                                 <div class="flex min-h-0 flex-1 items-end justify-center pb-px">
                                     <div
-                                        v-if="item.value > 0"
+                                        v-if="positiveAmount(item) > 0"
 
-                                        class="w-full max-w-[90%] rounded-t"
-                                        :style="barStyle(item, 'positive')"
-                                    />
+                                        class="relative w-full max-w-[90%] overflow-visible rounded-t"
+                                        :class="{
+                                            'transition-[filter] group-hover:brightness-110':
+                                                clickable
+                                        }"
+                                        :style="barStyle(item, 'positive', index)"
+                                    >
+                                        <span
+                                            v-if="!hideLabel && isConjunto"
+
+                                            class="pointer-events-none absolute bottom-1 left-1/2 hidden max-w-[calc(100%-0.25rem)] -translate-x-1/2 overflow-hidden rounded border bg-accent px-1 py-0 text-xs text-ellipsis whitespace-nowrap text-foreground! md:block"
+                                        >
+                                            {{ formatAmount(positiveAmount(item)) }}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <div
@@ -57,11 +70,23 @@
 
                                 <div class="flex min-h-0 flex-1 items-start justify-center pt-px">
                                     <div
-                                        v-if="item.value < 0"
+                                        v-if="negativeAmount(item) > 0"
 
-                                        class="w-full max-w-[90%] rounded-b"
-                                        :style="barStyle(item, 'negative')"
-                                    />
+                                        class="relative w-full max-w-[90%] overflow-visible rounded-b"
+                                        :class="{
+                                            'transition-[filter] group-hover:brightness-110':
+                                                clickable
+                                        }"
+                                        :style="barStyle(item, 'negative', index)"
+                                    >
+                                        <span
+                                            v-if="!hideLabel && isConjunto"
+
+                                            class="pointer-events-none absolute top-1 left-1/2 hidden max-w-[calc(100%-0.25rem)] -translate-x-1/2 overflow-hidden rounded border bg-accent px-1 py-0 text-xs text-ellipsis whitespace-nowrap text-foreground! md:block"
+                                        >
+                                            {{ formatAmount(negativeAmount(item)) }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -74,40 +99,53 @@
                                     v-if="item.value > 0"
 
                                     class="w-full max-w-[90%] rounded-t"
-                                    :style="barStyle(item, 'positive')"
+                                    :class="{
+                                        'transition-[filter] group-hover:brightness-110': clickable
+                                    }"
+                                    :style="barStyle(item, 'positive', index)"
                                 />
                             </div>
 
                             <div
-                                v-if="!hideLabel"
+                                v-if="!hideLabel && !isConjunto"
 
                                 class="pointer-events-none absolute inset-0 hidden justify-center md:flex"
                                 :class="hasNegativeValues ? 'items-center' : 'items-end pb-2'"
                             >
                                 <span
-                                    class="mx-2 h-fit max-w-full overflow-hidden rounded border border-border bg-accent p-1 px-2 text-xs text-ellipsis whitespace-nowrap text-foreground!"
+                                    class="mx-2 h-fit max-w-full overflow-hidden rounded border bg-accent px-1 py-0 text-xs text-ellipsis whitespace-nowrap text-foreground!"
                                 >
                                     <span v-if="data.displayAs === 'currency'">R$ </span
                                     >{{ item.value }}
                                 </span>
                             </div>
+
+                            <template #tooltip>
+                                <div class="flex flex-col gap-0.5">
+                                    <span class="text-muted-foreground">{{ item.dateLong }}</span>
+                                    <span v-if="hasBothPolarities(item)">
+                                        <template v-if="data.displayAs === 'currency'">+</template>
+                                        {{ formatAmount(positiveAmount(item)) }}
+                                        <span class="text-muted-foreground"> / </span>
+                                        <template v-if="data.displayAs === 'currency'">−</template>
+                                        {{ formatAmount(negativeAmount(item)) }}
+                                    </span>
+                                    <span v-else>
+                                        <template v-if="data.displayAs === 'currency'">R$ </template
+                                        >{{ item.value }}
+                                    </span>
+                                </div>
+                            </template>
+                        </Tooltip>
+
+                        <div
+                            v-if="!hideAxisLabels"
+
+                            class="mt-2 text-center text-sm whitespace-nowrap text-muted-foreground"
+                        >
+                            {{ item.dateShort }}
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <div
-                v-if="!hideAxisLabels"
-
-                class="relative mt-2 flex gap-2 text-sm"
-            >
-                <div
-                    v-for="item in dateGroups"
-                    :key="`axis-${item.dateShort}-${item.value}`"
-
-                    class="w-full text-center text-muted-foreground"
-                >
-                    {{ item.dateShort }}
                 </div>
             </div>
         </div>
@@ -147,26 +185,24 @@
                 </div>
 
                 <div class="relative flex flex-col gap-3">
-                    <div
-                        v-for="item in dateGroups"
+                    <Tooltip
+                        v-for="(item, index) in dateGroups"
                         :key="item.dateShort + item.label"
 
-                        v-tooltip="{
-                            content: `
-                                <div>
-                                    <span class=\'text-muted-foreground mr-2\'>${item.dateLong}</span>
-                                    ${data.displayAs === 'currency' ? 'R$ ' : ''}${displayValue(item.value)}
-                                </div>
-                            `,
-                            placement: 'center',
-                            html: true
+                        class="relative h-8 w-full min-w-0"
+                        :class="{
+                            'group cursor-pointer': clickable
                         }"
-                        class="relative h-8 min-w-0 w-full"
+
+                        @click="onBarClick(item)"
                     >
                         <div
                             class="absolute inset-y-0 left-0 rounded-r"
+                            :class="{
+                                'transition-[filter] group-hover:brightness-110': clickable
+                            }"
                             :style="{
-                                ...barStyle(item, 'positive'),
+                                ...barStyle(item, 'positive', index),
                                 width: `${horizontalBarPercent(item.value)}%`
                             }"
                         />
@@ -177,13 +213,19 @@
                             class="pointer-events-none absolute inset-0 flex items-center pl-2"
                         >
                             <span
-                                class="rounded border border-border bg-accent px-2 py-0.5 text-xs text-foreground!"
+                                class="rounded border bg-accent px-1 py-0 text-xs text-foreground!"
                             >
                                 <span v-if="data.displayAs === 'currency'">R$ </span
                                 >{{ displayValue(item.value) }}
                             </span>
                         </div>
-                    </div>
+
+                        <template #tooltip>
+                            <span class="mr-2 text-muted-foreground">{{ item.dateLong }}</span>
+                            <template v-if="data.displayAs === 'currency'">R$ </template
+                            >{{ displayValue(item.value) }}
+                        </template>
+                    </Tooltip>
                 </div>
             </div>
         </div>
@@ -192,7 +234,13 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
+import Tooltip from "../Tooltip.vue";
 import { chartPaintStyle } from "./chartColors";
+import {
+    negativeAmount as polarNegative,
+    polarScale,
+    positiveAmount as polarPositive
+} from "./chartPolarity";
 import {
     chartUsesGroups,
     groupChartItems,
@@ -203,12 +251,17 @@ import {
 
 export type BarChartData = ChartSeries;
 export type BarChartDirection = "vertical" | "horizontal";
+export type BarChartAlign = "left" | "center" | "right";
 
 /** Odd count so the middle divider marks the chart center. */
 const GRID_LINES = 5;
 
 export default defineComponent({
     name: "BarChart",
+
+    components: {
+        Tooltip
+    },
 
     props: {
         data: {
@@ -234,6 +287,23 @@ export default defineComponent({
         },
 
         /**
+         * Optional second token: last bar of the series. Bars between mix
+         * `color` → `colorEnd` as solids.
+         */
+        colorEnd: {
+            type: String,
+            default: ""
+        },
+
+        /**
+         * Optional second token for negative bars (`negativeColor` → this).
+         */
+        negativeColorEnd: {
+            type: String,
+            default: ""
+        },
+
+        /**
          * If true, the value label will not be displayed on the bars.
          */
         hideLabel: {
@@ -253,8 +323,26 @@ export default defineComponent({
         hideAxisLabels: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * Hover brightness + pointer; emits `click:bar` with the point (`id` if set).
+         */
+        clickable: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * Vertical only. Where the packed bar group sits when the chart is wider than the bars.
+         */
+        align: {
+            type: String as PropType<BarChartAlign>,
+            default: "center"
         }
     },
+
+    emits: ["click:bar"],
 
     computed: {
         hasNegativeValues() {
@@ -262,7 +350,13 @@ export default defineComponent({
                 return false;
             }
 
-            return this.dateGroups.some((group) => group.value < 0);
+            return this.dateGroups.some(
+                (group) => group.value < 0 || (group.valueNegative ?? 0) > 0
+            );
+        },
+
+        isConjunto() {
+            return this.dateGroups.some((group) => (group.valueNegative ?? 0) > 0);
         },
 
         backgroundLinesCount() {
@@ -271,7 +365,9 @@ export default defineComponent({
 
         globalScale() {
             const values = this.dateGroups.map((g) =>
-                this.direction === "horizontal" ? Math.max(0, g.value) : Math.abs(g.value)
+                this.direction === "horizontal"
+                    ? Math.max(0, g.value)
+                    : polarScale(g.value, g.valueNegative)
             );
 
             return values.length ? Math.max(...values, 0) : 0;
@@ -283,6 +379,18 @@ export default defineComponent({
             }
 
             return groupChartItemsByDate(this.data.items, this.data.label);
+        },
+
+        barsJustifyClass() {
+            if (this.align === "left") {
+                return "justify-start";
+            }
+
+            if (this.align === "right") {
+                return "justify-end";
+            }
+
+            return "justify-center";
         }
     },
 
@@ -295,6 +403,26 @@ export default defineComponent({
             return value;
         },
 
+        positiveAmount(item: ChartPoint) {
+            return polarPositive(item.value);
+        },
+
+        negativeAmount(item: ChartPoint) {
+            return polarNegative(item.value, item.valueNegative);
+        },
+
+        hasBothPolarities(item: ChartPoint) {
+            return this.positiveAmount(item) > 0 && this.negativeAmount(item) > 0;
+        },
+
+        formatAmount(value: number) {
+            if (this.data.displayAs === "currency") {
+                return `R$ ${value}`;
+            }
+
+            return String(value);
+        },
+
         resolveColor(item: ChartPoint, polarity: "positive" | "negative") {
             if (polarity === "negative") {
                 return this.negativeColor;
@@ -303,20 +431,31 @@ export default defineComponent({
             return item.color || this.data.color || this.color;
         },
 
-        barStyle(item: ChartPoint, polarity: "positive" | "negative") {
-            const paint = chartPaintStyle(this.resolveColor(item, polarity));
+        barStyle(item: ChartPoint, polarity: "positive" | "negative", index: number) {
+            const colorEnd =
+                polarity === "negative"
+                    ? this.negativeColorEnd || undefined
+                    : item.color
+                      ? undefined
+                      : this.colorEnd || undefined;
+            const paint = chartPaintStyle(
+                this.resolveColor(item, polarity),
+                colorEnd,
+                index,
+                this.dateGroups.length
+            );
 
             if (polarity === "positive" && this.direction === "vertical") {
                 return {
                     ...paint,
-                    height: `${this.positiveBarPercent(item.value)}%`
+                    height: `${this.positiveBarPercent(this.positiveAmount(item))}%`
                 };
             }
 
             if (polarity === "negative") {
                 return {
                     ...paint,
-                    height: `${this.negativeBarPercent(item.value)}%`
+                    height: `${this.negativeBarPercentAmount(this.negativeAmount(item))}%`
                 };
             }
 
@@ -331,12 +470,12 @@ export default defineComponent({
             return (value / this.globalScale) * 100;
         },
 
-        negativeBarPercent(value: number) {
-            if (value >= 0 || this.globalScale <= 0) {
+        negativeBarPercentAmount(value: number) {
+            if (value <= 0 || this.globalScale <= 0) {
                 return 0;
             }
 
-            return (Math.abs(value) / this.globalScale) * 100;
+            return (value / this.globalScale) * 100;
         },
 
         horizontalBarPercent(value: number) {
@@ -347,6 +486,14 @@ export default defineComponent({
             }
 
             return (v / this.globalScale) * 100;
+        },
+
+        onBarClick(item: ChartPoint) {
+            if (!this.clickable) {
+                return;
+            }
+
+            this.$emit("click:bar", item);
         }
     }
 });

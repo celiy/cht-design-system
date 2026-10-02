@@ -45,17 +45,17 @@ const FILL_VARIANT_CLASS: Record<BadgeVariant, string> = {
 };
 
 const BORDERED_VARIANT_CLASS: Record<BadgeVariant, string> = {
-    primary: "border-2 border-primary! bg-transparent text-primary",
-    secondary: "border-2 border-secondary! bg-transparent text-secondary-foreground",
-    destructive: "border-2 border-destructive! bg-transparent text-destructive",
-    warning: "border-2 border-warning! bg-transparent text-warning",
-    info: "border-2 border-info! bg-transparent text-info",
-    success: "border-2 border-success! bg-transparent text-success",
-    "chart-1": "border-2 border-chart-1! bg-transparent text-chart-1",
-    "chart-2": "border-2 border-chart-2! bg-transparent text-chart-2",
-    "chart-3": "border-2 border-chart-3! bg-transparent text-chart-3",
-    "chart-4": "border-2 border-chart-4! bg-transparent text-chart-4",
-    "chart-5": "border-2 border-chart-5! bg-transparent text-chart-5"
+    primary: "border-2-primary bg-transparent text-primary",
+    secondary: "border-2-secondary bg-transparent text-secondary-foreground",
+    destructive: "border-2-destructive bg-transparent text-destructive",
+    warning: "border-2-warning bg-transparent text-warning",
+    info: "border-2-info bg-transparent text-info",
+    success: "border-2-success bg-transparent text-success",
+    "chart-1": "border-2-chart-1 bg-transparent text-chart-1",
+    "chart-2": "border-2-chart-2 bg-transparent text-chart-2",
+    "chart-3": "border-2-chart-3 bg-transparent text-chart-3",
+    "chart-4": "border-2-chart-4 bg-transparent text-chart-4",
+    "chart-5": "border-2-chart-5 bg-transparent text-chart-5"
 };
 
 function cssColorToken(token: string): string {
@@ -127,7 +127,9 @@ export default defineComponent({
             if (this.color) {
                 classes.push(this.isBordered ? "border-2 bg-transparent" : "text-contrast");
             } else if (this.isBordered) {
-                classes.push(BORDERED_VARIANT_CLASS[this.variant] ?? BORDERED_VARIANT_CLASS.primary);
+                classes.push(
+                    BORDERED_VARIANT_CLASS[this.variant] ?? BORDERED_VARIANT_CLASS.primary
+                );
             } else {
                 classes.push(FILL_VARIANT_CLASS[this.variant] ?? FILL_VARIANT_CLASS.primary);
             }
