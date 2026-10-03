@@ -1,3 +1,8 @@
+/**
+ * Design system plugin
+ * This file is used to register the design system components globally.
+ */
+
 import type { Component } from "vue";
 import { startTextContrastObserver } from "./textContrast";
 
@@ -16,6 +21,12 @@ function fileNameFromPath(path: string): string {
     return file.replace(/\.vue$/, "");
 }
 
+/**
+ * Resolve the component name from a path.
+ * @param path The path to resolve the component name from.
+ * @param component The component to resolve the name from.
+ * @returns The component name.
+ */
 function resolveComponentName(path: string, component: Component): string {
     const named = (component as { name?: string }).name;
 

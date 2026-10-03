@@ -1,3 +1,8 @@
+/**
+ * The group chart items module
+ * This module is responsible for the group chart items of the project.
+ */
+
 import { monthNamesLong, monthNamesShort } from "@shared/constants/DateStrings";
 import { addPolar } from "./chartPolarity";
 

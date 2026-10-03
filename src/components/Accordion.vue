@@ -96,28 +96,43 @@ export default defineComponent({
     name: "Accordion",
 
     props: {
+        /**
+         * The header of the accordion
+         */
         header: {
             type: String,
             required: false
         },
 
+        /**
+         * The variant of the accordion
+         */
         variant: {
             type: String as PropType<"default" | "bordered">,
             default: "default",
             required: false
         },
 
+        /**
+         * Whether the accordion is pinnable
+         */
         pinnable: {
             type: Boolean,
             default: false,
             required: false
         },
 
+        /**
+         * The background style of the accordion
+         */
         backgroundStyle: {
             type: String,
             required: false
         },
 
+        /**
+         * The border style of the accordion
+         */
         borderStyle: {
             type: String,
             required: false
@@ -134,6 +149,10 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Gets the background class
+         * @returns {string} The background class
+         */
         backgroundClass() {
             if (this.backgroundStyle) {
                 return this.backgroundStyle;
@@ -144,6 +163,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the border class
+         * @returns {string} The border class
+         */
         borderClass() {
             if (this.borderStyle) {
                 return this.borderStyle;
@@ -154,6 +177,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the shell class
+         * @returns {string} The shell class
+         */
         shellClass() {
             return {
                 "overflow-hidden rounded shadow-md": this.variant === "default"
@@ -162,6 +189,11 @@ export default defineComponent({
     },
 
     watch: {
+        /**
+         * Handles the open change
+         * @param {boolean} open The open
+         * @returns {void}
+         */
         isOpen(open) {
             if (open) {
                 document.addEventListener("click", this.handleClickOutside);
@@ -171,19 +203,36 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         document.removeEventListener("click", this.handleClickOutside);
     },
 
     methods: {
+        /**
+         * Pins the accordion
+         * @returns {void}
+         */
         pin() {
             this.isPinned = !this.isPinned;
         },
 
+        /**
+         * Toggles the open close
+         * @returns {void}
+         */
         toggleOpenClose() {
             this.isOpen = !this.isOpen;
         },
 
+        /**
+         * Handles the click outside
+         * @param {MouseEvent} event The event
+         * @returns {void}
+         */
         handleClickOutside(event: MouseEvent) {
             const root = this.$refs.rootRef as HTMLElement | undefined;
             const contentPanel = this.$refs.contentPanelRef as HTMLElement | undefined;
@@ -206,31 +255,59 @@ export default defineComponent({
             this.close();
         },
 
+        /**
+         * Handles the mouse enter
+         * @returns {void}
+         */
         handleMouseEnter() {
             this.inside = true;
         },
 
+        /**
+         * Handles the mouse leave
+         * @returns {void}
+         */
         handleMouseLeave() {
             this.inside = false;
         },
 
+        /**
+         * Handles the header leave
+         * @returns {void}
+         */
         handleHeaderLeave() {
             this.inside = false;
             this.handlePressEnd();
         },
 
+        /**
+         * Handles the press start
+         * @returns {void}
+         */
         handlePressStart() {
             this.isPressed = true;
         },
 
+        /**
+         * Handles the press end
+         * @returns {void}
+         */
         handlePressEnd() {
             this.isPressed = false;
         },
 
+        /**
+         * Opens the accordion
+         * @returns {void}
+         */
         open() {
             this.isOpen = true;
         },
 
+        /**
+         * Closes the accordion
+         * @returns {void}
+         */
         close() {
             this.isOpen = false;
         }

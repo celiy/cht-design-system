@@ -141,18 +141,27 @@ export default defineComponent({
     name: "ProgressBar",
 
     props: {
+        /**
+         * The variant of the progressbar
+         */
         variant: {
             type: String as PropType<"circular" | "bar">,
             default: "bar",
             required: false
         },
 
+        /**
+         * The size of the progressbar
+         */
         size: {
             type: String as PropType<"small" | "medium" | "large">,
             default: "medium",
             required: false
         },
 
+        /**
+         * The direction of the progressbar
+         */
         direction: {
             type: String as PropType<"horizontal" | "vertical">,
             default: "horizontal",
@@ -178,34 +187,52 @@ export default defineComponent({
             default: undefined
         },
 
+        /**
+         * The step of the progressbar
+         */
         step: {
             type: Number,
             default: 1,
             required: false
         },
 
+        /**
+         * The max of the progressbar
+         */
         max: {
             type: Number,
             default: 100,
             required: false
         },
 
+        /**
+         * The min of the progressbar
+         */
         min: {
             type: Number,
             default: 0,
             required: false
         },
 
+        /**
+         * The label of the progressbar
+         */
         label: {
             type: String,
             required: false
         },
 
+        /**
+         * The helper text of the progressbar
+         */
         helperText: {
             type: String,
             required: false
         },
 
+        /**
+         * Whether the progressbar is id
+         */
         id: {
             type: String,
             required: false
@@ -227,16 +254,25 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * Whether the progressbar is readonly
+         */
         readonly: {
             type: Boolean,
             required: false
         },
 
+        /**
+         * Whether to show progress
+         */
         showProgress: {
             type: Boolean,
             required: false
         },
 
+        /**
+         * Whether the progressbar is loading
+         */
         loading: {
             type: Boolean,
             required: false,
@@ -267,6 +303,10 @@ export default defineComponent({
             return undefined;
         },
 
+        /**
+         * Gets the progress percent
+         * @returns {unknown} The progress percent
+         */
         progressPercent(): number {
             const min = Number(this.min ?? 0);
             const max = Number(this.max ?? 100);
@@ -277,6 +317,10 @@ export default defineComponent({
             return ((clamped - min) * 100) / (safeMax - min);
         },
 
+        /**
+         * Gets the progress track style
+         * @returns {unknown} The progress track style
+         */
         progressTrackStyle(): Record<string, string> {
             const style: Record<string, string> = {
                 "--progress-percent": `${this.progressPercent}%`
@@ -289,6 +333,10 @@ export default defineComponent({
             return style;
         },
 
+        /**
+         * Gets the circular progress atributes
+         * @returns {unknown} The circular progress atributes
+         */
         circularProgressAtributes(): {
             width: number;
             height: number;
@@ -304,6 +352,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Gets the circle atributes
+         * @returns {unknown} The circle atributes
+         */
         circleAtributes(): {
             cx: number;
             cy: number;
@@ -320,6 +372,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Gets the circular progress arc
+         * @returns {unknown} The circular progress arc
+         */
         circularProgressArc(): {
             strokeDasharray: number;
             strokeDashoffset: number;
@@ -336,20 +392,36 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the circular circumference
+         * @returns {unknown} The circular circumference
+         */
         circularCircumference(): number {
             return 2 * Math.PI * this.circleAtributes.r;
         },
 
+        /**
+         * Checks if circular loading
+         * @returns {boolean} True if is circular loading
+         */
         isCircularLoading(): boolean {
             return this.variant === "circular" && Boolean(this.loading);
         },
 
+        /**
+         * Gets the circular spinner stage transform
+         * @returns {unknown} The circular spinner stage transform
+         */
         circularSpinnerStageTransform(): string {
             const { cx, cy } = this.circleAtributes;
 
             return `translate(${cx} ${cy})`;
         },
 
+        /**
+         * Gets the circular spinner arc style
+         * @returns {unknown} The circular spinner arc style
+         */
         circularSpinnerArcStyle(): Record<string, string> {
             return {
                 "--progress-circ": `${this.circularCircumference}px`
@@ -370,6 +442,10 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {},
 
     methods: {
@@ -391,10 +467,18 @@ export default defineComponent({
             this.$emit("update:modelValue", value);
         },
 
+        /**
+         * Handles the mouse up
+         * @returns {void}
+         */
         handleMouseUp() {
             this.isVisible = false;
         },
 
+        /**
+         * Handles the mouse down
+         * @returns {void}
+         */
         handleMouseDown() {
             if (this.readonly) {
                 return;
@@ -403,6 +487,11 @@ export default defineComponent({
             this.isVisible = true;
         },
 
+        /**
+         * Handles the range keydown
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
         onRangeKeydown(event: KeyboardEvent) {
             if (!this.readonly) {
                 return;

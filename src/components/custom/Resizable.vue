@@ -126,11 +126,17 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * The min width of the resizable
+         */
         minWidth: {
             type: Number,
             default: 48
         },
 
+        /**
+         * The min height of the resizable
+         */
         minHeight: {
             type: Number,
             default: 48
@@ -168,6 +174,9 @@ export default defineComponent({
             default: false
         },
 
+        /**
+         * Whether the resizable is disabled
+         */
         disabled: {
             type: Boolean,
             default: false
@@ -191,6 +200,10 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Gets the allowed edges
+         * @returns {unknown} The allowed edges
+         */
         allowedEdges(): Set<ResizeEdge> {
             if (this.disabled) {
                 return new Set();
@@ -214,6 +227,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Gets the handles
+         * @returns {unknown} The handles
+         */
         handles(): HandleDef[] {
             return [...this.allowedEdges].map((edge) => HANDLE_CLASS[edge]);
         },
@@ -250,6 +267,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Gets the box style
+         * @returns {unknown} The box style
+         */
         boxStyle(): Record<string, string> {
             const style: Record<string, string> = {};
 
@@ -266,6 +287,11 @@ export default defineComponent({
     },
 
     watch: {
+        /**
+         * Width
+         * @param {number | undefined} value The value
+         * @returns {void}
+         */
         width(value: number | undefined) {
             if (this.dragging) {
                 return;
@@ -274,6 +300,11 @@ export default defineComponent({
             this.currentWidth = value ?? null;
         },
 
+        /**
+         * Height
+         * @param {number | undefined} value The value
+         * @returns {void}
+         */
         height(value: number | undefined) {
             if (this.dragging) {
                 return;
@@ -283,12 +314,20 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         this.currentWidth = this.width ?? null;
         this.currentHeight = this.height ?? null;
         this.observeParent();
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         this.stopListening();
         this.disconnectParent();
@@ -296,7 +335,8 @@ export default defineComponent({
 
     methods: {
         /**
-         * Watches the constraint parent so a smaller container clamps this box.
+         * Observes the parent
+         * @returns {void}
          */
         observeParent() {
             this.disconnectParent();
@@ -314,6 +354,10 @@ export default defineComponent({
             this.parentObserver.observe(parent);
         },
 
+        /**
+         * Disconnects the parent
+         * @returns {void}
+         */
         disconnectParent() {
             this.parentObserver?.disconnect();
             this.parentObserver = null;
@@ -321,6 +365,7 @@ export default defineComponent({
 
         /**
          * Finds a parent with a real laid-out size that is not shrink-wrapping this box.
+         * @returns {HTMLElement | null} The constraint parent
          */
         constraintParent(): HTMLElement | null {
             const el = this.$refs.box as HTMLElement | undefined;
@@ -347,6 +392,12 @@ export default defineComponent({
             return document.body;
         },
 
+        /**
+         * Gets the parent limits
+         * @returns {Object} The parent limits
+         * @property {number} maxW The maximum width
+         * @property {number} maxH The maximum height
+         */
         parentLimits(): { maxW: number; maxH: number } {
             const el = this.$refs.box as HTMLElement | undefined;
             const parent = this.constraintParent();
@@ -369,6 +420,8 @@ export default defineComponent({
 
         /**
          * Clamps a width to min, max prop, and parent width.
+         * @param {number} value The value
+         * @returns {number} The clamped width
          */
         clampWidth(value: number): number {
             const { maxW } = this.parentLimits();
@@ -379,6 +432,8 @@ export default defineComponent({
 
         /**
          * Clamps a height to min, max prop, and parent height.
+         * @param {number} value The value
+         * @returns {number} The clamped height
          */
         clampHeight(value: number): number {
             const { maxH } = this.parentLimits();
@@ -387,6 +442,10 @@ export default defineComponent({
             return Math.min(Math.max(value, this.minHeight), cap);
         },
 
+        /**
+         * Clamps to the parent
+         * @returns {void}
+         */
         clampToParent() {
             if (this.currentWidth != null) {
                 const next = this.clampWidth(this.currentWidth);
@@ -409,6 +468,9 @@ export default defineComponent({
 
         /**
          * Starts an edge drag and binds window pointer listeners.
+         * @param {ResizeEdge} edge The edge
+         * @param {PointerEvent} event The event
+         * @returns {void}
          */
         onPointerDown(edge: ResizeEdge, event: PointerEvent) {
             if (this.disabled) {
@@ -444,6 +506,10 @@ export default defineComponent({
             window.addEventListener("pointercancel", this.onPointerUp);
         },
 
+        /**
+         * Checks if the resize is horizontal
+         * @returns {boolean} True if the resize is horizontal
+         */
         allowsHorizontal(): boolean {
             return (
                 this.resize === "all" ||
@@ -453,6 +519,10 @@ export default defineComponent({
             );
         },
 
+        /**
+         * Checks if the resize is vertical
+         * @returns {boolean} True if the resize is vertical
+         */
         allowsVertical(): boolean {
             return (
                 this.resize === "all" ||
@@ -462,6 +532,11 @@ export default defineComponent({
             );
         },
 
+        /**
+         * Handles the pointer move
+         * @param {PointerEvent} event The event
+         * @returns {void}
+         */
         onPointerMove(event: PointerEvent) {
             if (!this.dragging || !this.dragEdge) {
                 return;
@@ -500,6 +575,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the pointer up
+         * @returns {void}
+         */
         onPointerUp() {
             const wasDragging = this.dragging;
 
@@ -512,6 +591,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Stops the listening
+         * @returns {void}
+         */
         stopListening() {
             window.removeEventListener("pointermove", this.onPointerMove);
             window.removeEventListener("pointerup", this.onPointerUp);

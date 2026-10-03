@@ -1,3 +1,8 @@
+/**
+ * Text contrast
+ * This file is used to calculate the text contrast between two colors.
+ */
+
 type Rgb = {
     r: number;
     g: number;
@@ -25,6 +30,10 @@ let cachedTheme: string | null = null;
 let cachedFgColor: Rgb | null = null;
 let cachedBgColor: Rgb | null = null;
 
+/**
+ * Gets the shared canvas context.
+ * @returns {CanvasRenderingContext2D | null} The shared canvas context.
+ */
 function getSharedCanvasCtx(): CanvasRenderingContext2D | null {
     if (typeof document === "undefined") {
         return null;
@@ -40,6 +49,11 @@ function getSharedCanvasCtx(): CanvasRenderingContext2D | null {
     return sharedCanvasCtx;
 }
 
+/**
+ * Converts a channel to a linear value.
+ * @param {number} channel The channel to convert.
+ * @returns {number} The linear value.
+ */
 function channelToLinear(channel: number): number {
     const c = channel / 255;
 
@@ -50,10 +64,25 @@ function channelToLinear(channel: number): number {
     return ((c + 0.055) / 1.055) ** 2.4;
 }
 
+/**
+ * Calculates the luminance of a color.
+ * @param {number} r The red value.
+ * @param {number} g The green value.
+ * @param {number} b The blue value.
+ * @returns {number} The luminance.
+ */
 function calculateLuminance(r: number, g: number, b: number): number {
     return 0.2126 * channelToLinear(r) + 0.7152 * channelToLinear(g) + 0.0722 * channelToLinear(b);
 }
 
+/**
+ * Converts an OKLCH color to an RGB color.
+ * @param {number} L The lightness value.
+ * @param {number} C The chroma value.
+ * @param {number} h The hue value.
+ * @param {number} a The alpha value.
+ * @returns {Rgb} The RGB color.
+ */
 function oklchToRgb(L: number, C: number, h: number, a = 1): Rgb {
     const hr = (h * Math.PI) / 180;
     const A = C * Math.cos(hr);
@@ -91,6 +120,11 @@ function oklchToRgb(L: number, C: number, h: number, a = 1): Rgb {
     };
 }
 
+/**
+ * Parses a CSS color value.
+ * @param {string} value The value to parse.
+ * @returns {Rgb | null} The parsed color.
+ */
 function parseCssColor(value: string): Rgb | null {
     if (!value) {
         return TRANSPARENT_COLOR;
@@ -277,6 +311,10 @@ function blend(fg: Rgb, bg: Rgb): Rgb {
     };
 }
 
+/**
+ * Gets the probe element.
+ * @returns {HTMLSpanElement | null} The probe element.
+ */
 function getProbe(): HTMLSpanElement | null {
     if (typeof document === "undefined") {
         return null;
@@ -291,6 +329,12 @@ function getProbe(): HTMLSpanElement | null {
     return probeEl;
 }
 
+/**
+ * Gets the theme tokens.
+ * @returns {Rgb} The foreground color.
+ * @returns {Rgb} The background color.
+ * @returns {Rgb} The theme tokens.
+ */
 function getThemeTokens(): { fgColor: Rgb; bgColor: Rgb } {
     const currentTheme =
         (typeof document !== "undefined" ? document.documentElement.dataset.theme : null) || "dark";
@@ -329,6 +373,12 @@ function getThemeTokens(): { fgColor: Rgb; bgColor: Rgb } {
     return { fgColor: cachedFgColor, bgColor: cachedBgColor };
 }
 
+/**
+ * Gets the effective background.
+ * @param {Element} el The element.
+ * @param {Rgb} pageBg The page background.
+ * @returns {Rgb} The effective background.
+ */ 
 function effectiveBackground(el: Element, pageBg: Rgb): Rgb {
     let stacked: Rgb | null = null;
     let node: Element | null = el;
@@ -359,7 +409,10 @@ function effectiveBackground(el: Element, pageBg: Rgb): Rgb {
     return blend(stacked, pageBg);
 }
 
-export function applyTextContrast(root: ParentNode = document) {
+/**
+ * Apply text contrast
+ */
+export function applyTextContrast(root: ParentNode = document): void {
     if (typeof document === "undefined") {
         return;
     }
@@ -389,7 +442,10 @@ export function applyTextContrast(root: ParentNode = document) {
     }
 }
 
-export function startTextContrastObserver() {
+/**
+ * Start text contrast observer
+ */
+export function startTextContrastObserver(): void {
     if (typeof window !== "undefined") {
         (
             window as unknown as { __applyTextContrast?: typeof applyTextContrast }

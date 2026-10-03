@@ -71,27 +71,42 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The label of the toggleable
+         */
         label: {
             type: String,
             required: false
         },
 
+        /**
+         * The options of the toggleable
+         */
         options: {
             type: Array as PropType<ToggleableOption[]>,
             required: true
         },
 
+        /**
+         * The model value of the toggleable
+         */
         modelValue: {
             type: [String, Number, Boolean] as PropType<string | number | boolean | null>,
             default: null
         },
 
+        /**
+         * The label position of the toggleable
+         */
         labelPosition: {
             type: String as PropType<"center" | "left" | "right">,
             default: "left",
             required: false
         },
 
+        /**
+         * The toggleable position of the toggleable
+         */
         toggleablePosition: {
             type: String as PropType<"center" | "left" | "right">,
             default: "left",
@@ -107,28 +122,43 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * The size of the toggleable
+         */
         size: {
             type: String as PropType<"small" | "medium" | "large">,
             default: "small",
             required: false
         },
 
+        /**
+         * Whether the toggleable is disabled
+         */
         disabled: {
             type: Boolean,
             default: false,
             required: false
         },
 
+        /**
+         * The border style of the toggleable
+         */
         borderStyle: {
             type: String,
             required: false
         },
 
+        /**
+         * The radius style of the toggleable
+         */
         radiusStyle: {
             type: String,
             required: false
         },
 
+        /**
+         * The background style of the toggleable
+         */
         backgroundStyle: {
             type: String,
             required: false
@@ -138,6 +168,10 @@ export default defineComponent({
     emits: ["update:modelValue"],
 
     computed: {
+        /**
+         * Gets the border class
+         * @returns {unknown} The border class
+         */
         borderClass(): string {
             if (this.borderStyle) {
                 return this.borderStyle;
@@ -146,6 +180,10 @@ export default defineComponent({
             return "border";
         },
 
+        /**
+         * Gets the background class
+         * @returns {unknown} The background class
+         */
         backgroundClass() {
             if (this.backgroundStyle) {
                 return this.backgroundStyle;
@@ -161,6 +199,10 @@ export default defineComponent({
             ];
         },
 
+        /**
+         * Gets the radius class
+         * @returns {unknown} The radius class
+         */
         radiusClass(): string {
             if (this.radiusStyle) {
                 return this.radiusStyle;
@@ -171,10 +213,21 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Gets the is selected
+         * @param {string} value The value
+         * @returns {void}
+         */
         isSelected(value: string): boolean {
             return this.modelValue === value;
         },
 
+        /**
+         * Handles the option toggle
+         * @param {string} value The value
+         * @param {boolean} on The on
+         * @returns {void}
+         */
         onOptionToggle(value: string, on: boolean) {
             if (this.disabled) {
                 return;

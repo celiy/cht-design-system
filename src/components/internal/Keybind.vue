@@ -34,15 +34,28 @@ export default defineComponent({
 
     emits: ["trigger"],
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         window.addEventListener("keydown", this.onKeydown);
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         window.removeEventListener("keydown", this.onKeydown);
     },
 
     methods: {
+        /**
+         * Handles the keydown
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
         onKeydown(event: KeyboardEvent) {
             if (!this.enabled) {
                 return;

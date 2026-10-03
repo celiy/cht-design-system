@@ -60,11 +60,17 @@ export default defineComponent({
             default: DEFAULT_FOLLOW_MS
         },
 
+        /**
+         * The offset of the tooltip
+         */
         offset: {
             type: Number,
             default: TOOLTIP_DEFAULT_OFFSET
         },
 
+        /**
+         * Whether the tooltip is disabled
+         */
         disabled: {
             type: Boolean,
             default: false
@@ -92,6 +98,12 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Gets the tip style
+         * @returns {Object} The tip style
+         * @property {string} transform The transform
+         * @property {string} transition The transition
+         */
         tipStyle() {
             const follow = Math.max(0, this.followMs);
 
@@ -102,20 +114,38 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         this.teardown();
     },
 
     methods: {
+        /**
+         * Checks if the tooltip has a slot
+         * @returns {boolean} True if the tooltip has a slot
+         */
         hasTooltipSlot() {
             return Boolean(this.$slots.tooltip);
         },
 
+        /**
+         * Handles the pointer enter event
+         * @param {PointerEvent} event The event
+         * @returns {void}
+         */
         onPointerEnter(event: PointerEvent) {
             this.$emit("pointerenter", event);
             this.beginShow(event);
         },
 
+        /**
+         * Handles the pointer move event
+         * @param {PointerEvent} event The event
+         * @returns {void}
+         */
         onPointerMove(event: PointerEvent) {
             this.pointerX = event.clientX;
             this.pointerY = event.clientY;
@@ -127,11 +157,20 @@ export default defineComponent({
             this.scheduleFollow();
         },
 
+        /**
+         * Handles the pointer leave event
+         * @param {PointerEvent} event The event
+         * @returns {void}
+         */
         onPointerLeave(event: PointerEvent) {
             this.$emit("pointerleave", event);
             this.hideUnlessCaptured();
         },
 
+        /**
+         * Hides the tooltip unless captured
+         * @returns {void}
+         */
         hideUnlessCaptured() {
             if (this.capturedPointerId != null) {
                 return;
@@ -140,6 +179,11 @@ export default defineComponent({
             this.hide();
         },
 
+        /**
+         * Handles the pointer down event
+         * @param {PointerEvent} event The event
+         * @returns {void}
+         */
         onPointerDown(event: PointerEvent) {
             if (event.pointerType === "mouse") {
                 return;
@@ -152,6 +196,11 @@ export default defineComponent({
             this.beginShow(event);
         },
 
+        /**
+         * Handles the pointer up event
+         * @param {PointerEvent} event The event
+         * @returns {void}
+         */
         onPointerUp(event: PointerEvent) {
             if (this.capturedPointerId == null) {
                 return;
@@ -167,6 +216,11 @@ export default defineComponent({
             this.hide();
         },
 
+        /**
+         * Begins the show
+         * @param {PointerEvent} event The event
+         * @returns {void}
+         */
         beginShow(event: PointerEvent) {
             if (this.disabled || !this.hasTooltipSlot()) {
                 return;
@@ -191,6 +245,10 @@ export default defineComponent({
             }, delay);
         },
 
+        /**
+         * Shows the tooltip
+         * @returns {void}
+         */
         show() {
             if (this.disabled || !this.hasTooltipSlot()) {
                 return;
@@ -219,6 +277,10 @@ export default defineComponent({
             });
         },
 
+        /**
+         * Hides the tooltip
+         * @returns {void}
+         */
         hide() {
             this.showGen += 1;
             this.clearShowTimer();
@@ -231,6 +293,11 @@ export default defineComponent({
             this.skipFollow = true;
         },
 
+        /**
+         * Enables the follow after paint
+         * @param {number} gen The generation
+         * @returns {void}
+         */
         enableFollowAfterPaint(gen: number) {
             this.clearPaintRaf();
             this.paintRafId = window.requestAnimationFrame(() => {
@@ -246,6 +313,10 @@ export default defineComponent({
             });
         },
 
+        /**
+         * Schedules the follow
+         * @returns {void}
+         */
         scheduleFollow() {
             if (this.rafId != null) {
                 return;
@@ -262,6 +333,10 @@ export default defineComponent({
             });
         },
 
+        /**
+         * Places the tooltip now
+         * @returns {void}
+         */
         placeNow() {
             const tip = this.$refs.tipRef as HTMLElement | undefined;
             const rect = tip?.getBoundingClientRect();
@@ -284,16 +359,28 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Binds the window guards
+         * @returns {void}
+         */
         bindWindowGuards() {
             window.addEventListener("scroll", this.hide, true);
             window.addEventListener("blur", this.hide);
         },
 
+        /**
+         * Unbinds the window guards
+         * @returns {void}
+         */
         unbindWindowGuards() {
             window.removeEventListener("scroll", this.hide, true);
             window.removeEventListener("blur", this.hide);
         },
 
+        /**
+         * Binds the document watch
+         * @returns {void}
+         */
         bindDocumentWatch() {
             if (this.watchingDocument) {
                 return;
@@ -304,6 +391,10 @@ export default defineComponent({
             document.addEventListener("pointerdown", this.onDocumentPointer, true);
         },
 
+        /**
+         * Unbinds the document watch
+         * @returns {void}
+         */
         unbindDocumentWatch() {
             if (!this.watchingDocument) {
                 return;
@@ -314,6 +405,11 @@ export default defineComponent({
             document.removeEventListener("pointerdown", this.onDocumentPointer, true);
         },
 
+        /**
+         * Handles the document pointer event
+         * @param {PointerEvent} event The event
+         * @returns {void}
+         */
         onDocumentPointer(event: PointerEvent) {
             this.pointerX = event.clientX;
             this.pointerY = event.clientY;
@@ -329,6 +425,10 @@ export default defineComponent({
             this.hide();
         },
 
+        /**
+         * Checks if the pointer is over the trigger
+         * @returns {boolean} True if the pointer is over the trigger
+         */
         isPointerOverTrigger() {
             const trigger = this.$refs.triggerRef as HTMLElement | undefined;
 
@@ -346,6 +446,10 @@ export default defineComponent({
             );
         },
 
+        /**
+         * Clears the show timer
+         * @returns {void}
+         */
         clearShowTimer() {
             if (this.showTimer == null) {
                 return;
@@ -355,6 +459,10 @@ export default defineComponent({
             this.showTimer = null;
         },
 
+        /**
+         * Clears the RAF
+         * @returns {void}
+         */
         clearRaf() {
             if (this.rafId == null) {
                 return;
@@ -364,6 +472,10 @@ export default defineComponent({
             this.rafId = null;
         },
 
+        /**
+         * Clears the paint RAF
+         * @returns {void}
+         */
         clearPaintRaf() {
             if (this.paintRafId == null) {
                 return;
@@ -373,6 +485,10 @@ export default defineComponent({
             this.paintRafId = null;
         },
 
+        /**
+         * Tears down the tooltip
+         * @returns {void}
+         */
         teardown() {
             this.hide();
 

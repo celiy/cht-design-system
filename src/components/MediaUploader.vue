@@ -150,49 +150,76 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The id of the media uploader
+         */
         id: {
             type: String,
             required: true
         },
 
+        /**
+         * The label of the media uploader
+         */
         label: {
             type: String,
             required: false
         },
 
+        /**
+         * Whether the media uploader is helper text
+         */
         helperText: {
             type: String,
             required: false
         },
 
+        /**
+         * Whether the media uploader is disabled
+         */
         disabled: {
             type: Boolean,
             default: false,
             required: false
         },
 
+        /**
+         * Whether the media uploader is multiple
+         */
         multiple: {
             type: Boolean,
             default: true,
             required: false
         },
 
+        /**
+         * The max files of the media uploader
+         */
         maxFiles: {
             type: Number,
             required: false
         },
 
+        /**
+         * The accept of the media uploader
+         */
         accept: {
             type: [String, Array] as PropType<string | string[]>,
             required: false
         },
 
+        /**
+         * The value of the media uploader
+         */
         value: {
             type: Array as PropType<File[]>,
             required: false,
             default: () => []
         },
 
+        /**
+         * The model value of the media uploader
+         */
         modelValue: {
             type: Array as PropType<File[] | undefined>,
             required: false,
@@ -211,10 +238,18 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Gets the active value
+         * @returns {unknown} The active value
+         */
         activeValue(): File[] {
             return this.modelValue !== undefined ? this.modelValue : this.value;
         },
 
+        /**
+         * Gets the max files limit
+         * @returns {unknown} The max files limit
+         */
         maxFilesLimit(): number {
             if (!this.multiple) {
                 return 1;
@@ -227,6 +262,10 @@ export default defineComponent({
             return this.maxFiles;
         },
 
+        /**
+         * Gets the accept tokens
+         * @returns {unknown} The accept tokens
+         */
         acceptTokens(): string[] {
             if (!this.accept) {
                 return [];
@@ -240,6 +279,10 @@ export default defineComponent({
                 .filter(Boolean);
         },
 
+        /**
+         * Gets the accept attribute
+         * @returns {unknown} The accept attribute
+         */
         acceptAttribute(): string | undefined {
             if (!this.acceptTokens.length) {
                 return undefined;
@@ -248,6 +291,10 @@ export default defineComponent({
             return this.acceptTokens.join(",");
         },
 
+        /**
+         * Gets the file input label
+         * @returns {unknown} The file input label
+         */
         fileInputLabel(): string {
             if (!this.internalFiles.length) {
                 return "Nenhum arquivo selecionado";
@@ -260,6 +307,10 @@ export default defineComponent({
             return `${this.internalFiles.length} arquivos selecionados`;
         },
 
+        /**
+         * Gets the rules label
+         * @returns {unknown} The rules label
+         */
         rulesLabel(): string {
             const rules: string[] = [];
 
@@ -276,6 +327,10 @@ export default defineComponent({
             return rules.join(" - ");
         },
 
+        /**
+         * Gets the items
+         * @returns {unknown} The items
+         */
         items(): MediaItem[] {
             return this.internalFiles.map(file => {
                 const key = this.fileKey(file);
@@ -304,6 +359,10 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         for (const url of Object.values(this.previewUrls)) {
             URL.revokeObjectURL(url);
@@ -311,10 +370,20 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * File key
+         * @param {File} file The file
+         * @returns {void}
+         */
         fileKey(file: File): string {
             return [file.name, file.size, file.type, file.lastModified].join("__");
         },
 
+        /**
+         * File extension
+         * @param {File} file The file
+         * @returns {void}
+         */
         fileExtension(file: File): string {
             const split = file.name.split(".");
             if (split.length < 2) {
@@ -325,10 +394,20 @@ export default defineComponent({
             return extension ? extension.toLowerCase() : "";
         },
 
+        /**
+         * File is image
+         * @param {File} file The file
+         * @returns {void}
+         */
         fileIsImage(file: File): boolean {
             return file.type.toLowerCase().startsWith("image/");
         },
 
+        /**
+         * File icon class
+         * @param {File} file The file
+         * @returns {void}
+         */
         fileIconClass(file: File): string {
             const mime = file.type.toLowerCase();
             const ext = this.fileExtension(file);
@@ -386,11 +465,21 @@ export default defineComponent({
             return "fa-solid fa-file text-muted-foreground";
         },
 
+        /**
+         * Sync from external
+         * @param {File[]} files The files
+         * @returns {void}
+         */
         syncFromExternal(files: File[]) {
             const normalized = this.normalizeFiles(files);
             this.replaceFiles(normalized, false);
         },
 
+        /**
+         * Normalize files
+         * @param {File[]} files The files
+         * @returns {void}
+         */
         normalizeFiles(files: File[]): File[] {
             const list = Array.isArray(files) ? files.filter(Boolean) : [];
 
@@ -405,6 +494,12 @@ export default defineComponent({
             return list;
         },
 
+        /**
+         * Replace files
+         * @param {File[]} nextFiles The next files
+         * @param {boolean} emitChanges The emit changes
+         * @returns {void}
+         */
         replaceFiles(nextFiles: File[], emitChanges: boolean) {
             const previousKeys = new Set(this.internalFiles.map(file => this.fileKey(file)));
             const nextKeys = new Set(nextFiles.map(file => this.fileKey(file)));
@@ -431,6 +526,11 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Gets the is accepted type
+         * @param {File} file The file
+         * @returns {void}
+         */
         isAcceptedType(file: File): boolean {
             if (!this.acceptTokens.length) {
                 return true;
@@ -463,6 +563,11 @@ export default defineComponent({
             return false;
         },
 
+        /**
+         * Append files
+         * @param {File[]} candidateFiles The candidate files
+         * @returns {void}
+         */
         appendFiles(candidateFiles: File[]) {
             if (this.disabled) {
                 return;
@@ -499,6 +604,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Open file picker
+         * @returns {void}
+         */
         openFilePicker() {
             if (this.disabled) {
                 return;
@@ -508,6 +617,11 @@ export default defineComponent({
             input?.click();
         },
 
+        /**
+         * Handles the input change
+         * @param {Event} event The event
+         * @returns {void}
+         */
         onInputChange(event: Event) {
             const target = event.target as HTMLInputElement;
             const files = Array.from(target.files ?? []);
@@ -519,6 +633,10 @@ export default defineComponent({
             target.value = "";
         },
 
+        /**
+         * Handles the drag enter
+         * @returns {void}
+         */
         onDragEnter() {
             if (this.disabled) {
                 return;
@@ -527,6 +645,10 @@ export default defineComponent({
             this.isDragActive = true;
         },
 
+        /**
+         * Handles the drag over
+         * @returns {void}
+         */
         onDragOver() {
             if (this.disabled) {
                 return;
@@ -535,10 +657,19 @@ export default defineComponent({
             this.isDragActive = true;
         },
 
+        /**
+         * Handles the drag leave
+         * @returns {void}
+         */
         onDragLeave() {
             this.isDragActive = false;
         },
 
+        /**
+         * Handles the drop
+         * @param {DragEvent} event The event
+         * @returns {void}
+         */
         onDrop(event: DragEvent) {
             this.isDragActive = false;
 
@@ -554,6 +685,11 @@ export default defineComponent({
             this.appendFiles(files);
         },
 
+        /**
+         * Remove file
+         * @param {string} key The key
+         * @returns {void}
+         */
         removeFile(key: string) {
             if (this.disabled) {
                 return;

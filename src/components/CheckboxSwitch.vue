@@ -44,34 +44,52 @@ export default defineComponent({
     name: "CheckboxSwitch",
 
     props: {
+        /**
+         * Whether the checkbox switch is input id
+         */
         inputId: {
             type: String,
             required: true
         },
 
+        /**
+         * Whether the checkbox switch is checked
+         */
         checked: {
             type: Boolean,
             required: true
         },
 
+        /**
+         * Whether the checkbox switch is disabled
+         */
         disabled: {
             type: Boolean,
             default: false,
             required: false
         },
 
+        /**
+         * Whether the checkbox switch is clickable
+         */
         clickable: {
             type: Boolean,
             default: true,
             required: false
         },
 
+        /**
+         * The size of the checkbox switch
+         */
         size: {
             type: String as PropType<"small" | "medium">,
             default: "medium",
             required: false
         },
 
+        /**
+         * Whether the checkbox switch is hovered
+         */
         hovered: {
             type: Boolean,
             default: false,
@@ -86,10 +104,18 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Handles the focus
+         * @returns {void}
+         */
         onFocus() {
             this.isFocused = true;
         },
 
+        /**
+         * Handles the blur
+         * @returns {void}
+         */
         onBlur() {
             this.isFocused = false;
         }

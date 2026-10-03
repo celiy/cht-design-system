@@ -213,36 +213,54 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The variant of the modal
+         */
         variant: {
             type: String as PropType<"modal" | "blank" | "drawer" | "preview">,
             default: "modal",
             required: false
         },
 
+        /**
+         * The color of the modal
+         */
         color: {
             type: String as PropType<"destructive" | "success" | "warning" | "info">,
             default: "secondary",
             required: false
         },
 
+        /**
+         * The side of the modal
+         */
         side: {
             type: String as PropType<"left" | "right" | "bottom">,
             default: "left",
             required: false
         },
 
+        /**
+         * The size of the modal
+         */
         size: {
             type: String as PropType<"extra-small" | "small" | "medium" | "large" | "extra-large">,
             default: "medium",
             required: false
         },
 
+        /**
+         * Whether the modal open
+         */
         isOpen: {
             type: Boolean,
             default: false,
             required: true
         },
 
+        /**
+         * Whether the modal is keep open
+         */
         keepOpen: {
             type: Boolean,
             default: false,
@@ -260,16 +278,25 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * The background style of the modal
+         */
         backgroundStyle: {
             type: String,
             required: false
         },
 
+        /**
+         * The border style of the modal
+         */
         borderStyle: {
             type: String,
             required: false
         },
 
+        /**
+         * The footer style of the modal
+         */
         footerStyle: {
             type: String,
             required: false
@@ -303,6 +330,10 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Gets the overlay zindex
+         * @returns {unknown} The overlay zindex
+         */
         overlayZIndex(): number {
             return 999 + this.layerIndex * 20;
         },
@@ -355,6 +386,10 @@ export default defineComponent({
             return "drawer-slide-left";
         },
 
+        /**
+         * Gets the background class
+         * @returns {unknown} The background class
+         */
         backgroundClass() {
             if (this.backgroundStyle) {
                 return this.backgroundStyle;
@@ -363,6 +398,10 @@ export default defineComponent({
             return "bg-card";
         },
 
+        /**
+         * Gets the footer class
+         * @returns {unknown} The footer class
+         */
         footerClass() {
             if (this.footerStyle) {
                 return this.footerStyle;
@@ -519,12 +558,20 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Creates the component
+     * @returns {void}
+     */
     created() {
         if (this.urlSync) {
             this.modalUrlId = registerModalUrlInstance();
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         if (!this.shouldSyncModalUrl()) {
             this.urlSyncReady = true;
@@ -548,6 +595,10 @@ export default defineComponent({
         );
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         if (this.modalOpen && this.urlSyncReady && this.shouldSyncModalUrl()) {
             trackModalUrlOpenState(this.modalUrlId, false);
@@ -564,10 +615,18 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Should sync modal url
+         * @returns {void}
+         */
         shouldSyncModalUrl(): boolean {
             return this.urlSync && Boolean(this.$router) && Boolean(this.$route);
         },
 
+        /**
+         * Modal ids from route
+         * @returns {void}
+         */
         modalIdsFromRoute(): number[] {
             const route = this.$route as RouteLocationNormalizedLoaded | undefined;
 
@@ -581,6 +640,12 @@ export default defineComponent({
             return parseModalQueryParam(typeof text === "string" ? text : undefined);
         },
 
+        /**
+         * Sync open state to url
+         * @param {boolean} _open The open state
+         * @param {object} _options The options
+         * @returns {void}
+         */
         syncOpenStateToUrl(
             _open: boolean,
             _options: { reason: "state" | "unmount" } = { reason: "state" }
@@ -592,6 +657,10 @@ export default defineComponent({
             scheduleModalUrlQuerySync(this.$router as ModalUrlRouter);
         },
 
+        /**
+         * Sync open from url
+         * @returns {void}
+         */
         syncOpenFromUrl() {
             if (!this.shouldSyncModalUrl()) {
                 return;

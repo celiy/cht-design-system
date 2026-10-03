@@ -91,22 +91,34 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The status of the avatar
+         */
         status: {
             type: String as PropType<AvatarStatus>,
             required: false
         },
 
+        /**
+         * The image of the avatar
+         */
         image: {
             type: String,
             required: false
         },
 
+        /**
+         * The size of the avatar
+         */
         size: {
             type: String as PropType<"small" | "medium" | "large">,
             required: false,
             default: "medium"
         },
 
+        /**
+         * Whether the avatar is loading
+         */
         loading: {
             type: Boolean,
             required: false,
@@ -118,7 +130,8 @@ export default defineComponent({
 
     computed: {
         /**
-         * Status badge is shown only for known presence values, not while loading.
+         * Checks if the status badge is shown
+         * @returns {boolean} True if the status badge is shown
          */
         hasStatus(): boolean {
             if (this.loading) {

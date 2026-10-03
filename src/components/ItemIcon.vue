@@ -19,30 +19,48 @@ type ItemVariant = "primary" | "secondary" | "success" | "warning" | "destructiv
 
 export default defineComponent({
     props: {
+        /**
+         * The icon of the component
+         */
         icon: {
             type: String
         },
 
+        /**
+         * The type of the itemicon
+         */
         type: {
             type: String as PropType<"card" | "icon">,
             default: "card"
         },
 
+        /**
+         * The variant of the component
+         */
         variant: {
             type: String as PropType<ItemVariant>,
             default: "primary",
             required: false
         },
 
+        /**
+         * Whether the component is disabled
+         */
         disabled: {
             type: Boolean,
             default: false
         },
 
+        /**
+         * The background style of the component
+         */
         backgroundStyle: {
             type: String
         },
 
+        /**
+         * The icon style of the component
+         */
         iconStyle: {
             type: String
         }
@@ -70,6 +88,10 @@ export default defineComponent({
             return `fa-solid fa-${icon}`;
         },
 
+        /**
+         * Gets the icon class
+         * @returns {unknown} The icon class
+         */
         iconClass() {
             if (this.iconStyle) {
                 return [this.iconLabel, this.iconStyle];
@@ -88,6 +110,10 @@ export default defineComponent({
             ];
         },
 
+        /**
+         * Gets the background class
+         * @returns {unknown} The background class
+         */
         backgroundClass() {
             if (this.type === "icon") {
                 return ["pt-1"];

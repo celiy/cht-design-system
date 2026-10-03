@@ -17,6 +17,10 @@ export default defineComponent({
     name: "ViewportCenter",
 
     computed: {
+        /**
+         * Gets the center style
+         * @returns {unknown} The center style
+         */
         centerStyle(): Record<string, string> {
             const width = this.$project.device.viewportWidth;
             const height = this.$project.device.viewportHeight;

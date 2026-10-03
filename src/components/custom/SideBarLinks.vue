@@ -184,6 +184,9 @@ export default defineComponent({
     name: "SideBarLinks",
 
     props: {
+        /**
+         * The items of the sidebarlinks
+         */
         items: {
             type: Array as PropType<any[]>,
             default: () => []
@@ -199,6 +202,11 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Checks if the link is active
+         * @param {string | null} link The link
+         * @returns {boolean} True if the link is active
+         */
         isActive(link: string | null) {
             if (!link) {
                 return false;
@@ -226,10 +234,22 @@ export default defineComponent({
             return true;
         },
 
+        /**
+         * Gets the group key
+         * @param {any} link The link
+         * @param {number} idx The index
+         * @returns {string} The group key
+         */
         groupKey(link: any, idx: number): string {
             return String(link.label ?? idx);
         },
 
+        /**
+         * Checks if the group is open
+         * @param {any} link The link
+         * @param {number} idx The index
+         * @returns {boolean} True if the group is open
+         */
         isGroupOpen(link: any, idx: number): boolean {
             if (link.links) {
                 for (const sublink of link.links) {
@@ -248,6 +268,12 @@ export default defineComponent({
             return Boolean(link.openByDefault ?? link.open);
         },
 
+        /**
+         * Toggles the group
+         * @param {any} link The link
+         * @param {number} idx The index
+         * @returns {void}
+         */
         toggleGroup(link: any, idx: number) {
             const key = this.groupKey(link, idx);
 
@@ -257,22 +283,43 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Hovers the link
+         * @param {any} link The link
+         * @returns {void}
+         */
         hoverLink(link: any) {
             this.hoveredLink = link.link;
         },
 
+        /**
+         * Unhovers the link
+         * @returns {void}
+         */
         unhoverLink() {
             this.hoveredLink = null;
         },
 
+        /**
+         * Handles the up event
+         * @returns {void}
+         */
         onUp() {
             this.isDown = false;
         },
 
+        /**
+         * Handles the down event
+         * @returns {void}
+         */
         onDown() {
             this.isDown = true;
         },
 
+        /**
+         * Handles the out event
+         * @returns {void}
+         */
         onOut() {
             this.isDown = false;
         }

@@ -71,6 +71,9 @@ export default defineComponent({
     name: "Tabs",
 
     props: {
+        /**
+         * The variant of the tabs
+         */
         variant: {
             type: String as PropType<"secondary" | "transparent">,
             default: "secondary",
@@ -85,10 +88,18 @@ export default defineComponent({
         };
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         this.refreshTabCount();
     },
 
+    /**
+     * Updates the component
+     * @returns {void}
+     */
     updated() {
         this.refreshTabCount();
     },
@@ -109,6 +120,11 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Switch tab
+         * @param {number} tab The tab
+         * @returns {void}
+         */
         switchTab(tab: number) {
             this.activeTab = tab;
         }

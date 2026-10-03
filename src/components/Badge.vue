@@ -66,17 +66,26 @@ export default defineComponent({
     name: "Badge",
 
     props: {
+        /**
+         * The label of the badge
+         */
         label: {
             type: String,
             required: false
         },
 
+        /**
+         * The variant of the badge
+         */
         variant: {
             type: String as PropType<BadgeVariant>,
             default: "primary",
             required: false
         },
 
+        /**
+         * The style of the badge
+         */
         variantStyle: {
             type: String as PropType<"fill" | "bordered">,
             default: "fill",
@@ -91,23 +100,35 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * The type of the badge
+         */
         type: {
             type: String as PropType<"normal" | "link">,
             default: "normal",
             required: false
         },
 
+        /**
+         * The link of the badge
+         */
         link: {
             type: String,
             required: false
         },
 
+        /**
+         * Whether the link is external
+         */
         external: {
             type: Boolean,
             default: false,
             required: false
         },
 
+        /**
+         * The text color of the badge
+         */
         textColor: {
             type: String,
             required: false
@@ -117,10 +138,18 @@ export default defineComponent({
     emits: ["click"],
 
     computed: {
+        /**
+         * Checks if the badge is bordered
+         * @returns {boolean} True if the badge is bordered
+         */
         isBordered(): boolean {
             return this.variantStyle === "bordered";
         },
 
+        /**
+         * Gets the root class
+         * @returns {Array<string | Record<string, boolean>>} The root class
+         */
         rootClass(): Array<string | Record<string, boolean>> {
             const classes: Array<string | Record<string, boolean>> = [];
 
@@ -145,6 +174,10 @@ export default defineComponent({
             return classes;
         },
 
+        /**
+         * Gets the root style
+         * @returns {Record<string, string>} The root style
+         */
         rootStyle(): Record<string, string> {
             const style: Record<string, string> = {};
 
@@ -169,6 +202,10 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Handles the click event
+         * @returns {void}
+         */
         handleClick() {
             if (this.link && this.external) {
                 const newWindow = window.open(this.link, "_blank");

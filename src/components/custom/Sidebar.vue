@@ -136,36 +136,57 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The title of the sidebar
+         */
         title: {
             type: String,
             required: false
         },
 
+        /**
+         * The description of the sidebar
+         */
         description: {
             type: String,
             required: false
         },
 
+        /**
+         * The sidebar width of the sidebar
+         */
         sidebarWidth: {
             type: Number,
             default: 300
         },
 
+        /**
+         * The min sidebar width of the sidebar
+         */
         minSidebarWidth: {
             type: Number,
             default: 250
         },
 
+        /**
+         * The max sidebar width of the sidebar
+         */
         maxSidebarWidth: {
             type: Number,
             default: 350
         },
 
+        /**
+         * The nav items of the sidebar
+         */
         navItems: {
             type: Array as PropType<any[]>,
             required: false
         },
 
+        /**
+         * The variant of the sidebar
+         */
         variant: {
             type: String as PropType<"minimalist" | "default">,
             default: "default"
@@ -226,6 +247,11 @@ export default defineComponent({
     },
 
     watch: {
+        /**
+         * Sidebar width
+         * @param {number} value The value
+         * @returns {void}
+         */
         sidebarWidth(value: number) {
             this.currentWidth = value;
         },
@@ -264,6 +290,10 @@ export default defineComponent({
             this.open = false;
         },
 
+        /**
+         * Scrolls the main content to the top
+         * @returns {void}
+         */
         scrollMainContentToTop() {
             this.$nextTick(() => {
                 const el = this.$refs.mainContentScrollRef as HTMLElement | undefined;

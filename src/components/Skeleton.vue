@@ -37,16 +37,25 @@ export default defineComponent({
     name: "Skeleton",
 
     props: {
+        /**
+         * The type of the skeleton
+         */
         type: {
             type: String as PropType<"text" | "card" | "avatar">,
             required: false
         },
 
+        /**
+         * The aspect ratio of the skeleton
+         */
         aspectRatio: {
             type: [String, Number] as PropType<string | number>,
             required: false
         },
 
+        /**
+         * The size of the skeleton
+         */
         size: {
             type: String as PropType<"small" | "medium" | "large">,
             required: false,
@@ -62,10 +71,18 @@ export default defineComponent({
         };
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         this.syncPulse();
     },
 
+    /**
+     * Activates the component
+     * @returns {void}
+     */
     activated() {
         this.syncPulse();
     },

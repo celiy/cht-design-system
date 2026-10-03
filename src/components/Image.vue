@@ -60,28 +60,43 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * Whether the image is src
+         */
         src: {
             type: String,
             required: false
         },
 
+        /**
+         * Whether the image is alt
+         */
         alt: {
             type: String,
             required: false
         },
 
+        /**
+         * Whether the image is open modal
+         */
         openModal: {
             type: Boolean,
             default: false,
             required: false
         },
 
+        /**
+         * Whether the image is draggable
+         */
         draggable: {
             type: Boolean,
             default: true,
             required: false
         },
 
+        /**
+         * The image class of the image
+         */
         imageClass: {
             type: String,
             required: false
@@ -108,14 +123,26 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Checks if draggable
+         * @returns {boolean} True if is draggable
+         */
         isDraggable(): boolean {
             return this.draggable === true;
         },
 
+        /**
+         * Gets the show skeleton
+         * @returns {unknown} The show skeleton
+         */
         showSkeleton(): boolean {
             return Boolean(this.src) && !this.hasLoaded && !this.hasError;
         },
 
+        /**
+         * Gets the display aspect
+         * @returns {unknown} The display aspect
+         */
         displayAspect(): string | undefined {
             if (this.aspectRatio === undefined || this.aspectRatio === "") {
                 return undefined;
@@ -124,6 +151,10 @@ export default defineComponent({
             return String(this.aspectRatio);
         },
 
+        /**
+         * Gets the root style
+         * @returns {unknown} The root style
+         */
         rootStyle(): Record<string, string> {
             if (!this.displayAspect) {
                 return {};
@@ -132,6 +163,10 @@ export default defineComponent({
             return { aspectRatio: this.displayAspect };
         },
 
+        /**
+         * Gets the img layout class
+         * @returns {unknown} The img layout class
+         */
         imgLayoutClass(): string {
             if (this.displayAspect) {
                 return "absolute inset-0 size-full";
@@ -140,6 +175,10 @@ export default defineComponent({
             return "relative block";
         },
 
+        /**
+         * Gets the img state class
+         * @returns {unknown} The img state class
+         */
         imgStateClass(): Record<string, boolean> {
             return {
                 "cursor-pointer": this.openModal,
@@ -162,20 +201,37 @@ export default defineComponent({
             immediate: true
         },
 
+        /**
+         * Show skeleton
+         * @param {boolean} isLoading The is loading
+         * @returns {void}
+         */
         showSkeleton(isLoading: boolean) {
             this.$emit("update:loading", isLoading);
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         this.syncFromImgElement();
     },
 
     methods: {
+        /**
+         * Img element
+         * @returns {void}
+         */
         imgElement(): HTMLImageElement | undefined {
             return this.$refs.imgEl as HTMLImageElement | undefined;
         },
 
+        /**
+         * Sync from img element
+         * @returns {void}
+         */
         syncFromImgElement() {
             const el = this.imgElement();
 
@@ -188,6 +244,11 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Apply loaded
+         * @param {HTMLImageElement} _el The _el
+         * @returns {void}
+         */
         applyLoaded(_el: HTMLImageElement) {
             if (this.hasLoaded) {
                 return;
@@ -198,6 +259,11 @@ export default defineComponent({
             this.$emit("load");
         },
 
+        /**
+         * Handles the load
+         * @param {Event} event The event
+         * @returns {void}
+         */
         onLoad(event: Event) {
             const el = event.target;
 
@@ -208,12 +274,21 @@ export default defineComponent({
             this.applyLoaded(el);
         },
 
+        /**
+         * Handles the error
+         * @returns {void}
+         */
         onError() {
             this.hasError = true;
             this.hasLoaded = false;
             this.$emit("error");
         },
 
+        /**
+         * Handles the image click
+         * @param {MouseEvent} event The event
+         * @returns {void}
+         */
         onImageClick(event: MouseEvent) {
             this.$emit("click", event);
 

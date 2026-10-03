@@ -162,6 +162,9 @@ export default defineComponent({
             default: 0
         },
 
+        /**
+         * Whether to show arrows
+         */
         showArrows: {
             type: Boolean,
             default: true
@@ -175,6 +178,9 @@ export default defineComponent({
             default: false
         },
 
+        /**
+         * The steps viewer of the carousel
+         */
         stepsViewer: {
             type: String as PropType<"simplified" | "advanced">,
             default: "simplified"
@@ -195,15 +201,28 @@ export default defineComponent({
     },
 
     watch: {
+        /**
+         * Start index
+         * @param {number} value The value
+         * @returns {void}
+         */
         startIndex(value: number) {
             this.goTo(value);
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         this.refreshItemCount();
     },
 
+    /**
+     * Updates the component
+     * @returns {void}
+     */
     updated() {
         this.refreshItemCount();
     },
@@ -239,6 +258,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Goes to the previous item
+         * @returns {void}
+         */
         prev() {
             if (this.itemCount === 0) {
                 return;
@@ -247,6 +270,10 @@ export default defineComponent({
             this.pos = this.pos > 0 ? this.pos - 1 : this.itemCount - 1;
         },
 
+        /**
+         * Goes to the next item
+         * @returns {void}
+         */
         next() {
             if (this.itemCount === 0) {
                 return;
@@ -255,6 +282,11 @@ export default defineComponent({
             this.pos = this.pos < this.itemCount - 1 ? this.pos + 1 : 0;
         },
 
+        /**
+         * Goes to the item at the given index
+         * @param {number} to The index to go to
+         * @returns {void}
+         */
         goTo(to: number) {
             if (this.itemCount === 0) {
                 this.pos = Math.max(to, 0);
@@ -265,10 +297,19 @@ export default defineComponent({
             this.pos = Math.min(Math.max(to, 0), this.itemCount - 1);
         },
 
+        /**
+         * Handles the outside click
+         * @returns {void}
+         */
         onOutsideClick() {
             this.$emit("click:outside");
         },
 
+        /**
+         * Handles the touch start
+         * @param {TouchEvent} e The event
+         * @returns {void}
+         */
         onTouchStart(e: TouchEvent) {
             const touch = e.touches[0];
 
@@ -281,6 +322,11 @@ export default defineComponent({
             this.swipeOffset = 0;
         },
 
+        /**
+         * Handles the touch move
+         * @param {TouchEvent} e The event
+         * @returns {void}
+         */
         onTouchMove(e: TouchEvent) {
             const touch = e.touches[0];
 
@@ -291,6 +337,10 @@ export default defineComponent({
             this.swipeOffset = touch.clientX - this.touchStartX;
         },
 
+        /**
+         * Handles the touch end
+         * @returns {void}
+         */
         onTouchEnd() {
             this.isSwiping = false;
             const threshold = 100;

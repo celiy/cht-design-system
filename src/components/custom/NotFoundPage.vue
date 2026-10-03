@@ -46,21 +46,33 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The code of the notfoundpage
+         */
         code: {
             type: String,
             default: "404"
         },
 
+        /**
+         * The title of the notfoundpage
+         */
         title: {
             type: String,
             default: "Página não encontrada"
         },
 
+        /**
+         * The description of the notfoundpage
+         */
         description: {
             type: String,
             default: "O endereço pode estar incorreto ou o conteúdo foi removido."
         },
 
+        /**
+         * The home label of the notfoundpage
+         */
         homeLabel: {
             type: String,
             default: "Voltar ao início"
@@ -79,12 +91,20 @@ export default defineComponent({
     emits: ["home"],
 
     computed: {
+        /**
+         * Gets the show default action
+         * @returns {boolean} The show default action
+         */
         showDefaultAction(): boolean {
             return Boolean(this.homeHref);
         }
     },
 
     methods: {
+        /**
+         * Handles the home click
+         * @returns {void}
+         */
         onHomeClick() {
             this.$emit("home");
 

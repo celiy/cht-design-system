@@ -72,6 +72,9 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The head of the item
+         */
         head: {
             type: String,
             required: false
@@ -93,6 +96,9 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * The small text of the item
+         */
         smallText: {
             type: String,
             required: false
@@ -115,6 +121,9 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * The type of the item
+         */
         type: {
             type: String as PropType<"card" | "alert">,
             default: "card",
@@ -137,16 +146,25 @@ export default defineComponent({
             default: true
         },
 
+        /**
+         * The background style of the item
+         */
         backgroundStyle: {
             type: String,
             required: false
         },
 
+        /**
+         * The border style of the item
+         */
         borderStyle: {
             type: String,
             required: false
         },
 
+        /**
+         * The hover style of the item
+         */
         hoverStyle: {
             type: String,
             required: false
@@ -188,6 +206,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the hover class
+         * @returns {unknown} The hover class
+         */
         hoverClass() {
             if (this.hoverStyle) {
                 return this.hoverStyle;
@@ -199,6 +221,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the title class
+         * @returns {unknown} The title class
+         */
         titleClass() {
             if (this.type === "alert") {
                 return [
@@ -219,6 +245,10 @@ export default defineComponent({
             return "text-foreground! select-none";
         },
 
+        /**
+         * Gets the description class
+         * @returns {unknown} The description class
+         */
         descriptionClass() {
             if (this.type === "alert") {
                 return [

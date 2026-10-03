@@ -1,3 +1,7 @@
+/**
+ * Toast plugin
+ */
+
 import { setToastDefaultTimeout, toast } from "./toast";
 
 export type ToastPluginOptions = {
@@ -10,6 +14,9 @@ type ToastApp = {
     };
 };
 
+/**
+ * Toast plugin
+ */
 export function toastPlugin(app: ToastApp, options?: ToastPluginOptions) {
     if (options?.timeout !== undefined) {
         setToastDefaultTimeout(options.timeout);

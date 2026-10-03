@@ -47,10 +47,18 @@ export default defineComponent({
         };
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         this.refreshStepsCount();
     },
 
+    /**
+     * Updates the component
+     * @returns {void}
+     */
     updated() {
         this.refreshStepsCount();
     },

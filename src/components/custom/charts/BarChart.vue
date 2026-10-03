@@ -264,6 +264,9 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The data of the barchart
+         */
         data: {
             type: Object as PropType<BarChartData>,
             required: true
@@ -320,6 +323,9 @@ export default defineComponent({
             default: "vertical"
         },
 
+        /**
+         * Hides the axis label
+         */
         hideAxisLabels: {
             type: Boolean,
             default: false
@@ -345,6 +351,10 @@ export default defineComponent({
     emits: ["click:bar"],
 
     computed: {
+        /**
+         * Checks if there are negative values
+         * @returns {boolean} True if there are negative values
+         */
         hasNegativeValues() {
             if (this.direction === "horizontal") {
                 return false;
@@ -355,14 +365,26 @@ export default defineComponent({
             );
         },
 
+        /**
+         * Checks if the conjunto is active
+         * @returns {boolean} True if the conjunto is active
+         */
         isConjunto() {
             return this.dateGroups.some((group) => (group.valueNegative ?? 0) > 0);
         },
 
+        /**
+         * Gets the background lines count
+         * @returns {number} The background lines count
+         */
         backgroundLinesCount() {
             return GRID_LINES;
         },
 
+        /**
+         * Gets the global scale
+         * @returns {number} The global scale
+         */
         globalScale() {
             const values = this.dateGroups.map((g) =>
                 this.direction === "horizontal"
@@ -373,6 +395,10 @@ export default defineComponent({
             return values.length ? Math.max(...values, 0) : 0;
         },
 
+        /**
+         * Gets the date groups
+         * @returns {ChartPoint[]} The date groups
+         */
         dateGroups() {
             if (chartUsesGroups(this.data.items)) {
                 return groupChartItems(this.data.items, this.data.label);
@@ -381,6 +407,10 @@ export default defineComponent({
             return groupChartItemsByDate(this.data.items, this.data.label);
         },
 
+        /**
+         * Gets the bars justify class
+         * @returns {string} The bars justify class
+         */
         barsJustifyClass() {
             if (this.align === "left") {
                 return "justify-start";
@@ -395,6 +425,11 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Displays the value
+         * @param {number} value The value
+         * @returns {number} The displayed value
+         */
         displayValue(value: number) {
             if (this.direction === "horizontal") {
                 return Math.max(0, value);
@@ -403,18 +438,38 @@ export default defineComponent({
             return value;
         },
 
+        /**
+         * Gets the positive amount
+         * @param {ChartPoint} item The item
+         * @returns {number} The positive amount
+         */
         positiveAmount(item: ChartPoint) {
             return polarPositive(item.value);
         },
 
+        /**
+         * Gets the negative amount
+         * @param {ChartPoint} item The item
+         * @returns {number} The negative amount
+         */
         negativeAmount(item: ChartPoint) {
             return polarNegative(item.value, item.valueNegative);
         },
 
+        /**
+         * Checks if the item has both polarities
+         * @param {ChartPoint} item The item
+         * @returns {boolean} True if the item has both polarities
+         */
         hasBothPolarities(item: ChartPoint) {
             return this.positiveAmount(item) > 0 && this.negativeAmount(item) > 0;
         },
 
+        /**
+         * Formats the amount
+         * @param {number} value The value
+         * @returns {string} The formatted amount
+         */
         formatAmount(value: number) {
             if (this.data.displayAs === "currency") {
                 return `R$ ${value}`;
@@ -423,6 +478,12 @@ export default defineComponent({
             return String(value);
         },
 
+        /**
+         * Resolves the color
+         * @param {ChartPoint} item The item
+         * @param {string} polarity The polarity
+         * @returns {string} The resolved color
+         */
         resolveColor(item: ChartPoint, polarity: "positive" | "negative") {
             if (polarity === "negative") {
                 return this.negativeColor;
@@ -431,6 +492,13 @@ export default defineComponent({
             return item.color || this.data.color || this.color;
         },
 
+        /**
+         * Gets the bar style
+         * @param {ChartPoint} item The item
+         * @param {string} polarity The polarity
+         * @param {number} index The index
+         * @returns {string} The bar style
+         */
         barStyle(item: ChartPoint, polarity: "positive" | "negative", index: number) {
             const colorEnd =
                 polarity === "negative"
@@ -462,6 +530,11 @@ export default defineComponent({
             return paint;
         },
 
+        /**
+         * Gets the positive bar percent
+         * @param {number} value The value
+         * @returns {number} The positive bar percent
+         */
         positiveBarPercent(value: number) {
             if (value <= 0 || this.globalScale <= 0) {
                 return 0;
@@ -470,6 +543,11 @@ export default defineComponent({
             return (value / this.globalScale) * 100;
         },
 
+        /**
+         * Gets the negative bar percent amount
+         * @param {number} value The value
+         * @returns {number} The negative bar percent amount
+         */
         negativeBarPercentAmount(value: number) {
             if (value <= 0 || this.globalScale <= 0) {
                 return 0;
@@ -478,6 +556,11 @@ export default defineComponent({
             return (value / this.globalScale) * 100;
         },
 
+        /**
+         * Gets the horizontal bar percent
+         * @param {number} value The value
+         * @returns {number} The horizontal bar percent
+         */
         horizontalBarPercent(value: number) {
             const v = Math.max(0, value);
 
@@ -488,6 +571,11 @@ export default defineComponent({
             return (v / this.globalScale) * 100;
         },
 
+        /**
+         * Handles the bar click
+         * @param {ChartPoint} item The item
+         * @returns {void}
+         */
         onBarClick(item: ChartPoint) {
             if (!this.clickable) {
                 return;

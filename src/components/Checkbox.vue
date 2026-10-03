@@ -94,66 +94,102 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The variant of the checkbox
+         */
         variant: {
             type: String as PropType<"normal" | "card">,
             default: "normal",
             required: false
         },
 
+        /**
+         * The style of the checkbox
+         */
         checkboxStyle: {
             type: String as PropType<"normal" | "switch">,
             default: "normal",
             required: false
         },
 
+        /**
+         * The label of the checkbox
+         */
         label: {
             type: String,
             required: false
         },
 
+        /**
+         * The name of the checkbox
+         */
         name: {
             type: String,
             required: true
         },
 
+        /**
+         * The id of the checkbox
+         */
         id: {
             type: String,
             required: true
         },
 
+        /**
+         * The description of the checkbox
+         */
         description: {
             type: String,
             required: false
         },
 
+        /**
+         * The value of the checkbox
+         */
         value: {
             type: Boolean,
             required: false
         },
 
+        /**
+         * Whether the checkbox is required
+         */
         required: {
             type: Boolean,
             default: false,
             required: false
         },
 
+        /**
+         * Whether the checkbox is disabled
+         */
         disabled: {
             type: Boolean,
             default: false,
             required: false
         },
 
+        /**
+         * Whether the checkbox is checked
+         */
         checked: {
             type: Boolean,
             required: false
         },
 
+        /**
+         * Whether the checkbox is clickable
+         */
         clickable: {
             type: Boolean,
             default: true,
             required: false
         },
 
+        /**
+         * The size of the checkbox
+         */
         size: {
             type: String as PropType<"small" | "medium">,
             default: "medium",

@@ -201,22 +201,42 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Checks if controlled
+         * @returns {boolean} True if is controlled
+         */
         isControlled(): boolean {
             return this.open !== undefined;
         },
 
+        /**
+         * Checks if open
+         * @returns {boolean} True if is open
+         */
         isOpen(): boolean {
             return this.isControlled ? Boolean(this.open) : this.localOpen;
         },
 
+        /**
+         * Gets the use sheet modal
+         * @returns {unknown} The use sheet modal
+         */
         useSheetModal(): boolean {
             return this.forceModal || (this.mobileModal && this.isNarrow);
         },
 
+        /**
+         * Gets the panel transition name
+         * @returns {unknown} The panel transition name
+         */
         panelTransitionName(): "dropdown-up" | "dropdown-down" {
             return this.positionAbove ? "dropdown-up" : "dropdown-down";
         },
 
+        /**
+         * Gets the ancestor modal open
+         * @returns {unknown} The ancestor modal open
+         */
         ancestorModalOpen(): boolean {
             const open = unref(this.chtModalIsOpen);
 
@@ -229,12 +249,21 @@ export default defineComponent({
     },
 
     watch: {
+        /**
+         * Ancestor modal open
+         * @param {boolean} open The open
+         * @returns {void}
+         */
         ancestorModalOpen(open: boolean) {
             if (!open && this.isOpen) {
                 this.close();
             }
         },
 
+        /**
+         * Anchor
+         * @returns {void}
+         */
         anchor() {
             if (this.isOpen && !this.useSheetModal) {
                 this.attachLayoutObservers();
@@ -242,6 +271,11 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Gets the is open
+         * @param {boolean} open The open
+         * @returns {void}
+         */
         isOpen(open: boolean) {
             if (open) {
                 closeOtherFloatingPanels(this.floatingPanelId);
@@ -275,11 +309,19 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         this.syncNarrowViewport();
         window.matchMedia(NARROW_VIEWPORT).addEventListener("change", this.syncNarrowViewport);
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         this.unregisterFromAncestorModal();
         this.close();
@@ -288,6 +330,10 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Registers with the ancestor modal
+         * @returns {void}
+         */
         registerWithAncestorModal() {
             this.unregisterFromAncestorModal();
 
@@ -302,6 +348,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Unregisters from the ancestor modal
+         * @returns {void}
+         */
         unregisterFromAncestorModal() {
             if (this.unregisterFloatingPanelCloser) {
                 this.unregisterFloatingPanelCloser();
@@ -309,6 +359,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Opens the panel
+         * @returns {void}
+         */
         openPanel() {
             this.cancelHoverClose();
             closeOtherFloatingPanels(this.floatingPanelId);
@@ -320,11 +374,19 @@ export default defineComponent({
             this.setOpen(true);
         },
 
+        /**
+         * Closes the panel
+         * @returns {void}
+         */
         close() {
             this.cancelHoverClose();
             this.setOpen(false);
         },
 
+        /**
+         * Toggles the open close
+         * @returns {void}
+         */
         toggleOpenClose() {
             const opening = !this.isOpen;
 
@@ -335,6 +397,10 @@ export default defineComponent({
             this.setOpen(opening);
         },
 
+        /**
+         * Requests the hover close
+         * @returns {void}
+         */
         requestHoverClose() {
             if (!this.openOnHover) {
                 return;
@@ -347,6 +413,10 @@ export default defineComponent({
             }, HOVER_CLOSE_DELAY_MS);
         },
 
+        /**
+         * Cancels the hover close
+         * @returns {void}
+         */
         cancelHoverClose() {
             if (this.hoverCloseTimer == null) {
                 return;
@@ -356,18 +426,31 @@ export default defineComponent({
             this.hoverCloseTimer = null;
         },
 
+        /**
+         * Handles the panel mouse enter
+         * @returns {void}
+         */
         onPanelMouseEnter() {
             if (this.openOnHover) {
                 this.cancelHoverClose();
             }
         },
 
+        /**
+         * Handles the panel mouse leave
+         * @returns {void}
+         */
         onPanelMouseLeave() {
             if (this.openOnHover) {
                 this.requestHoverClose();
             }
         },
 
+        /**
+         * Sets the open
+         * @param {boolean} next The next
+         * @returns {void}
+         */
         setOpen(next: boolean) {
             if (this.isControlled) {
                 this.$emit("update:open", next);
@@ -378,16 +461,29 @@ export default defineComponent({
             this.localOpen = next;
         },
 
+        /**
+         * Handles the sheet modal update
+         * @param {boolean} open The open
+         * @returns {void}
+         */
         onSheetModalUpdate(open: boolean) {
             if (!open) {
                 this.close();
             }
         },
 
+        /**
+         * Syncs the narrow viewport
+         * @returns {void}
+         */
         syncNarrowViewport() {
             this.isNarrow = window.matchMedia(NARROW_VIEWPORT).matches;
         },
 
+        /**
+         * Cancels the position frame
+         * @returns {void}
+         */
         cancelPositionFrame() {
             if (this.positionFrame == null) {
                 return;
@@ -397,6 +493,10 @@ export default defineComponent({
             this.positionFrame = null;
         },
 
+        /**
+         * Schedules the position update
+         * @returns {void}
+         */
         schedulePositionUpdate() {
             if (!this.isOpen || this.useSheetModal) {
                 return;
@@ -416,7 +516,7 @@ export default defineComponent({
          * Reposition when the trigger or an ancestor changes size (e.g. a
          * centered modal grows after selected chips appear below the select).
          */
-        attachLayoutObservers() {
+        attachLayoutObservers(): void {
             this.detachLayoutObservers();
 
             const trigger = this.getPanelAnchorElement();
@@ -440,7 +540,11 @@ export default defineComponent({
             }
         },
 
-        detachLayoutObservers() {
+        /**
+         * Detaches the layout observers
+         * @returns {void}
+         */
+        detachLayoutObservers(): void {
             if (this.layoutObserver == null) {
                 return;
             }
@@ -449,7 +553,11 @@ export default defineComponent({
             this.layoutObserver = null;
         },
 
-        detachFloatingListeners() {
+        /**
+         * Detaches the floating listeners
+         * @returns {void}
+         */
+        detachFloatingListeners(): void {
             this.cancelHoverClose();
 
             if (this.outsideClickTimer != null) {
@@ -465,6 +573,11 @@ export default defineComponent({
             document.removeEventListener("keydown", this.handleKeydown);
         },
 
+        /**
+         * Handles the panel click
+         * @param {MouseEvent} event The event
+         * @returns {void}
+         */
         onPanelClick(event: MouseEvent) {
             this.$emit("panel-click", event);
 
@@ -473,6 +586,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Gets the panel anchor element
+         * @returns {HTMLElement | null} The panel anchor element
+         */
         getPanelAnchorElement(): HTMLElement | null {
             return this.anchor ?? null;
         },
@@ -480,7 +597,7 @@ export default defineComponent({
         /**
          * Pre-calculates placement before opening so the transition plays from the correct origin.
          */
-        syncPlacementForPanel() {
+        syncPlacementForPanel(): void {
             const trigger = this.getPanelAnchorElement();
 
             if (!trigger || typeof trigger.getBoundingClientRect !== "function") {
@@ -500,7 +617,11 @@ export default defineComponent({
             );
         },
 
-        updatePosition() {
+        /**
+         * Updates the position
+         * @returns {void}
+         */
+        updatePosition(): void {
             const trigger = this.getPanelAnchorElement();
             const panel = this.$refs.panelRef as HTMLElement | undefined;
 
@@ -549,7 +670,12 @@ export default defineComponent({
             };
         },
 
-        handleClickOutside(event: MouseEvent) {
+        /**
+         * Handles the click outside
+         * @param {MouseEvent} event The event
+         * @returns {void}
+         */
+        handleClickOutside(event: MouseEvent): void {
             const trigger = this.getPanelAnchorElement();
             const panel = this.$refs.panelRef as HTMLElement | undefined;
             const target = event.target as Node;
@@ -570,7 +696,12 @@ export default defineComponent({
             this.close();
         },
 
-        handleKeydown(event: KeyboardEvent) {
+        /**
+         * Handles the keydown
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
+        handleKeydown(event: KeyboardEvent): void {
             if (event.key !== "Escape") {
                 return;
             }

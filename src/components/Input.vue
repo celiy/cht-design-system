@@ -354,6 +354,9 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * The autocomplete of the input
+         */
         autocomplete: {
             type: String,
             required: false
@@ -392,6 +395,9 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * Whether the input is hide resize
+         */
         hideResize: {
             type: Boolean,
             default: false,
@@ -431,6 +437,9 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * Whether the input is no shadow
+         */
         noShadow: {
             type: Boolean,
             default: false,
@@ -494,10 +503,18 @@ export default defineComponent({
             return this.id ?? `cht-input-${this.$.uid}`;
         },
 
+        /**
+         * Checks if textarea
+         * @returns {boolean} True if is textarea
+         */
         isTextarea(): boolean {
             return this.type === "textarea";
         },
 
+        /**
+         * Gets the textarea style
+         * @returns {unknown} The textarea style
+         */
         textareaStyle(): Record<string, string> | undefined {
             if (!this.hideResize && !this.expandOnTyping) {
                 return undefined;
@@ -508,22 +525,42 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Checks if money
+         * @returns {boolean} True if is money
+         */
         isMoney(): boolean {
             return this.type === "money";
         },
 
+        /**
+         * Gets the show password toggle
+         * @returns {unknown} The show password toggle
+         */
         showPasswordToggle(): boolean {
             return this.type === "password";
         },
 
+        /**
+         * Gets the show copy button
+         * @returns {unknown} The show copy button
+         */
         showCopyButton(): boolean {
             return this.copiable && this.type !== "password";
         },
 
+        /**
+         * Checks if readonly mode
+         * @returns {boolean} True if is readonly mode
+         */
         isReadonlyMode(): boolean {
             return this.readonly || this.variant === "display";
         },
 
+        /**
+         * Gets the html input type
+         * @returns {unknown} The html input type
+         */
         htmlInputType(): string {
             if (this.type === "password") {
                 return this.passwordRevealed ? "text" : "password";
@@ -544,6 +581,10 @@ export default defineComponent({
             return "text";
         },
 
+        /**
+         * Gets the input autocomplete
+         * @returns {unknown} The input autocomplete
+         */
         inputAutocomplete(): string {
             if (this.autocomplete) {
                 return this.autocomplete;
@@ -678,6 +719,10 @@ export default defineComponent({
             immediate: true
         },
 
+        /**
+         * Local value
+         * @returns {void}
+         */
         localValue() {
             this.$nextTick(() => {
                 this.syncTextareaHeight();
@@ -685,6 +730,10 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         if (this.useMemo) {
             const value = localStorage.getItem(this.id ?? "");
@@ -758,6 +807,10 @@ export default defineComponent({
             });
         },
 
+        /**
+         * Sync textarea height
+         * @returns {void}
+         */
         syncTextareaHeight() {
             if (!this.expandOnTyping || !this.isTextarea) {
                 return;
@@ -805,10 +858,19 @@ export default defineComponent({
             this.isFocused = false;
         },
 
+        /**
+         * Handles the keydown
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
         onKeydown(event: KeyboardEvent) {
             this.$emit("keydown", event);
         },
 
+        /**
+         * Toggles the password visibility
+         * @returns {void}
+         */
         togglePasswordVisibility() {
             if (this.disabled) {
                 return;
@@ -817,6 +879,10 @@ export default defineComponent({
             this.passwordRevealed = !this.passwordRevealed;
         },
 
+        /**
+         * Copy value to clipboard
+         * @returns {void}
+         */
         async copyValueToClipboard() {
             if (this.disabled) {
                 return;

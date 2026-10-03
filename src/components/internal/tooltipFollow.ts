@@ -1,3 +1,7 @@
+/**
+ * Place a follow-tooltip centered above the pointer, flipping when it would leave the viewport.
+ */
+
 export const TOOLTIP_VIEWPORT_PAD = 8;
 export const TOOLTIP_DEFAULT_OFFSET = 12;
 

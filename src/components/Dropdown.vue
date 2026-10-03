@@ -99,11 +99,17 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The header of the dropdown
+         */
         header: {
             type: String,
             required: false
         },
 
+        /**
+         * The options of the dropdown
+         */
         options: {
             type: Array as PropType<OptionItem[]>,
             required: false
@@ -117,11 +123,17 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * Whether the dropdown is button atributes
+         */
         buttonAtributes: {
             type: Object,
             required: false
         },
 
+        /**
+         * Whether the dropdown is hide dropdown arrow
+         */
         hideDropdownArrow: {
             type: Boolean,
             default: false
@@ -135,6 +147,9 @@ export default defineComponent({
             default: true
         },
 
+        /**
+         * The max height px of the dropdown
+         */
         maxHeightPx: {
             type: Number,
             default: 280
@@ -148,11 +163,17 @@ export default defineComponent({
             default: 192
         },
 
+        /**
+         * Whether the dropdown is mobile modal
+         */
         mobileModal: {
             type: Boolean,
             default: true
         },
 
+        /**
+         * Whether the dropdown is force modal
+         */
         forceModal: {
             type: Boolean,
             default: false
@@ -197,18 +218,34 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Checks if controlled
+         * @returns {boolean} True if is controlled
+         */
         isControlled(): boolean {
             return this.open !== undefined;
         },
 
+        /**
+         * Gets the panel bind open
+         * @returns {unknown} The panel bind open
+         */
         panelBindOpen(): boolean {
             return this.isControlled ? Boolean(this.open) : this.internalOpen;
         },
 
+        /**
+         * Checks if open
+         * @returns {boolean} True if is open
+         */
         isOpen(): boolean {
             return this.panelBindOpen;
         },
 
+        /**
+         * Gets the show trigger
+         * @returns {unknown} The show trigger
+         */
         showTrigger(): boolean {
             return Boolean(this.$slots.button || !this.isControlled);
         },
@@ -226,15 +263,27 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         this.syncTriggerEl();
     },
 
+    /**
+     * Updates the component
+     * @returns {void}
+     */
     updated() {
         this.syncTriggerEl();
     },
 
     methods: {
+        /**
+         * Sync trigger el
+         * @returns {void}
+         */
         syncTriggerEl() {
             const trigger = this.$refs.anchorRef as HTMLElement | undefined;
 
@@ -254,6 +303,13 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the select
+         * @param {string} value The value
+         * @param {OptionItem} item? The item?
+         * @param {OptionItem} parent? The parent?
+         * @returns {void}
+         */
         onSelect(value: string, item?: OptionItem, parent?: OptionItem) {
             this.$emit("click:value", value, item, parent);
 
@@ -262,10 +318,20 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the search external
+         * @param {SearchExternalPayload} payload The payload
+         * @returns {void}
+         */
         onSearchExternal(payload: SearchExternalPayload) {
             this.$emit("search:external", payload);
         },
 
+        /**
+         * Handles the panel open update
+         * @param {boolean} next The next
+         * @returns {void}
+         */
         onPanelOpenUpdate(next: boolean) {
             if (this.isControlled) {
                 this.$emit("update:open", next);
@@ -276,6 +342,11 @@ export default defineComponent({
             this.internalOpen = next;
         },
 
+        /**
+         * Handles the trigger activate
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
         onTriggerActivate(event: KeyboardEvent) {
             if (this.isOpen) {
                 return;
@@ -286,16 +357,28 @@ export default defineComponent({
             this.openPanel();
         },
 
+        /**
+         * Open panel
+         * @returns {void}
+         */
         openPanel() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.openPanel();
         },
 
+        /**
+         * Close
+         * @returns {void}
+         */
         close() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.close();
         },
 
+        /**
+         * Toggles the open close
+         * @returns {void}
+         */
         toggleOpenClose() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.toggleOpenClose();

@@ -111,12 +111,18 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The position of the toast
+         */
         position: {
             type: String as PropType<ToastPosition>,
             default: "bottom",
             required: false
         },
 
+        /**
+         * The width of the toast
+         */
         width: {
             type: String,
             default: "20rem",
@@ -140,20 +146,36 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Gets the items
+         * @returns {unknown} The items
+         */
         items() {
             return useToastItems();
         },
 
+        /**
+         * Gets the visible items
+         * @returns {unknown} The visible items
+         */
         visibleItems() {
             return this.items.slice(-MAX_VISIBLE);
         },
 
+        /**
+         * Checks if top anchored
+         * @returns {boolean} True if is top anchored
+         */
         isTopAnchored() {
             return this.position === "top"
                 || this.position === "top-left"
                 || this.position === "top-right";
         },
 
+        /**
+         * Gets the stack align
+         * @returns {unknown} The stack align
+         */
         stackAlign() {
             if (this.position === "top" || this.position === "bottom") {
                 return "center" as const;
@@ -170,6 +192,10 @@ export default defineComponent({
             return "start" as const;
         },
 
+        /**
+         * Gets the stack align class
+         * @returns {unknown} The stack align class
+         */
         stackAlignClass() {
             return {
                 "items-start": this.stackAlign === "start",
@@ -178,6 +204,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the stack box style
+         * @returns {unknown} The stack box style
+         */
         stackBoxStyle() {
             const items = this.visibleItems;
             const leaveX = this.stackAlign === "start" ? "-4.5rem" : "4.5rem";
@@ -215,6 +245,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the position class
+         * @returns {unknown} The position class
+         */
         positionClass() {
             const classes: Record<ToastPosition, string> = {
                 "top": "flex-col items-center justify-start",
@@ -230,6 +264,10 @@ export default defineComponent({
             return classes[this.position];
         },
 
+        /**
+         * Gets the stack item class
+         * @returns {unknown} The stack item class
+         */
         stackItemClass() {
             return {
                 "absolute": true,
@@ -240,6 +278,10 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         this.hoveredToastId = null;
         toast.resumeAll();
@@ -252,10 +294,20 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * From front
+         * @param {number} index The index
+         * @returns {void}
+         */
         fromFront(index: number) {
             return this.visibleItems.length - 1 - index;
         },
 
+        /**
+         * Variant class
+         * @param {ToastType} type The type
+         * @returns {void}
+         */
         variantClass(type: ToastType) {
             return {
                 "border-2 border-success/50! text-success rounded": type === "success",
@@ -265,6 +317,11 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Icon class
+         * @param {ToastType} type The type
+         * @returns {void}
+         */
         iconClass(type: ToastType) {
             return {
                 "fa-check": type === "success",
@@ -274,6 +331,11 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Progress bar class
+         * @param {ToastType} type The type
+         * @returns {void}
+         */
         progressBarClass(type: ToastType) {
             return {
                 "bg-success": type === "success",
@@ -283,10 +345,20 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Toast progress
+         * @param {number} id The id
+         * @returns {void}
+         */
         toastProgress(id: number) {
             return getToastProgress(id);
         },
 
+        /**
+         * Height of
+         * @param {number} id The id
+         * @returns {void}
+         */
         heightOf(id: number) {
             const height = this.itemHeights[id];
 
@@ -297,6 +369,11 @@ export default defineComponent({
             return height;
         },
 
+        /**
+         * Offset from front
+         * @param {number} index The index
+         * @returns {void}
+         */
         offsetFromFront(index: number) {
             let offset = 0;
 
@@ -313,6 +390,11 @@ export default defineComponent({
             return offset;
         },
 
+        /**
+         * Item y
+         * @param {number} index The index
+         * @returns {void}
+         */
         itemY(index: number) {
             if (!this.stackHovered) {
                 const offset = this.fromFront(index) * STACK_OFFSET_PX;
@@ -325,6 +407,12 @@ export default defineComponent({
             return this.isTopAnchored ? offset : -offset;
         },
 
+        /**
+         * Bind panel
+         * @param {number} id The id
+         * @param {unknown} el The el
+         * @returns {void}
+         */
         bindPanel(id: number, el: unknown) {
             const node = el instanceof HTMLElement ? el : null;
             const current = this.panelEls.get(id);
@@ -360,6 +448,12 @@ export default defineComponent({
             measure();
         },
 
+        /**
+         * Item wrapper style
+         * @param {number} index The index
+         * @param {number} id The id
+         * @returns {void}
+         */
         itemWrapperStyle(index: number, id: number) {
             const style: Record<string, string> = {
                 zIndex: String(index + 1),
@@ -377,27 +471,51 @@ export default defineComponent({
             return style;
         },
 
+        /**
+         * Handles the stack enter
+         * @returns {void}
+         */
         onStackEnter() {
             this.stackHovered = true;
             toast.pauseAll();
         },
 
+        /**
+         * Handles the stack leave
+         * @returns {void}
+         */
         onStackLeave() {
             this.stackHovered = false;
             this.hoveredToastId = null;
             toast.resumeAll();
         },
 
+        /**
+         * Handles the toast enter
+         * @param {number} id The id
+         * @returns {void}
+         */
         onToastEnter(id: number) {
             this.hoveredToastId = id;
         },
 
+        /**
+         * Handles the toast leave
+         * @param {number} id The id
+         * @returns {void}
+         */
         onToastLeave(id: number) {
             if (this.hoveredToastId === id) {
                 this.hoveredToastId = null;
             }
         },
 
+        /**
+         * Handles the touch start
+         * @param {TouchEvent} event The event
+         * @param {number} id The id
+         * @returns {void}
+         */
         onTouchStart(event: TouchEvent, id: number) {
             const touch = event.touches[0];
 
@@ -412,6 +530,12 @@ export default defineComponent({
             this.swipeLocked = false;
         },
 
+        /**
+         * Handles the touch move
+         * @param {TouchEvent} event The event
+         * @param {number} id The id
+         * @returns {void}
+         */
         onTouchMove(event: TouchEvent, id: number) {
             if (this.swipeId !== id) {
                 return;
@@ -442,6 +566,11 @@ export default defineComponent({
             this.swipeDx = dx;
         },
 
+        /**
+         * Handles the touch end
+         * @param {number} id The id
+         * @returns {void}
+         */
         onTouchEnd(id: number) {
             if (this.swipeId !== id) {
                 return;
@@ -458,16 +587,30 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the touch cancel
+         * @returns {void}
+         */
         onTouchCancel() {
             this.swipeId = null;
             this.swipeDx = 0;
             this.swipeLocked = false;
         },
 
+        /**
+         * Close item
+         * @param {number} id The id
+         * @returns {void}
+         */
         closeItem(id: number) {
             toast.close(id);
         },
 
+        /**
+         * Dismiss item
+         * @param {number} id The id
+         * @returns {void}
+         */
         dismissItem(id: number) {
             toast.dismiss(id);
         }

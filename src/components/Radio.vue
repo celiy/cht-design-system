@@ -63,38 +63,59 @@ export default defineComponent({
     name: "Radio",
 
     props: {
+        /**
+         * The variant of the radio
+         */
         variant: {
             type: String as PropType<"normal" | "card">,
             default: "normal",
             required: false
         },
 
+        /**
+         * The label of the radio
+         */
         label: {
             type: String,
             required: false
         },
 
+        /**
+         * The name of the radio
+         */
         name: {
             type: String,
             required: true
         },
 
+        /**
+         * The id of the radio
+         */
         id: {
             type: String,
             required: true
         },
 
+        /**
+         * The value of the radio
+         */
         value: {
             type: [String, Number],
             required: true
         },
 
+        /**
+         * The model value of the radio
+         */
         modelValue: {
             type: [String, Number],
             default: undefined,
             required: false
         },
 
+        /**
+         * Whether the radio is description
+         */
         description: {
             type: String,
             required: false
@@ -106,6 +127,9 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * Whether the radio is disabled
+         */
         disabled: {
             type: Boolean,
             default: false,
@@ -122,10 +146,18 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Gets the option value
+         * @returns {unknown} The option value
+         */
         optionValue(): string | number {
             return this.value;
         },
 
+        /**
+         * Checks if checked
+         * @returns {boolean} True if is checked
+         */
         isChecked(): boolean {
             return (
                 this.modelValue !== undefined &&

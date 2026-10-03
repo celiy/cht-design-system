@@ -419,6 +419,9 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The messages of the chat
+         */
         messages: {
             type: Array as PropType<MessageType[]>,
             required: true
@@ -434,6 +437,10 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Gets the message action options
+         * @returns {OptionItem[]} The message action options
+         */
         messageActionOptions(): OptionItem[] {
             return [
                 {
@@ -458,6 +465,10 @@ export default defineComponent({
             ];
         },
 
+        /**
+         * Gets the text copy options
+         * @returns {OptionItem[]} The text copy options
+         */
         textCopyOptions(): OptionItem[] {
             return [
                 {
@@ -469,6 +480,10 @@ export default defineComponent({
             ];
         },
 
+        /**
+         * Gets the image copy options
+         * @returns {OptionItem[]} The image copy options
+         */
         imageCopyOptions(): OptionItem[] {
             return [
                 {
@@ -495,6 +510,11 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Copies text to the clipboard
+         * @param {string} text The text to copy
+         * @returns {Promise<void>}
+         */
         async copyText(text: string) {
             await navigator.clipboard.writeText(text);
         },
@@ -518,6 +538,11 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Checks if the message has a status
+         * @param {MessageType} message The message
+         * @returns {boolean} True if the message has a status
+         */
         messageHasStatus(message: MessageType) {
             return this.messageStatus(message) != null;
         },
@@ -545,12 +570,22 @@ export default defineComponent({
             return null;
         },
 
+        /**
+         * Gets the message status label
+         * @param {MessageType} message The message
+         * @returns {string} The message status label
+         */
         messageStatusLabel(message: MessageType): string {
             const status = this.messageStatus(message);
 
             return status ? messageStatusLabels[status] : "";
         },
 
+        /**
+         * Gets the message status icon class
+         * @param {MessageType} message The message
+         * @returns {string} The message status icon class
+         */
         messageStatusIconClass(message: MessageType): string {
             const status = this.messageStatus(message);
 
@@ -605,6 +640,11 @@ export default defineComponent({
             return parts;
         },
 
+        /**
+         * Gets the max images
+         * @param {number} length The length
+         * @returns {number} The max images
+         */
         maxImages(length: number) {
             if (length <= 4) {
                 return length;
@@ -617,6 +657,9 @@ export default defineComponent({
 
         /**
          * Opens a preview modal with a carousel of every image in the message.
+         * @param {string[]} images The images
+         * @param {number} startIndex The start index
+         * @returns {void}
          */
         openGallery(images?: string[], startIndex = 0) {
             if (!images?.length) {
@@ -631,6 +674,8 @@ export default defineComponent({
         /**
          * Consecutive same-side bubbles share a group: lone = lg all around;
          * first = lg top / md bottom; middle = md; last = md top / lg bottom.
+         * @param {number} index The index
+         * @returns {string} The bubble radius class
          */
         bubbleRadiusClass(index: number): string {
             const message = this.messages[index];
@@ -684,7 +729,8 @@ export default defineComponent({
          * If the date is today, it will return the time.
          * If the date is yesterday, it will return "Ontem".
          * If the date is more than 2 days ago, it will return the date.
-         * @param date
+         * @param {Date} date The date
+         * @returns {string} The formatted date
          */
         formatDate(date: Date) {
             const today = new Date();

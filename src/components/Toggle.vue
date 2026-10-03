@@ -23,9 +23,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from "vue";
+import { defineComponent } from "vue";
 import type { ButtonVariants } from "@shared/constants/ButtonTypes";
-import Button from "./Button.vue";
+import Button, { ButtonProps } from "./Button.vue";
 
 export default defineComponent({
     name: "Toggle",
@@ -35,101 +35,35 @@ export default defineComponent({
     },
 
     props: {
-        label: {
-            type: String,
-            required: false
-        },
-
-        buttonClass: {
-            type: String,
-            required: false
-        },
-
-        labelClass: {
-            type: String,
-            required: false
-        },
-
-        shape: {
-            type: String as PropType<"rounded" | "square">,
-            default: "square",
-            required: false
-        },
-
-        contentPosition: {
-            type: String as PropType<"start" | "center" | "end" | "none">,
-            default: "center",
-            required: false
-        },
-
-        type: {
-            type: String as PropType<"button" | "reset" | "submit">,
-            default: "button",
-            required: false
-        },
-
-        size: {
-            type: String as PropType<"small" | "medium" | "large">,
-            default: "medium",
-            required: false
-        },
-
+        ...ButtonProps,
+        
         /**
-         * Button variant used while the toggle is on. Off state is always `transparent`.
+         * The model value of the toggle
          */
-        variant: {
-            type: String as PropType<ButtonVariants>,
-            default: "default",
-            required: false
-        },
-
-        disabled: {
-            type: Boolean,
-            default: false,
-            required: false
-        },
-
-        hoverEffect: {
-            type: Boolean,
-            default: true,
-            required: false
-        },
-
-        leftIcon: {
-            type: String,
-            required: false
-        },
-
-        rightIcon: {
-            type: String,
-            required: false
-        },
-
-        form: {
-            type: String,
-            required: false
-        },
-
         modelValue: {
             type: Boolean,
             default: false
-        },
-
-        radiusStyle: {
-            type: String,
-            required: false
         }
     },
 
     emits: ["update:modelValue", "click", "keydown"],
 
     computed: {
+        /**
+         * Gets the active variant
+         * @returns {unknown} The active variant
+         */
         activeVariant(): ButtonVariants {
             return this.modelValue ? this.variant : "transparent";
         }
     },
 
     methods: {
+        /**
+         * Handles the click
+         * @param {MouseEvent} event The event
+         * @returns {void}
+         */
         onClick(event: MouseEvent) {
             if (this.disabled) {
                 return;
@@ -139,6 +73,11 @@ export default defineComponent({
             this.$emit("click", event);
         },
 
+        /**
+         * Handles the keydown
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
         onKeydown(event: KeyboardEvent) {
             this.$emit("keydown", event);
         }

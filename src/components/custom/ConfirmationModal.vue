@@ -81,36 +81,54 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The variant of the confirmationmodal
+         */
         variant: {
             type: String as PropType<"destructive" | "success" | "warning" | "info">,
             default: "info",
             required: false
         },
 
+        /**
+         * The title of the confirmationmodal
+         */
         title: {
             type: String,
             default: "",
             required: false
         },
 
+        /**
+         * The description of the confirmationmodal
+         */
         description: {
             type: String,
             default: "",
             required: false
         },
 
+        /**
+         * The confirm text of the confirmationmodal
+         */
         confirmText: {
             type: [String, Boolean] as PropType<string | boolean>,
             default: "Confirmar",
             required: false
         },
 
+        /**
+         * Whether the confirmationmodal is cancel text
+         */
         cancelText: {
             type: [String, Boolean] as PropType<string | boolean>,
             default: "Cancelar",
             required: false
         },
 
+        /**
+         * Whether the confirmationmodal open
+         */
         isOpen: {
             type: Boolean,
             default: false,
@@ -121,6 +139,10 @@ export default defineComponent({
     emits: ["cancel", "confirm", "update:isOpen"],
 
     computed: {
+        /**
+         * Gets the icon
+         * @returns {string} The icon
+         */
         icon() {
             switch (this.variant) {
                 case "success":
@@ -138,20 +160,40 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Sets the open state
+         * @param {boolean} next The next state
+         * @returns {void}
+         */
         setOpen(next: boolean) {
             this.$emit("update:isOpen", next);
         },
 
+        /**
+         * Handles the modal open update
+         * @param {boolean} next The next state
+         * @returns {void}
+         */
         onModalOpenUpdate(next: boolean) {
             this.setOpen(next);
         },
 
+        /**
+         * Handles the confirm
+         * @param {Event} event The event
+         * @returns {void}
+         */
         onConfirm(event?: Event) {
             event?.stopImmediatePropagation();
             this.$emit("confirm");
             this.setOpen(false);
         },
 
+        /**
+         * Handles the cancel
+         * @param {Event} event The event
+         * @returns {void}
+         */
         onCancel(event?: Event) {
             event?.stopImmediatePropagation();
             this.$emit("cancel");

@@ -1,3 +1,8 @@
+/**
+ * The chart colors module
+ * This module is responsible for the chart colors of the project.
+ */
+
 export const CHART_COLORS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"] as const;
 
 export type ChartColor = (typeof CHART_COLORS)[number];
@@ -15,6 +20,11 @@ export function chartColorCssVar(color: string): string {
 /**
  * Solid color along a series: index 0 is `color`, last index is `colorEnd`,
  * in-between bars mix the two (oklab). Tokens stay as CSS vars.
+ * @param {string} color The color
+ * @param {string | undefined} colorEnd The end color
+ * @param {number} index The index
+ * @param {number} total The total
+ * @returns {string} The chart mix CSS
  */
 export function chartMixCss(
     color: string,

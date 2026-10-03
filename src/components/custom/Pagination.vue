@@ -139,17 +139,26 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The prop type of the pagination
+         */
         propType: {
             type: String as PropType<"normal" | "not-normal">,
             default: "normal",
             required: false
         },
 
+        /**
+         * The amount of the pagination
+         */
         amount: {
             type: Number,
             required: true
         },
 
+        /**
+         * Whether to show max
+         */
         showMax: {
             type: Number,
             default: 3,
@@ -217,6 +226,10 @@ export default defineComponent({
             return { start, end };
         },
 
+        /**
+         * Gets the pages to show
+         * @returns {unknown} The pages to show
+         */
         pagesToShow(): number[] {
             const { start, end } = this.visiblePageRange;
             const pages: number[] = [];
@@ -228,10 +241,18 @@ export default defineComponent({
             return pages;
         },
 
+        /**
+         * Gets the pages hidden before
+         * @returns {unknown} The pages hidden before
+         */
         pagesHiddenBefore(): number[] {
             return this.buildPagesHiddenBefore(this.visiblePageRange.start);
         },
 
+        /**
+         * Gets the pages hidden after
+         * @returns {unknown} The pages hidden after
+         */
         pagesHiddenAfter(): number[] {
             return this.buildPagesHiddenAfter(this.visiblePageRange.end);
         },
@@ -246,6 +267,10 @@ export default defineComponent({
             }));
         },
 
+        /**
+         * Gets the pages hidden after options
+         * @returns {unknown} The pages hidden after options
+         */
         pagesHiddenAfterOptions(): Array<{ value: string; label: string }> {
             return this.pagesHiddenAfter.map((p) => ({
                 value: String(p),
@@ -255,6 +280,10 @@ export default defineComponent({
     },
 
     watch: {
+        /**
+         * Amount
+         * @returns {void}
+         */
         amount() {
             const cap = Math.max(1, this.amount);
 
@@ -265,6 +294,10 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         const page = this.resolveInitialPage();
 
@@ -274,7 +307,9 @@ export default defineComponent({
 
     methods: {
         /**
-         * Persists to localStorage when memo is on, then notifies the parent.
+         * Notifies the parent
+         * @param {number} page The page
+         * @returns {void}
          */
         notifyPageChange(page: number) {
             if (this.useMemo && this.id) {
@@ -286,6 +321,7 @@ export default defineComponent({
 
         /**
          * Reads a stored page index when memo is enabled; returns a value in [1, amount].
+         * @returns {number} The initial page
          */
         resolveInitialPage(): number {
             const cap = Math.max(1, this.amount);
@@ -309,6 +345,11 @@ export default defineComponent({
             return Math.min(Math.max(1, parsed), cap);
         },
 
+        /**
+         * Persists to localStorage when memo is on
+         * @param {number} page The page
+         * @returns {void}
+         */
         persistPage(page: number) {
             if (!this.useMemo || !this.id) {
                 return;
@@ -317,6 +358,11 @@ export default defineComponent({
             localStorage.setItem(this.id, String(page));
         },
 
+        /**
+         * Selects a page
+         * @param {number} page The page
+         * @returns {void}
+         */
         selectPage(page: number) {
             const cap = Math.max(1, this.amount);
             const next = Math.min(Math.max(1, page), cap);
@@ -329,6 +375,10 @@ export default defineComponent({
             this.notifyPageChange(next);
         },
 
+        /**
+         * Goes to the first page
+         * @returns {void}
+         */
         goFirst() {
             if (this.selectedPage <= 1) {
                 return;
@@ -338,6 +388,10 @@ export default defineComponent({
             this.notifyPageChange(this.selectedPage);
         },
 
+        /**
+         * Goes to the last page
+         * @returns {void}
+         */
         goLast() {
             if (this.selectedPage >= this.amount) {
                 return;
@@ -347,6 +401,10 @@ export default defineComponent({
             this.notifyPageChange(this.selectedPage);
         },
 
+        /**
+         * Goes to the previous page
+         * @returns {void}
+         */
         goPrev() {
             if (this.selectedPage <= 1) {
                 return;
@@ -356,6 +414,10 @@ export default defineComponent({
             this.notifyPageChange(this.selectedPage);
         },
 
+        /**
+         * Goes to the next page
+         * @returns {void}
+         */
         goNext() {
             if (this.selectedPage >= this.amount) {
                 return;
@@ -365,6 +427,11 @@ export default defineComponent({
             this.notifyPageChange(this.selectedPage);
         },
 
+        /**
+         * Gets the hidden pages grid style
+         * @param {number} optionCount The option count
+         * @returns {string} The hidden pages grid style
+         */
         getHiddenPagesGridStyle(optionCount: number): { gridTemplateColumns: string } {
             const columns = Math.max(1, Math.min(optionCount, 5));
 
@@ -375,6 +442,8 @@ export default defineComponent({
 
         /**
          * Pages strictly before the visible window [1 .. start-1].
+         * @param {number} start The start
+         * @returns {number[]} The pages hidden before
          */
         buildPagesHiddenBefore(start: number): number[] {
             const out: number[] = [];
@@ -388,6 +457,8 @@ export default defineComponent({
 
         /**
          * Pages strictly after the visible window [end+1 .. amount].
+         * @param {number} end The end
+         * @returns {number[]} The pages hidden after
          */
         buildPagesHiddenAfter(end: number): number[] {
             const out: number[] = [];

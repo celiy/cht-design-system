@@ -1,3 +1,8 @@
+/**
+ * Vue globals
+ * This file is used to define the global types for the Vue application.
+ */
+
 import type { Directive } from "vue";
 import type { RouteLocationNormalizedLoaded, Router } from "vue-router";
 import type { AriaAttributes } from "@vue/runtime-dom";

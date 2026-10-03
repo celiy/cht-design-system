@@ -86,6 +86,9 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * Whether the popover is header
+         */
         header: {
             type: String,
             required: false
@@ -116,11 +119,17 @@ export default defineComponent({
             default: true
         },
 
+        /**
+         * The button atributes of the popover
+         */
         buttonAtributes: {
             type: Object,
             required: false
         },
 
+        /**
+         * The max height px of the popover
+         */
         maxHeightPx: {
             type: Number,
             default: 280
@@ -135,6 +144,9 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * Whether the popover is panel class
+         */
         panelClass: {
             type: String,
             default: "text-popover-foreground p-2",
@@ -167,24 +179,45 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Checks if open
+         * @returns {boolean} True if is open
+         */
         isOpen(): boolean {
             return this.internalOpen;
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         this.syncTriggerEl();
     },
 
+    /**
+     * Updates the component
+     * @returns {void}
+     */
     updated() {
         this.syncTriggerEl();
     },
 
     methods: {
+        /**
+         * Handles the panel open update
+         * @param {boolean} next The next
+         * @returns {void}
+         */
         onPanelOpenUpdate(next: boolean) {
             this.internalOpen = next;
         },
 
+        /**
+         * Sync trigger el
+         * @returns {void}
+         */
         syncTriggerEl() {
             const el = this.$refs.anchorRef as HTMLElement | undefined;
 
@@ -193,12 +226,20 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the trigger enter
+         * @returns {void}
+         */
         onTriggerEnter() {
             if (this.openOnHover) {
                 this.openPanel();
             }
         },
 
+        /**
+         * Handles the trigger leave
+         * @returns {void}
+         */
         onTriggerLeave() {
             if (this.openOnHover) {
                 const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
@@ -206,6 +247,11 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the trigger activate
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
         onTriggerActivate(event: KeyboardEvent) {
             if (this.isOpen) {
                 return;
@@ -216,20 +262,36 @@ export default defineComponent({
             this.openPanel();
         },
 
+        /**
+         * Open panel
+         * @returns {void}
+         */
         openPanel() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.openPanel();
         },
 
+        /**
+         * Open
+         * @returns {void}
+         */
         open() {
             this.openPanel();
         },
 
+        /**
+         * Close
+         * @returns {void}
+         */
         close() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.close();
         },
 
+        /**
+         * Toggles the open close
+         * @returns {void}
+         */
         toggleOpenClose() {
             if (this.openOnHover) {
                 return;

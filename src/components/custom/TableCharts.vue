@@ -74,26 +74,41 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The variant of the tablecharts
+         */
         variant: {
             type: String as PropType<"bars" | "wave">,
             required: true
         },
 
+        /**
+         * The header of the tablecharts
+         */
         header: {
             type: String,
             required: true
         },
 
+        /**
+         * Whether the tablecharts is description
+         */
         description: {
             type: String,
             required: true
         },
 
+        /**
+         * Whether the tablecharts is data
+         */
         data: {
             type: Object as PropType<ChartSeries>,
             required: true
         },
 
+        /**
+         * Whether the tablecharts is hide label
+         */
         hideLabel: {
             type: Boolean,
             default: false
@@ -116,21 +131,33 @@ export default defineComponent({
             default: "chart-5"
         },
 
+        /**
+         * The color end of the tablecharts
+         */
         colorEnd: {
             type: String,
             default: ""
         },
 
+        /**
+         * Whether the tablecharts is negative color end
+         */
         negativeColorEnd: {
             type: String,
             default: ""
         },
 
+        /**
+         * Whether the tablecharts is direction
+         */
         direction: {
             type: String as PropType<BarChartDirection>,
             default: "vertical"
         },
 
+        /**
+         * Whether the tablecharts is clickable
+         */
         clickable: {
             type: Boolean,
             default: false
@@ -144,6 +171,9 @@ export default defineComponent({
             default: "center"
         },
 
+        /**
+         * The card atributes of the tablecharts
+         */
         cardAtributes: {
             type: Object,
             required: false
@@ -165,6 +195,10 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Checks if the data uses groups
+         * @returns {boolean} True if the data uses groups
+         */
         usesGroups() {
             return chartUsesGroups(this.data.items);
         }

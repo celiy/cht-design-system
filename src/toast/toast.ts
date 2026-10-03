@@ -1,3 +1,7 @@
+/**
+ * Toast manager
+ */
+
 import { reactive } from "vue";
 
 export type ToastType = "success" | "info" | "error" | "warning";
@@ -97,6 +101,9 @@ function remainingMsFor(id: number) {
     return Math.max(0, timer.remainingMs - (Date.now() - timer.startedAt));
 }
 
+/**
+ * Gets the get toast progress
+ */
 export function getToastProgress(id: number) {
     void progressTick.n;
 
@@ -111,6 +118,11 @@ export function getToastProgress(id: number) {
     return Math.min(1, Math.max(0, 1 - remaining / timer.totalMs));
 }
 
+/**
+ * Clears the timer
+ * @param {number} id The id
+ * @returns {void}
+ */
 function clearTimer(id: number) {
     const timer = timers.get(id);
 
@@ -129,6 +141,11 @@ function clearTimer(id: number) {
     }
 }
 
+/**
+ * Emits the close event
+ * @param {ToastItem} item The item
+ * @returns {void}
+ */
 function emitClose(item: ToastItem) {
     if (item.event === undefined) {
         return;
@@ -139,6 +156,11 @@ function emitClose(item: ToastItem) {
     }
 }
 
+/**
+ * Closes the toast
+ * @param {number} id The id
+ * @returns {void}
+ */
 function close(id: number) {
     const item = items.find((entry) => {
         return entry.id === id;
@@ -151,6 +173,11 @@ function close(id: number) {
     dismiss(id);
 }
 
+/**
+ * Adds a close listener
+ * @param {ToastCloseHandler} handler The handler
+ * @returns {() => void} The function to remove the listener
+ */
 function on(handler: ToastCloseHandler) {
     closeListeners.add(handler);
 
@@ -159,10 +186,20 @@ function on(handler: ToastCloseHandler) {
     };
 }
 
+/**
+ * Removes a close listener
+ * @param {ToastCloseHandler} handler The handler
+ * @returns {void}
+ */
 function off(handler: ToastCloseHandler) {
     closeListeners.delete(handler);
 }
 
+/**
+ * Dismisses the toast
+ * @param {number} id The id
+ * @returns {void}
+ */
 function dismiss(id: number) {
     clearTimer(id);
 
@@ -175,6 +212,11 @@ function dismiss(id: number) {
     }
 }
 
+/**
+ * Pauses the toast
+ * @param {number} id The id
+ * @returns {void}
+ */
 function pause(id: number) {
     const timer = timers.get(id);
 
@@ -187,6 +229,10 @@ function pause(id: number) {
     timer.remainingMs = Math.max(0, timer.remainingMs - (Date.now() - timer.startedAt));
 }
 
+/**
+ * Pauses all the toasts
+ * @returns {void}
+ */
 function pauseAll() {
     allPaused = true;
 
@@ -195,6 +241,11 @@ function pauseAll() {
     }
 }
 
+/**
+ * Resumes the toast
+ * @param {number} id The id
+ * @returns {void}
+ */
 function resume(id: number) {
     const timer = timers.get(id);
 
@@ -213,6 +264,10 @@ function resume(id: number) {
     }, timer.remainingMs);
 }
 
+/**
+ * Resumes all the toasts
+ * @returns {void}
+ */
 function resumeAll() {
     allPaused = false;
 
@@ -221,6 +276,11 @@ function resumeAll() {
     }
 }
 
+/**
+ * Resolves the close button
+ * @param {ToastShowOptions} options The options
+ * @returns {boolean | string} The close button
+ */
 function resolveCloseButton(options?: ToastShowOptions) {
     const value = options?.closeButton ?? true;
 
@@ -235,6 +295,13 @@ function resolveCloseButton(options?: ToastShowOptions) {
     return value;
 }
 
+/**
+ * Shows the toast
+ * @param {string} message The message
+ * @param {ToastType} type The type
+ * @param {ToastShowOptions} options The options
+ * @returns {number} The id
+ */
 function show(message: string, type: ToastType, options?: ToastShowOptions) {
     const id = nextId++;
 
@@ -268,10 +335,19 @@ function show(message: string, type: ToastType, options?: ToastShowOptions) {
     return id;
 }
 
+/**
+ * Sets the toast default timeout
+ * @param {number} ms The timeout in milliseconds
+ * @returns {void}
+ */
 export function setToastDefaultTimeout(ms: number) {
     defaultTimeout = ms;
 }
 
+/**
+ * Gets the toast items
+ * @returns {ToastItem[]} The items
+ */
 export function useToastItems() {
     return items;
 }

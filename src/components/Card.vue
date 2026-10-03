@@ -62,22 +62,34 @@ export default defineComponent({
     name: "Card",
 
     props: {
+        /**
+         * The variant of the card
+         */
         variant: {
             type: String as PropType<"default" | "transparent">,
             default: "default",
             required: false
         },
 
+        /**
+         * The border style of the card
+         */
         borderStyle: {
             type: String,
             required: false
         },
 
+        /**
+         * The background style of the card
+         */
         backgroundStyle: {
             type: String,
             required: false
         },
 
+        /**
+         * Whether the card is footer style
+         */
         footerStyle: {
             type: String,
             required: false
@@ -94,14 +106,26 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * The stretch class
+         * @returns {string} The stretch class
+         */
         stretchClass() {
             return this.stretch ? "flex h-full flex-col" : "";
         },
 
+        /**
+         * The body stretch class
+         * @returns {string} The body stretch class
+         */
         bodyStretchClass() {
             return this.stretch ? "flex flex-1 flex-col" : "";
         },
 
+        /**
+         * The border class
+         * @returns {string} The border class
+         */
         borderClass() {
             if (this.borderStyle) {
                 return this.borderStyle;
@@ -112,6 +136,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * The background class
+         * @returns {string} The background class
+         */
         backgroundClass() {
             if (this.backgroundStyle) {
                 return this.backgroundStyle;
@@ -123,6 +151,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * The footer class
+         * @returns {string} The footer class
+         */
         footerClass() {
             if (this.footerStyle) {
                 return this.footerStyle;

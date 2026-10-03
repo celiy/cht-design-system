@@ -302,12 +302,18 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The fields of the formrenderer
+         */
         fields: {
             type: Array as PropType<FormFieldType[]>,
             required: false,
             default: () => []
         },
 
+        /**
+         * Whether the formrenderer is sections
+         */
         sections: {
             type: Array as PropType<FormSection[]>,
             required: false,
@@ -322,22 +328,34 @@ export default defineComponent({
             default: false
         },
 
+        /**
+         * The values of the form
+         */
         values: {
             type: Object as PropType<Record<string, unknown> | null>,
             required: false,
             default: null
         },
 
+        /**
+         * The id of the form
+         */
         formId: {
             type: String,
             required: false
         },
 
+        /**
+         * The label of the submit button
+         */
         submitLabel: {
             type: String,
             default: "Enviar"
         },
 
+        /**
+         * The columns of the sections
+         */
         sectionColumns: {
             type: [Number, Object] as PropType<
                 number | { xs?: number; sm?: number; md?: number; lg?: number }
@@ -371,6 +389,10 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * The normalized sections
+         * @returns {Array<{ key: string; title: string; fields: FormFieldType[] }>} The normalized sections
+         */
         normalizedSections(): Array<{ key: string; title: string; fields: FormFieldType[] }> {
             if (this.sections && this.sections.length > 0) {
                 return this.sections.map((sec, idx) => ({
@@ -399,10 +421,18 @@ export default defineComponent({
             }));
         },
 
+        /**
+         * The all fields
+         * @returns {FormFieldType[]} The all fields
+         */
         allFields(): FormFieldType[] {
             return this.normalizedSections.flatMap((s) => s.fields);
         },
 
+        /**
+         * Checks if the form is in view mode
+         * @returns {boolean} True if the form is in view mode
+         */
         isViewMode(): boolean {
             return this.readonly;
         }
@@ -418,33 +448,64 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Creates the component
+     * @returns {void}
+     */
     created() {
         this.hydrateFormValues();
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         this.activeSectionColumns = this.resolveSectionColumns();
         window.addEventListener("resize", this.onResize);
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
         this.clearCepLookup();
     },
 
     methods: {
+        /**
+         * Handles the resize event
+         * @returns {void}
+         */
         onResize() {
             this.activeSectionColumns = this.resolveSectionColumns();
         },
 
+        /**
+         * Checks if the field is readonly
+         * @param {FormFieldType} field The field
+         * @returns {boolean} True if the field is readonly
+         */
         isFieldReadonly(field: FormFieldType): boolean {
             return this.isViewMode || Boolean(field.readonly) || Boolean(field.disabled);
         },
 
+        /**
+         * Checks if the field is an address field
+         * @param {string} fieldId The field id
+         * @returns {boolean} True if the field is an address field
+         */
         isAddressField(fieldId: string): boolean {
             return (CEP_ADDRESS_FIELDS as readonly string[]).includes(fieldId);
         },
 
+        /**
+         * Checks if the field is disabled
+         * @param {FormFieldType} field The field
+         * @returns {boolean} True if the field is disabled
+         */
         isInputDisabled(field: FormFieldType): boolean {
             if (field.disabled || this.isViewMode) {
                 return true;
@@ -453,6 +514,11 @@ export default defineComponent({
             return this.cepLookupLoading && this.isAddressField(field.id);
         },
 
+        /**
+         * Gets the display value of the field
+         * @param {FormFieldType} field The field
+         * @returns {string} The display value of the field
+         */
         selectDisplayValue(field: FormFieldType): string {
             const current = this.formValues[field.id];
             const options = field.options ?? [];
@@ -486,6 +552,11 @@ export default defineComponent({
             return String(current);
         },
 
+        /**
+         * Resolves the incoming value of the field
+         * @param {FormFieldType} field The field
+         * @returns {unknown} The incoming value of the field
+         */
         resolveIncomingValue(field: FormFieldType): unknown {
             if (this.values && Object.prototype.hasOwnProperty.call(this.values, field.id)) {
                 return this.values[field.id];
@@ -510,6 +581,10 @@ export default defineComponent({
             return "";
         },
 
+        /**
+         * Hydrates the form values
+         * @returns {void}
+         */
         hydrateFormValues() {
             const next: Record<string, unknown> = { ...this.formValues };
 
@@ -535,6 +610,7 @@ export default defineComponent({
 
         /**
          * Validates and emits `submit`. Used by actions rendered outside the form.
+         * @returns {void}
          */
         submitForm() {
             const form = this.$el as HTMLFormElement | undefined;
@@ -547,10 +623,21 @@ export default defineComponent({
             this.onSubmit(new Event("submit", { cancelable: true }));
         },
 
+        /**
+         * Applies the field errors
+         * @param {Record<string, string>} errors The errors
+         * @returns {void}
+         */
         applyFieldErrors(errors: Record<string, string>) {
             this.fieldErrors = { ...errors };
         },
 
+        /**
+         * Sets the field value
+         * @param {string} fieldId The field id
+         * @param {unknown} value The value
+         * @returns {void}
+         */
         setFieldValue(fieldId: string, value: unknown) {
             this.formValues[fieldId] = value;
 
@@ -561,10 +648,21 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Gets the field value
+         * @param {string} fieldId The field id
+         * @returns {unknown} The field value
+         */
         getFieldValue(fieldId: string): unknown {
             return this.formValues[fieldId];
         },
 
+        /**
+         * Registers the select ref
+         * @param {string} fieldId The field id
+         * @param {unknown} el The element
+         * @returns {void}
+         */
         registerSelectRef(fieldId: string, el: unknown) {
             if (el && typeof el === "object" && "close" in el) {
                 this.selectRefByFieldId[fieldId] = el as { close?: () => void };
@@ -577,10 +675,20 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Closes the select
+         * @param {string} fieldId The field id
+         * @returns {void}
+         */
         closeSelect(fieldId: string) {
             this.selectRefByFieldId[fieldId]?.close?.();
         },
 
+        /**
+         * Checks if the select action is visible
+         * @param {FormFieldType} field The field
+         * @returns {boolean} True if the select action is visible
+         */
         selectActionVisible(field: FormFieldType): boolean {
             if (this.isViewMode) {
                 return false;
@@ -589,10 +697,20 @@ export default defineComponent({
             return Boolean(field.selectAction?.icon || field.selectAction?.label);
         },
 
+        /**
+         * Gets the select action aria label
+         * @param {FormFieldType} field The field
+         * @returns {string} The select action aria label
+         */
         selectActionAriaLabel(field: FormFieldType): string {
             return field.selectAction?.label || field.selectAction?.tooltip || "Adicionar";
         },
 
+        /**
+         * Gets the select action layout class
+         * @param {FormFieldType} field The field
+         * @returns {string} The select action layout class
+         */
         selectActionLayoutClass(field: FormFieldType): string {
             if (field.selectAction?.label) {
                 return "h-full";
@@ -601,6 +719,11 @@ export default defineComponent({
             return "aspect-square h-auto w-auto p-1.5!";
         },
 
+        /**
+         * Handles the select action
+         * @param {FormFieldType} field The field
+         * @returns {void}
+         */
         onSelectAction(field: FormFieldType) {
             this.closeSelect(field.id);
             this.$emit("click:select-action", {
@@ -609,6 +732,12 @@ export default defineComponent({
             });
         },
 
+        /**
+         * Handles the select selected
+         * @param {FormFieldType} field The field
+         * @param {string} value The value
+         * @returns {void}
+         */
         onSelectSelected(field: FormFieldType, value: string) {
             this.$emit("click:select-option", {
                 id: field.id,
@@ -617,6 +746,12 @@ export default defineComponent({
             });
         },
 
+        /**
+         * Handles the select remove
+         * @param {FormFieldType} field The field
+         * @param {string} value The value
+         * @returns {void}
+         */
         onSelectRemove(field: FormFieldType, value: string) {
             this.$emit("click:select-remove", {
                 id: field.id,
@@ -625,6 +760,12 @@ export default defineComponent({
             });
         },
 
+        /**
+         * Handles the select search external
+         * @param {FormFieldType} formField The form field
+         * @param {SearchExternalPayload} payload The payload
+         * @returns {void}
+         */
         onSelectSearchExternal(formField: FormFieldType, payload: SearchExternalPayload) {
             this.$emit("search:external", {
                 id: formField.id,
@@ -633,6 +774,10 @@ export default defineComponent({
             });
         },
 
+        /**
+         * Resolves the section columns
+         * @returns {number} The section columns
+         */
         resolveSectionColumns(): number {
             const sc = this.sectionColumns;
 
@@ -662,6 +807,12 @@ export default defineComponent({
             return sc.lg ?? sc.md ?? sc.sm ?? sc.xs ?? 1;
         },
 
+        /**
+         * Updates the value
+         * @param {string} fieldId The field id
+         * @param {unknown} value The value
+         * @returns {void}
+         */
         updateValue(fieldId: string, value: unknown) {
             const field = this.allFields.find((item) => item.id === fieldId);
 
@@ -683,6 +834,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Stops the cep lookup timers
+         * @returns {void}
+         */
         stopCepLookupTimers() {
             if (this.cepLookupTimer != null) {
                 window.clearTimeout(this.cepLookupTimer);
@@ -698,11 +853,20 @@ export default defineComponent({
             this.cepLookupAbort = null;
         },
 
+        /**
+         * Clears the cep lookup
+         * @returns {void}
+         */
         clearCepLookup() {
             this.stopCepLookupTimers();
             this.cepLookupLoading = false;
         },
 
+        /**
+         * Schedules the cep lookup
+         * @param {unknown} value The value
+         * @returns {void}
+         */
         scheduleCepLookup(value: unknown) {
             const digits = cepDigits(value);
 
@@ -720,6 +884,11 @@ export default defineComponent({
             }, CEP_LOOKUP_DEBOUNCE_MS);
         },
 
+        /**
+         * Looks up the cep
+         * @param {string} digits The digits
+         * @returns {void}
+         */
         async lookupCep(digits: string) {
             const hasAddressFields = CEP_ADDRESS_FIELDS.some((id) =>
                 this.allFields.some((field) => field.id === id)
@@ -790,16 +959,31 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Notifies the cep timeout
+         * @returns {void}
+         */
         notifyCepTimeout() {
             const toast = (this as { $toast?: { error: (message: string) => void } }).$toast;
 
             toast?.error("Não foi possível buscar o endereço pelo CEP. Tente novamente.");
         },
 
+        /**
+         * Gets the field error
+         * @param {FormFieldType} field The field
+         * @returns {string} The field error
+         */
         fieldError(field: FormFieldType): string {
             return this.fieldErrors[field.id] || field.error || "";
         },
 
+        /**
+         * Checks if the value is empty
+         * @param {FormFieldType} field The field
+         * @param {any} value The value
+         * @returns {boolean} True if the value is empty
+         */
         isEmptyValue(field: FormFieldType, value: any): boolean {
             if (field.type === "checkbox" || field.type === "toggle") {
                 return !value;
@@ -820,6 +1004,11 @@ export default defineComponent({
             return value === "" || value === undefined || value === null;
         },
 
+        /**
+         * Gets the required error message
+         * @param {FormFieldType} field The field
+         * @returns {string} The required error message
+         */
         requiredErrorMessage(field: FormFieldType): string {
             if (field.type === "radio" || field.type === "select" || field.type === "toggleable") {
                 return `Selecione uma opção em "${field.label}".`;
@@ -828,6 +1017,11 @@ export default defineComponent({
             return `"${field.label}" é obrigatório.`;
         },
 
+        /**
+         * Handles the form submit
+         * @param {Event} event The event
+         * @returns {void}
+         */
         onSubmit(event: Event) {
             event.preventDefault();
 
@@ -878,6 +1072,8 @@ export default defineComponent({
         /**
          * Enter in a field submits the form. Skips textareas, select
          * triggers, and an open floating panel (which uses Enter to pick).
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
          */
         onFormKeydown(event: KeyboardEvent) {
             if (event.key !== "Enter" || event.repeat || event.defaultPrevented) {
@@ -924,10 +1120,22 @@ export default defineComponent({
             form.requestSubmit();
         },
 
+        /**
+         * Checks if the type is an input type
+         * @param {string} type The type
+         * @returns {boolean} True if the type is an input type
+         */
         isInputType(type: string): boolean {
             return INPUT_TYPES.includes(type);
         },
 
+        /**
+         * Validates the field value
+         * @param {string} type The type
+         * @param {any} value The value
+         * @param {number} minSize The minimum size
+         * @returns {boolean} True if the field value is valid
+         */
         validateFieldValue(type: string, value: any, minSize?: number): boolean {
             const str = String(value);
 
@@ -951,6 +1159,11 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Gets the field style
+         * @param {FormFieldType} field The field
+         * @returns {Record<string, string>} The field style
+         */
         getFieldStyle(field: FormFieldType): Record<string, string> {
             if (["checkbox", "radio", "textarea", "toggle", "toggleable"].includes(field.type)) {
                 return { gridColumn: "1 / -1" };
@@ -963,6 +1176,11 @@ export default defineComponent({
             return {};
         },
 
+        /**
+         * Checks if the field is visible
+         * @param {FormFieldType} field The field
+         * @returns {boolean} True if the field is visible
+         */
         isFieldVisible(field: FormFieldType): boolean {
             if (!field.condition) {
                 return true;
@@ -982,6 +1200,11 @@ export default defineComponent({
             return current === field.condition.value;
         },
 
+        /**
+         * Checks if the section is visible
+         * @param {FormFieldType[]} sectionFields The section fields
+         * @returns {boolean} True if the section is visible
+         */
         isSectionVisible(sectionFields: FormFieldType[]): boolean {
             return sectionFields.some((field) => this.isFieldVisible(field));
         }

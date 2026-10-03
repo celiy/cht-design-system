@@ -144,6 +144,9 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The data of the wavechart
+         */
         data: {
             type: Object as PropType<WaveChartData>,
             required: true
@@ -165,16 +168,25 @@ export default defineComponent({
             default: ""
         },
 
+        /**
+         * The filter of the wavechart
+         */
         filter: {
             type: String as PropType<WaveFilter>,
             default: "3m"
         },
 
+        /**
+         * The background lines count of the wavechart
+         */
         backgroundLinesCount: {
             type: Number,
             default: 4
         },
 
+        /**
+         * The vertical padding of the wavechart
+         */
         verticalPadding: {
             type: Number,
             default: 12
@@ -191,6 +203,10 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Gets the wave raw items
+         * @returns {ChartPoint[]} The wave raw items
+         */
         waveRawItems() {
             if (chartUsesGroups(this.data.items)) {
                 return groupChartItems(this.data.items, this.data.label);
@@ -212,6 +228,10 @@ export default defineComponent({
                 .sort((a, b) => a.date.getTime() - b.date.getTime());
         },
 
+        /**
+         * Gets the filtered wave raw items
+         * @returns {ChartPoint[]} The filtered wave raw items
+         */
         filteredWaveRawItems() {
             if (!this.waveRawItems.length) {
                 return [];
@@ -237,6 +257,10 @@ export default defineComponent({
             });
         },
 
+        /**
+         * Gets the max wave points
+         * @returns {number} The max wave points
+         */
         maxWavePoints() {
             const fallbackWidth = 360;
             const width = this.waveContainerWidth || fallbackWidth;
@@ -244,6 +268,10 @@ export default defineComponent({
             return Math.max(2, Math.floor(width / 48));
         },
 
+        /**
+         * Gets the wave items
+         * @returns {ChartPoint[]} The wave items
+         */
         waveItems() {
             const total = this.filteredWaveRawItems.length;
             if (total <= this.maxWavePoints) {
@@ -275,6 +303,10 @@ export default defineComponent({
                 });
         },
 
+        /**
+         * Gets the wave min value
+         * @returns {number} The wave min value
+         */
         waveMinValue() {
             if (!this.waveItems.length) {
                 return 0;
@@ -283,6 +315,10 @@ export default defineComponent({
             return Math.min(...this.waveItems.map((item) => item.value));
         },
 
+        /**
+         * Gets the wave max value
+         * @returns {number} The wave max value
+         */
         waveMaxValue() {
             if (!this.waveItems.length) {
                 return 0;
@@ -291,6 +327,10 @@ export default defineComponent({
             return Math.max(...this.waveItems.map((item) => item.value));
         },
 
+        /**
+         * Gets the wave points
+         * @returns {ChartPoint[]} The wave points
+         */
         wavePoints() {
             const total = this.waveItems.length;
 
@@ -301,6 +341,10 @@ export default defineComponent({
             }));
         },
 
+        /**
+         * Gets the wave path
+         * @returns {string} The wave path
+         */
         wavePath() {
             return this.buildWavePath(this.wavePoints);
         },
@@ -320,22 +364,42 @@ export default defineComponent({
             return `${line} L ${last.x} 100 L ${first.x} 100 Z`;
         },
 
+        /**
+         * Gets the stroke color
+         * @returns {string} The stroke color
+         */
         strokeColor() {
             return chartColorCssVar(this.color);
         },
 
+        /**
+         * Gets the end color
+         * @returns {string} The end color
+         */
         endColor() {
             return chartColorCssVar(this.colorEnd || this.color);
         },
 
+        /**
+         * Gets the fill gradient id
+         * @returns {string} The fill gradient id
+         */
         fillGradientId() {
             return `${this.paintNonce}-fill`;
         },
 
+        /**
+         * Gets the stroke gradient id
+         * @returns {string} The stroke gradient id
+         */
         strokeGradientId() {
             return `${this.paintNonce}-stroke`;
         },
 
+        /**
+         * Gets the fill paint
+         * @returns {string} The fill paint
+         */
         fillPaint() {
             if (!this.colorEnd) {
                 return this.strokeColor;
@@ -344,6 +408,10 @@ export default defineComponent({
             return `url(#${this.fillGradientId})`;
         },
 
+        /**
+         * Gets the stroke paint
+         * @returns {string} The stroke paint
+         */
         strokePaint() {
             if (!this.colorEnd) {
                 return this.strokeColor;
@@ -352,20 +420,37 @@ export default defineComponent({
             return `url(#${this.strokeGradientId})`;
         },
 
+        /**
+         * Gets the hover line class
+         * @returns {string} The hover line class
+         */
         hoverLineClass() {
             return chartColorBorderClass(this.color);
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         this.setupWaveObserver();
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         this.teardownWaveObserver();
     },
 
     methods: {
+        /**
+         * Formats the value
+         * @param {number} value The value
+         * @returns {string} The formatted value
+         */
         formatValue(value: number) {
             if (this.data.displayAs === "currency") {
                 return `R$ ${value}`;
@@ -374,6 +459,11 @@ export default defineComponent({
             return String(value);
         },
 
+        /**
+         * Formats the wave short date
+         * @param {Date} date The date
+         * @returns {string} The formatted wave short date
+         */
         formatWaveShortDate(date: Date) {
             return date.toLocaleDateString("pt-BR", {
                 day: "2-digit",
@@ -381,6 +471,11 @@ export default defineComponent({
             });
         },
 
+        /**
+         * Formats the wave long date
+         * @param {Date} date The date
+         * @returns {string} The formatted wave long date
+         */
         formatWaveLongDate(date: Date) {
             return date.toLocaleDateString("pt-BR", {
                 day: "2-digit",
@@ -389,6 +484,11 @@ export default defineComponent({
             });
         },
 
+        /**
+         * Gets the wave filter start date
+         * @param {Date} lastDate The last date
+         * @returns {Date} The wave filter start date
+         */
         getWaveFilterStartDate(lastDate: Date) {
             const startDate = new Date(lastDate);
 
@@ -411,6 +511,11 @@ export default defineComponent({
             return startDate;
         },
 
+        /**
+         * Converts the value to the wave y
+         * @param {number} value The value
+         * @returns {number} The wave y
+         */
         toWaveY(value: number) {
             if (this.waveMaxValue === this.waveMinValue) {
                 return 50;
@@ -422,6 +527,11 @@ export default defineComponent({
             return this.verticalPadding + (1 - normalized) * usableRange;
         },
 
+        /**
+         * Builds the wave path
+         * @param {Array<{ x: number; y: number }>} points The points
+         * @returns {string} The wave path
+         */
         buildWavePath(points: Array<{ x: number; y: number }>) {
             const first = points[0];
             if (!first) {
@@ -484,11 +594,19 @@ export default defineComponent({
             return d;
         },
 
+        /**
+         * Refreshes the wave metrics
+         * @returns {void}
+         */
         refreshWaveMetrics() {
             const element = this.$refs.waveContainer as HTMLElement | undefined;
             this.waveContainerWidth = element?.clientWidth ?? 0;
         },
 
+        /**
+         * Tears down the wave observer
+         * @returns {void}
+         */
         teardownWaveObserver() {
             if (this.waveResizeObserver) {
                 this.waveResizeObserver.disconnect();
@@ -496,6 +614,10 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Sets up the wave observer
+         * @returns {void}
+         */
         setupWaveObserver() {
             this.teardownWaveObserver();
 

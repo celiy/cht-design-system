@@ -243,36 +243,57 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The id of the select
+         */
         id: {
             type: String,
             required: false
         },
 
+        /**
+         * The label of the select
+         */
         label: {
             type: String,
             required: false
         },
 
+        /**
+         * The placeholder of the select
+         */
         placeholder: {
             type: String,
             required: false
         },
 
+        /**
+         * The in helper text of the select
+         */
         inHelperText: {
             type: String,
             required: false
         },
 
+        /**
+         * The helper text of the select
+         */
         helperText: {
             type: String,
             required: false
         },
 
+        /**
+         * The header of the select
+         */
         header: {
             type: String,
             required: false
         },
 
+        /**
+         * The options of the select
+         */
         options: {
             type: Array as PropType<OptionItem[]>,
             required: false
@@ -286,12 +307,18 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * The model value of the select
+         */
         modelValue: {
             type: [String, Number, Array] as PropType<string | number | string[] | undefined>,
             required: false,
             default: undefined
         },
 
+        /**
+         * Whether the select is button atributes
+         */
         buttonAtributes: {
             type: Object,
             required: false
@@ -305,6 +332,9 @@ export default defineComponent({
             default: false
         },
 
+        /**
+         * Whether the select is hide dropdown arrow
+         */
         hideDropdownArrow: {
             type: Boolean,
             default: false
@@ -337,32 +367,50 @@ export default defineComponent({
             default: false
         },
 
+        /**
+         * Whether the select is max height px
+         */
         maxHeightPx: {
             type: Number,
             default: 280
         },
 
+        /**
+         * Whether the select is external search loading
+         */
         externalSearchLoading: {
             type: Boolean,
             default: false
         },
 
+        /**
+         * Whether the select is panel class
+         */
         panelClass: {
             type: String,
             default: "",
             required: false
         },
 
+        /**
+         * Whether the select is mobile modal
+         */
         mobileModal: {
             type: Boolean,
             default: true
         },
 
+        /**
+         * Whether the select is force modal
+         */
         forceModal: {
             type: Boolean,
             default: false
         },
 
+        /**
+         * Whether the select is disabled
+         */
         disabled: {
             type: Boolean,
             default: false
@@ -427,6 +475,9 @@ export default defineComponent({
             default: ""
         },
 
+        /**
+         * Whether the select is error
+         */
         error: {
             type: String,
             required: false
@@ -462,18 +513,34 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Checks if panel open
+         * @returns {boolean} True if is panel open
+         */
         isPanelOpen(): boolean {
             return this.internalOpen;
         },
 
+        /**
+         * Checks if select multiple
+         * @returns {boolean} True if is select multiple
+         */
         isSelectMultiple(): boolean {
             return this.selectMultiple != null;
         },
 
+        /**
+         * Checks if combobox
+         * @returns {boolean} True if is combobox
+         */
         isCombobox(): boolean {
             return this.combobox && !this.isSelectMultiple;
         },
 
+        /**
+         * Gets the list search
+         * @returns {unknown} The list search
+         */
         listSearch(): SearchConfig | undefined {
             if (this.isCombobox) {
                 return undefined;
@@ -482,6 +549,10 @@ export default defineComponent({
             return this.search;
         },
 
+        /**
+         * Gets the show labels on trigger
+         * @returns {unknown} The show labels on trigger
+         */
         showLabelsOnTrigger(): boolean {
             if (this.separateSelected && this.isSelectMultiple) {
                 return false;
@@ -490,6 +561,10 @@ export default defineComponent({
             return this.showSelectedLabels;
         },
 
+        /**
+         * Gets the show separated selected
+         * @returns {unknown} The show separated selected
+         */
         showSeparatedSelected(): boolean {
             return (
                 this.separateSelected &&
@@ -498,6 +573,10 @@ export default defineComponent({
             );
         },
 
+        /**
+         * Gets the separated selected items
+         * @returns {unknown} The separated selected items
+         */
         separatedSelectedItems(): Array<{ label: string; value: string }> {
             if (!this.isSelectMultiple) {
                 return [];
@@ -515,6 +594,10 @@ export default defineComponent({
             return items;
         },
 
+        /**
+         * Gets the panel options
+         * @returns {unknown} The panel options
+         */
         panelOptions(): OptionItem[] {
             let options = this.options ?? [];
 
@@ -535,6 +618,10 @@ export default defineComponent({
             return options;
         },
 
+        /**
+         * Gets the panel show checkmark
+         * @returns {unknown} The panel show checkmark
+         */
         panelShowCheckmark(): boolean {
             return !(this.separateSelected && this.isSelectMultiple);
         },
@@ -554,6 +641,10 @@ export default defineComponent({
             return this.selectedValueLabel || this.placeholder || this.header || "Selecione...";
         },
 
+        /**
+         * Gets the select trigger muted
+         * @returns {unknown} The select trigger muted
+         */
         selectTriggerMuted(): boolean {
             if (this.isSelectMultiple) {
                 return !(this.showLabelsOnTrigger && this.selectedLabels.length > 0);
@@ -562,6 +653,10 @@ export default defineComponent({
             return !this.selectedValueLabel && !this.header && !this.placeholder;
         },
 
+        /**
+         * Gets the selected labels
+         * @returns {unknown} The selected labels
+         */
         selectedLabels(): string[] {
             if (!this.isSelectMultiple || this.selectedValues.length === 0) {
                 return [];
@@ -570,6 +665,10 @@ export default defineComponent({
             return this.labelsForValues(this.options ?? [], this.selectedValues);
         },
 
+        /**
+         * Gets the selected value label
+         * @returns {unknown} The selected value label
+         */
         selectedValueLabel(): string | undefined {
             if (!this.options) {
                 return undefined;
@@ -640,6 +739,10 @@ export default defineComponent({
             return this.selectedValueIndicator;
         },
 
+        /**
+         * Gets the select trigger indicator style
+         * @returns {unknown} The select trigger indicator style
+         */
         selectTriggerIndicatorStyle(): Record<string, string> {
             const size = this.selectTriggerIndicator?.size ?? "0.625rem";
             const color = this.selectTriggerIndicator?.color ?? "currentColor";
@@ -653,6 +756,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the merged button atributes
+         * @returns {unknown} The merged button atributes
+         */
         mergedButtonAtributes(): Record<string, unknown> {
             const extra = (this.buttonAtributes ?? {}) as Record<string, unknown>;
 
@@ -662,6 +769,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the combobox selection locked
+         * @returns {unknown} The combobox selection locked
+         */
         comboboxSelectionLocked(): boolean {
             return Boolean(this.isCombobox && this.comboboxOption && this.value);
         }
@@ -730,6 +841,11 @@ export default defineComponent({
             deep: true
         },
 
+        /**
+         * Query
+         * @param {string} next The next
+         * @returns {void}
+         */
         query(next: string) {
             if (!this.isCombobox) {
                 return;
@@ -739,6 +855,10 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         if (this.useMemo) {
             if (this.isSelectMultiple) {
@@ -768,15 +888,29 @@ export default defineComponent({
         });
     },
 
+    /**
+     * Updates the component
+     * @returns {void}
+     */
     updated() {
         this.syncTriggerEl();
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         this.clearComboboxSearchTimer();
     },
 
     methods: {
+        /**
+         * Labels for values
+         * @param {OptionItem[]} options The options
+         * @param {string[]} values The values
+         * @returns {void}
+         */
         labelsForValues(options: OptionItem[], values: string[]): string[] {
             const labels: string[] = [];
 
@@ -793,6 +927,11 @@ export default defineComponent({
             return labels;
         },
 
+        /**
+         * Options excluding selected
+         * @param {OptionItem[]} options The options
+         * @returns {void}
+         */
         optionsExcludingSelected(options: OptionItem[]): OptionItem[] {
             const filtered: OptionItem[] = [];
 
@@ -826,6 +965,12 @@ export default defineComponent({
             return filtered;
         },
 
+        /**
+         * Option label for value
+         * @param {string} value The value
+         * @param {OptionItem[]} options? The options?
+         * @returns {void}
+         */
         optionLabelForValue(value: string, options?: OptionItem[]): string | undefined {
             const list = options ?? this.options ?? [];
 
@@ -970,6 +1115,11 @@ export default defineComponent({
             this.$emit("update:modelValue", [...this.selectedValues]);
         },
 
+        /**
+         * Select option
+         * @param {string | undefined} val The val
+         * @returns {void}
+         */
         selectOption(val: string | undefined) {
             if (val === undefined) {
                 return;
@@ -1038,6 +1188,11 @@ export default defineComponent({
             this.$emit("update:modelValue", this.value);
         },
 
+        /**
+         * Gets the is option selected
+         * @param {string | undefined} val The val
+         * @returns {void}
+         */
         isOptionSelected(val: string | undefined): boolean {
             if (val === undefined || val === "") {
                 return false;
@@ -1050,10 +1205,19 @@ export default defineComponent({
             return this.value === val;
         },
 
+        /**
+         * Handles the panel open update
+         * @param {boolean} next The next
+         * @returns {void}
+         */
         onPanelOpenUpdate(next: boolean) {
             this.internalOpen = next;
         },
 
+        /**
+         * Sync trigger el
+         * @returns {void}
+         */
         syncTriggerEl() {
             const el = this.$refs.anchorRef as HTMLElement | undefined;
 
@@ -1062,6 +1226,11 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the trigger activate
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
         onTriggerActivate(event: KeyboardEvent) {
             if (this.isPanelOpen) {
                 return;
@@ -1072,25 +1241,46 @@ export default defineComponent({
             this.open();
         },
 
+        /**
+         * Toggles the open close
+         * @returns {void}
+         */
         toggleOpenClose() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.toggleOpenClose();
         },
 
+        /**
+         * Open
+         * @returns {void}
+         */
         open() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.openPanel();
         },
 
+        /**
+         * Close
+         * @returns {void}
+         */
         close() {
             const panel = this.$refs.panelRef as InstanceType<typeof FloatingPanel> | undefined;
             panel?.close();
         },
 
+        /**
+         * Handles the search external
+         * @param {SearchExternalPayload} payload The payload
+         * @returns {void}
+         */
         onSearchExternal(payload: SearchExternalPayload) {
             this.$emit("search:external", payload);
         },
 
+        /**
+         * Clear combobox search timer
+         * @returns {void}
+         */
         clearComboboxSearchTimer() {
             if (this.comboboxSearchTimer == null) {
                 return;
@@ -1100,18 +1290,35 @@ export default defineComponent({
             this.comboboxSearchTimer = null;
         },
 
+        /**
+         * Handles the combobox focus
+         * @returns {void}
+         */
         onComboboxFocus() {
             this.openComboboxPanel();
         },
 
+        /**
+         * Handles the combobox click
+         * @returns {void}
+         */
         onComboboxClick() {
             this.openComboboxPanel();
         },
 
+        /**
+         * Handles the combobox keydown
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
         onComboboxKeydown(event: KeyboardEvent) {
             this.$emit("keydown", event);
         },
 
+        /**
+         * Open combobox panel
+         * @returns {void}
+         */
         openComboboxPanel() {
             if (this.comboboxSelectionLocked) {
                 return;
@@ -1121,6 +1328,12 @@ export default defineComponent({
             this.emitComboboxExternalSearch(this.comboboxQuery.trim(), true);
         },
 
+        /**
+         * Emit combobox external search
+         * @param {string} value The value
+         * @param {unknown} immediate The immediate
+         * @returns {void}
+         */
         emitComboboxExternalSearch(value: string, immediate = false) {
             if (!this.search?.external) {
                 return;
@@ -1145,6 +1358,10 @@ export default defineComponent({
             }, 300);
         },
 
+        /**
+         * Clear combobox selection
+         * @returns {void}
+         */
         clearComboboxSelection() {
             if (!this.comboboxClearable) {
                 return;
@@ -1159,6 +1376,11 @@ export default defineComponent({
             this.close();
         },
 
+        /**
+         * Handles the combobox input
+         * @param {unknown} value The value
+         * @returns {void}
+         */
         onComboboxInput(value: unknown) {
             if (this.comboboxSelectionLocked) {
                 return;
@@ -1186,10 +1408,20 @@ export default defineComponent({
             this.emitComboboxExternalSearch(trimmed);
         },
 
+        /**
+         * Handles the separated label click
+         * @param {string} value The value
+         * @returns {void}
+         */
         onSeparatedLabelClick(value: string) {
             this.$emit("click:selected", value);
         },
 
+        /**
+         * Handles the separated remove click
+         * @param {string} value The value
+         * @returns {void}
+         */
         onSeparatedRemoveClick(value: string) {
             if (this.disabled) {
                 return;

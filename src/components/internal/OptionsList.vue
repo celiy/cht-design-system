@@ -235,6 +235,9 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * When true, the search is loading
+         */
         externalSearchLoading: {
             type: Boolean,
             default: false
@@ -256,6 +259,10 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Gets the options scroll style
+         * @returns {Record<string, string> | undefined} The options scroll style
+         */
         optionsScrollStyle(): Record<string, string> | undefined {
             if (this.maxHeightPx == null) {
                 return undefined;
@@ -264,6 +271,10 @@ export default defineComponent({
             return { maxHeight: `${this.maxHeightPx}px` };
         },
 
+        /**
+         * Gets the visible options
+         * @returns {OptionItem[]} The visible options
+         */
         visibleOptions(): OptionItem[] {
             const source = this.options ?? [];
 
@@ -292,17 +303,30 @@ export default defineComponent({
     },
 
     watch: {
+        /**
+         * Handles the search query update
+         * @param {string} next The next
+         * @returns {void}
+         */
         searchQuery(next: string) {
             if (next !== this.localSearchQuery) {
                 this.localSearchQuery = next;
             }
         },
 
+        /**
+         * Handles the visible options update
+         * @returns {void}
+         */
         visibleOptions() {
             this.resetHighlight();
         }
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
         this.resetHighlight();
         this.$nextTick(() => this.focusSearchInput());
@@ -311,6 +335,10 @@ export default defineComponent({
         window.addEventListener("resize", this.onViewportChange);
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         document.removeEventListener("keydown", this.onKeydown);
         window.removeEventListener("scroll", this.onViewportChange, true);
@@ -320,10 +348,21 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Checks if the item has children
+         * @param {OptionItem} item The item
+         * @returns {boolean} True if the item has children
+         */
         hasChildren(item: OptionItem): boolean {
             return Array.isArray(item.options) && item.options.length > 0;
         },
 
+        /**
+         * Sets the option reference
+         * @param {number} idx The index
+         * @param {unknown} el The element
+         * @returns {void}
+         */
         setOptionRef(idx: number, el: unknown) {
             if (el instanceof HTMLElement) {
                 this.optionRefs[idx] = el;
@@ -334,12 +373,22 @@ export default defineComponent({
             this.optionRefs[idx] = null;
         },
 
+        /**
+         * Handles the search query update
+         * @param {string} value The value
+         * @returns {void}
+         */
         onSearchQueryUpdate(value: string) {
             this.localSearchQuery = value;
             this.$emit("update:searchQuery", value);
             this.scheduleExternalSearch(value);
         },
 
+        /**
+         * Schedules the external search
+         * @param {string} value The value
+         * @returns {void}
+         */
         scheduleExternalSearch(value: string) {
             if (!this.search?.external) {
                 return;
@@ -355,6 +404,10 @@ export default defineComponent({
             }, SEARCH_EXTERNAL_DEBOUNCE_MS);
         },
 
+        /**
+         * Clears the search external timer
+         * @returns {void}
+         */
         clearSearchExternalTimer() {
             if (this.searchExternalTimer == null) {
                 return;
@@ -364,18 +417,40 @@ export default defineComponent({
             this.searchExternalTimer = null;
         },
 
+        /**
+         * Checks if the item is selectable
+         * @param {OptionItem} item The item
+         * @returns {boolean} True if the item is selectable
+         */
         isSelectable(item: OptionItem): boolean {
             return !item.separator && (Boolean(item.value) || this.hasChildren(item));
         },
 
+        /**
+         * Checks if the item is highlighted
+         * @param {number} idx The index
+         * @param {OptionItem} item The item
+         * @returns {boolean} True if the item is highlighted
+         */
         isItemHighlighted(idx: number, item: OptionItem): boolean {
             return this.highlightedIndex === idx && this.isSelectable(item);
         },
 
+        /**
+         * Checks if the item is selected
+         * @param {OptionItem} item The item
+         * @returns {boolean} True if the item is selected
+         */
         isItemSelected(item: OptionItem): boolean {
             return Boolean(this.isOptionSelected?.(item.value, item));
         },
 
+        /**
+         * Checks if the nested item is selected
+         * @param {string | undefined} value The value
+         * @param {OptionItem | undefined} item The item
+         * @returns {boolean} True if the nested item is selected
+         */
         nestedIsOptionSelected(value: string | undefined, item?: OptionItem): boolean {
             if (!this.nestedItem) {
                 return false;
@@ -384,12 +459,22 @@ export default defineComponent({
             return Boolean(this.isOptionSelected?.(value, item, this.nestedItem));
         },
 
+        /**
+         * Resets the highlight
+         * @returns {void}
+         */
         resetHighlight() {
             const idx = this.visibleOptions.findIndex((item) => this.isSelectable(item));
             this.highlightedIndex = idx;
             this.scrollHighlightedIntoView();
         },
 
+        /**
+         * Handles the item mouse enter
+         * @param {number} idx The index
+         * @param {OptionItem} item The item
+         * @returns {void}
+         */
         onItemMouseEnter(idx: number, item: OptionItem) {
             if (!this.isSelectable(item)) {
                 return;
@@ -402,6 +487,11 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the item mouse leave
+         * @param {OptionItem} item The item
+         * @returns {void}
+         */
         onItemMouseLeave(item: OptionItem) {
             if (!this.hasChildren(item)) {
                 return;
@@ -410,26 +500,48 @@ export default defineComponent({
             this.scheduleNestedClose();
         },
 
+        /**
+         * Handles the nested panel enter
+         * @returns {void}
+         */
         onNestedPanelEnter() {
             this.clearNestedCloseTimer();
         },
 
+        /**
+         * Handles the nested panel leave
+         * @returns {void}
+         */
         onNestedPanelLeave() {
             this.scheduleNestedClose();
         },
 
+        /**
+         * Opens the nested item
+         * @param {OptionItem} item The item
+         * @param {number | undefined} idx The index
+         * @returns {void}
+         */
         openNested(item: OptionItem, idx?: number) {
             this.clearNestedCloseTimer();
             this.nestedItem = item;
             this.$nextTick(() => this.updateNestedPosition(idx));
         },
 
+        /**
+         * Closes the nested item
+         * @returns {void}
+         */
         closeNested() {
             this.clearNestedCloseTimer();
             this.nestedItem = null;
             this.nestedPanelStyle = {};
         },
 
+        /**
+         * Schedules the nested close
+         * @returns {void}
+         */
         scheduleNestedClose() {
             this.clearNestedCloseTimer();
             this.nestedCloseTimer = window.setTimeout(() => {
@@ -439,6 +551,10 @@ export default defineComponent({
             }, 160);
         },
 
+        /**
+         * Clears the nested close timer
+         * @returns {void}
+         */
         clearNestedCloseTimer() {
             if (this.nestedCloseTimer == null) {
                 return;
@@ -448,10 +564,19 @@ export default defineComponent({
             this.nestedCloseTimer = null;
         },
 
+        /**
+         * Handles the viewport change
+         * @returns {void}
+         */
         onViewportChange() {
             this.updateNestedPosition();
         },
 
+        /**
+         * Updates the nested position
+         * @param {number | undefined} idx The index
+         * @returns {void}
+         */
         updateNestedPosition(idx?: number) {
             if (!this.nestedItem) {
                 return;
@@ -485,6 +610,11 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Moves the highlight
+         * @param {number} delta The delta
+         * @returns {void}
+         */
         moveHighlight(delta: number) {
             const selectable = this.visibleOptions
                 .map((item, index) => ({ item, index }))
@@ -512,6 +642,10 @@ export default defineComponent({
             this.scrollHighlightedIntoView();
         },
 
+        /**
+         * Scrolls the highlighted into view
+         * @returns {void}
+         */
         scrollHighlightedIntoView() {
             this.$nextTick(() => {
                 const el = this.optionRefs[this.highlightedIndex];
@@ -520,6 +654,10 @@ export default defineComponent({
             });
         },
 
+        /**
+         * Focuses the search input
+         * @returns {void}
+         */
         focusSearchInput() {
             if (!this.search) {
                 return;
@@ -547,6 +685,10 @@ export default defineComponent({
          * steal Enter/arrows from other selects or from form submit.
          */
         isKeyListenerActive(): boolean {
+            /**
+             * Gets the root element
+             * @returns {Element | undefined} The root element
+             */
             const root = this.$el;
 
             if (!(root instanceof Element) || !root.isConnected) {
@@ -556,11 +698,21 @@ export default defineComponent({
             return root.getClientRects().length > 0;
         },
 
+        /**
+         * Consumes the key
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
         consumeKey(event: KeyboardEvent) {
             event.preventDefault();
             event.stopImmediatePropagation();
         },
 
+        /**
+         * Handles the keydown
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
         onKeydown(event: KeyboardEvent) {
             if (event.defaultPrevented || !this.isKeyListenerActive()) {
                 return;
@@ -626,6 +778,11 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the item click
+         * @param {OptionItem} item The item
+         * @returns {void}
+         */
         onItemClick(item: OptionItem) {
             if (item.separator || item.disabled) {
                 return;
@@ -654,13 +811,25 @@ export default defineComponent({
             this.scheduleExternalSearch("");
         },
 
+        /**
+         * Handles the nested select
+         * @param {string} value The value
+         * @param {OptionItem} item The item
+         * @param {OptionItem | undefined} parent The parent
+         * @returns {void}
+         */
         onNestedSelect(value: string, item: OptionItem, parent?: OptionItem) {
             this.$emit("select", value, item, parent ?? this.nestedItem ?? undefined);
         },
 
-        optionTooltip(item: OptionItem) {
+        /**
+         * Gets the option tooltip
+         * @param {OptionItem} item The item
+         * @returns {{ content: string; placement: "top" | "bottom" | "left" | "right" | "center" } | undefined} The option tooltip
+         */
+        optionTooltip(item: OptionItem): { content: string; placement: "top" | "bottom" | "left" | "right" | "center" } | undefined {
             if (!item.tooltip) {
-                return "";
+                return undefined;
             }
 
             return {

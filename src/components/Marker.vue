@@ -87,37 +87,58 @@ export default defineComponent({
     name: "Marker",
 
     props: {
+        /**
+         * The label of the marker
+         */
         label: {
             type: String,
             required: false
         },
 
+        /**
+         * The left icon of the marker
+         */
         leftIcon: {
             type: String,
             required: false
         },
 
+        /**
+         * Whether the marker is center icon
+         */
         centerIcon: {
             type: String,
             required: false
         },
 
+        /**
+         * Whether the marker is left number
+         */
         leftNumber: {
             type: Number,
             required: false
         },
 
+        /**
+         * Whether the marker is separator
+         */
         separator: {
             type: Boolean,
             required: false
         },
 
+        /**
+         * The orientation of the marker
+         */
         orientation: {
             type: String as PropType <"horizontal" | "vertical">,
             default: "horizontal",
             required: false
         },
 
+        /**
+         * The color of the marker
+         */
         color: {
             type: String as PropType <"foreground" | "muted">,
             default: "muted",
@@ -126,6 +147,10 @@ export default defineComponent({
     },
     
     computed: {
+        /**
+         * Checks if label
+         * @returns {boolean} True if has label
+         */
         hasLabel(): boolean {
             if (this.label || this.$slots.label) {
                 return true;

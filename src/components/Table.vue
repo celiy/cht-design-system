@@ -383,27 +383,42 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * Whether the table is title
+         */
         title: {
             type: String,
             required: false
         },
 
+        /**
+         * Whether the table is select cols
+         */
         selectCols: {
             type: Boolean,
             default: false,
             required: false
         },
 
+        /**
+         * Whether the table is headers
+         */
         headers: {
             type: Array as PropType<TableHeader[]>,
             required: true
         },
 
+        /**
+         * Whether the table is data
+         */
         data: {
             type: Array as PropType<Array<Record<string, any>>>,
             required: false
         },
 
+        /**
+         * Whether the table is selectable
+         */
         selectable: {
             type: Boolean,
             default: false,
@@ -432,6 +447,9 @@ export default defineComponent({
             required: false
         },
 
+        /**
+         * Whether the table is loading
+         */
         loading: {
             type: Boolean,
             required: false,
@@ -454,6 +472,10 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Checks if actions
+         * @returns {boolean} True if has actions
+         */
         hasActions(): boolean {
             if (typeof this.actions === "function") {
                 return true;
@@ -462,10 +484,18 @@ export default defineComponent({
             return Array.isArray(this.actions) && this.actions.length > 0;
         },
 
+        /**
+         * Checks if selectable actions
+         * @returns {boolean} True if has selectable actions
+         */
         hasSelectableActions(): boolean {
             return Array.isArray(this.selectableActions) && this.selectableActions.length > 0;
         },
 
+        /**
+         * Gets the selected items
+         * @returns {unknown} The selected items
+         */
         selectedItems(): Record<string, any>[] {
             const rows = this.data ?? [];
 
@@ -474,6 +504,10 @@ export default defineComponent({
                 .filter((item): item is Record<string, any> => item != null);
         },
 
+        /**
+         * Checks if all selected
+         * @returns {boolean} True if is all selected
+         */
         isAllSelected() {
             const rows = this.data ?? [];
             const n = rows.length;
@@ -489,6 +523,10 @@ export default defineComponent({
             return rows.every((_: unknown, i: number) => this.selectedRows.includes(i));
         },
 
+        /**
+         * Gets the select table headers
+         * @returns {unknown} The select table headers
+         */
         selectTableHeaders() {
             return this.headers.map((header) => ({
                 label: header.label,
@@ -496,6 +534,10 @@ export default defineComponent({
             }));
         },
 
+        /**
+         * Gets the display headers
+         * @returns {unknown} The display headers
+         */
         displayHeaders(): TableHeader[] {
             if (!this.selectCols) {
                 return [...this.headers];
@@ -516,10 +558,18 @@ export default defineComponent({
             return headersToDisplay;
         },
 
+        /**
+         * Checks if no data
+         * @returns {boolean} True if has no data
+         */
         hasNoData(): boolean {
             return !Array.isArray(this.data) || this.data.length === 0;
         },
 
+        /**
+         * Gets the table column count
+         * @returns {unknown} The table column count
+         */
         tableColumnCount(): number {
             let count = this.displayHeaders.length;
 
@@ -535,11 +585,12 @@ export default defineComponent({
         }
     },
 
-    watch: {},
-
-    mounted() {},
-
     methods: {
+        /**
+         * Convert obj to arr
+         * @param {object} obj The obj
+         * @returns {void}
+         */
         convertObjToArr(obj: object) {
             const array: unknown[] = [];
 
@@ -558,6 +609,13 @@ export default defineComponent({
             return array;
         },
 
+        /**
+         * Gets the get cell value for header
+         * @param {Record<string} item The item
+         * @param {unknown} unknown> The unknown>
+         * @param {TableHeader} head The head
+         * @returns {void}
+         */
         getCellValueForHeader(item: Record<string, unknown>, head: TableHeader): unknown {
             if (head.field && head.field in item) {
                 return item[head.field];
@@ -575,6 +633,12 @@ export default defineComponent({
             return rowValues[colIndex];
         },
 
+        /**
+         * Gets the get row display cells
+         * @param {Record<string} item The item
+         * @param {unknown} unknown> The unknown>
+         * @returns {void}
+         */
         getRowDisplayCells(item: Record<string, unknown>) {
             return this.displayHeaders.map((head) => ({
                 head,
@@ -582,6 +646,11 @@ export default defineComponent({
             }));
         },
 
+        /**
+         * Align class
+         * @param {TableHeader} head The head
+         * @returns {void}
+         */
         alignClass(head: TableHeader): string {
             if (head.position === "center") {
                 return "text-center";
@@ -594,6 +663,12 @@ export default defineComponent({
             return "text-left";
         },
 
+        /**
+         * Format text cell
+         * @param {string | number | boolean} value The value
+         * @param {TableHeader} head The head
+         * @returns {void}
+         */
         formatTextCell(value: string | number | boolean, head: TableHeader): string {
             const text = String(value);
             const format = head.format ?? tableCellMaskForField(head.field);
@@ -605,32 +680,70 @@ export default defineComponent({
             return formatTableCellMask(text, format);
         },
 
+        /**
+         * Gets the is text cell value
+         * @param {unknown} value The value
+         * @returns {void}
+         */
         isTextCellValue(value: unknown): value is string | number | boolean {
             return (
                 typeof value === "string" || typeof value === "number" || typeof value === "boolean"
             );
         },
 
+        /**
+         * Gets the is toggle cell value
+         * @param {unknown} value The value
+         * @returns {void}
+         */
         isToggleCellValue(value: unknown): value is TableToggleCell {
             return isTableToggleCell(value);
         },
 
+        /**
+         * Toggles the key
+         * @param {number} rowIndex The row index
+         * @param {TableHeader} head The head
+         * @returns {void}
+         */
         toggleKey(rowIndex: number, head: TableHeader): string {
             return `${rowIndex}:${head.field ?? head.label}`;
         },
 
+        /**
+         * Gets the is toggle revealed
+         * @param {string} key The key
+         * @returns {void}
+         */
         isToggleRevealed(key: string): boolean {
             return Boolean(this.revealedToggleKeys[key]);
         },
 
+        /**
+         * Toggles the cell text
+         * @param {TableToggleCell} value The value
+         * @param {string} key The key
+         * @returns {void}
+         */
         toggleCellText(value: TableToggleCell, key: string): string {
             return String(this.isToggleRevealed(key) ? value.altValue : value.value);
         },
 
+        /**
+         * Toggles the button props
+         * @param {TableToggleCell} value The value
+         * @returns {void}
+         */
         toggleButtonProps(value: TableToggleCell): Record<string, unknown> {
             return value.buttonProps ?? {};
         },
 
+        /**
+         * Toggles the cell reveal
+         * @param {number} rowIndex The row index
+         * @param {TableHeader} head The head
+         * @returns {void}
+         */
         toggleCellReveal(rowIndex: number, head: TableHeader) {
             const key = this.toggleKey(rowIndex, head);
 
@@ -640,6 +753,11 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Resolve badge value
+         * @param {unknown} value The value
+         * @returns {void}
+         */
         resolveBadgeValue(value: unknown): ResolvedBadgeValue | undefined {
             if (typeof value !== "object" || value === null) {
                 return undefined;
@@ -666,6 +784,12 @@ export default defineComponent({
             return undefined;
         },
 
+        /**
+         * Table badge props
+         * @param {TableHeader} head The head
+         * @param {unknown} value The value
+         * @returns {void}
+         */
         tableBadgeProps(head: TableHeader, value: unknown): TableHeaderBadgeProps {
             const fromCell = this.resolveBadgeValue(value);
             const fromHeader = head.badgeProps ?? {};
@@ -679,18 +803,38 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the is badge cell value
+         * @param {unknown} value The value
+         * @returns {void}
+         */
         isBadgeCellValue(value: unknown): boolean {
             return this.resolveBadgeValue(value) !== undefined;
         },
 
+        /**
+         * Badge label
+         * @param {unknown} value The value
+         * @returns {void}
+         */
         badgeLabel(value: unknown): string | undefined {
             return this.resolveBadgeValue(value)?.label;
         },
 
+        /**
+         * Badge tooltip
+         * @param {unknown} value The value
+         * @returns {void}
+         */
         badgeTooltip(value: unknown): string {
             return this.resolveBadgeValue(value)?.tooltip ?? "";
         },
 
+        /**
+         * Badge color
+         * @param {unknown} value The value
+         * @returns {void}
+         */
         badgeColor(value: unknown): string | undefined {
             return this.resolveBadgeValue(value)?.color;
         },
@@ -731,6 +875,11 @@ export default defineComponent({
             return "secondary";
         },
 
+        /**
+         * Select row
+         * @param {number} row The row
+         * @returns {void}
+         */
         selectRow(row: number) {
             for (let n = 0; n < this.selectedRows.length; n++) {
                 if (this.selectedRows[n] === row) {
@@ -743,6 +892,10 @@ export default defineComponent({
             this.selectedRows.push(row);
         },
 
+        /**
+         * Select all
+         * @returns {void}
+         */
         selectAll() {
             if (this.isAllSelected) {
                 // If all rows are selected, unselect all
@@ -753,6 +906,12 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Actions for row
+         * @param {Record<string} item The item
+         * @param {unknown} unknown> The unknown>
+         * @returns {void}
+         */
         actionsForRow(item: Record<string, unknown>): OptionItem[] {
             if (typeof this.actions === "function") {
                 return this.actions(item) ?? [];
@@ -761,14 +920,31 @@ export default defineComponent({
             return this.actions ?? [];
         },
 
+        /**
+         * Handles the action click
+         * @param {string} value The value
+         * @param {Record<string} item The item
+         * @param {unknown} any> The any>
+         * @returns {void}
+         */
         onActionClick(value: string, item: Record<string, any>) {
             this.$emit("click:action", value, item);
         },
 
+        /**
+         * Handles the selectable action click
+         * @param {string} value The value
+         * @returns {void}
+         */
         onSelectableActionClick(value: string) {
             this.$emit("click:selectableAction", value, this.selectedItems);
         },
 
+        /**
+         * Sort field
+         * @param {string} field The field
+         * @returns {void}
+         */
         sortField(field: string) {
             if (!this.headers.find((head) => head.field === field)?.canSort) {
                 return;

@@ -76,104 +76,156 @@
 import { defineComponent, type PropType } from "vue";
 import type { ButtonVariants } from "@shared/constants/ButtonTypes";
 
+export const ButtonProps = {
+    /**
+     * The label of the button
+     */
+    label: {
+        type: String,
+        required: false
+    },
+
+    /**
+     * The button class of the button
+     */
+    buttonClass: {
+        type: String,
+        required: false
+    },
+
+    /**
+     * The label class of the button
+     */
+    labelClass: {
+        type: String,
+        required: false
+    },
+
+    /**
+     * The shape of the button
+     */
+    shape: {
+        type: String as PropType<"rounded" | "square">,
+        default: "square",
+        required: false
+    },
+
+    /**
+     * The content position of the button
+     */
+    contentPosition: {
+        type: String as PropType<"start" | "center" | "end" | "none">,
+        default: "center",
+        required: false
+    },
+
+    /**
+     * The type of the button
+     */
+    type: {
+        type: String as PropType<"button" | "reset" | "submit">,
+        default: "button",
+        required: false
+    },
+
+    /**
+     * The size of the button
+     */
+    size: {
+        type: String as PropType<"small" | "medium" | "large">,
+        default: "medium",
+        required: false
+    },
+
+    /**
+     * The variant of the button
+     */
+    variant: {
+        type: String as PropType<ButtonVariants>,
+        default: "default",
+        required: false
+    },
+
+    /**
+     * Whether the button is disabled
+     */
+    disabled: {
+        type: Boolean,
+        default: false,
+        required: false
+    },
+
+    /**
+     * Whether the button uses hover effect
+     */
+    hoverEffect: {
+        type: Boolean,
+        default: true,
+        required: false
+    },
+
+    /**
+     * The left icon of the button
+     */
+    leftIcon: {
+        type: String,
+        required: false
+    },
+
+    /**
+     * The right icon of the button
+     */
+    rightIcon: {
+        type: String,
+        required: false
+    },
+
+    /**
+     * Associates the button with a form element (`id` of `<form>`).
+     */
+    form: {
+        type: String,
+        required: false
+    },
+
+    /**
+     * The hover style of the button
+     */
+    hoverStyle: {
+        type: String,
+        required: false
+    },
+
+    /**
+     * The background style of the button
+     */
+    backgroundStyle: {
+        type: String,
+        required: false
+    },
+
+    /**
+     * The border style of the button
+     */
+    borderStyle: {
+        type: String,
+        required: false
+    },
+
+    /**
+     * The radius style of the button
+     */
+    radiusStyle: {
+        type: String,
+        required: false
+    }
+} as const;
+
 export default defineComponent({
     name: "Button",
 
     props: {
-        label: {
-            type: String,
-            required: false
-        },
-
-        buttonClass: {
-            type: String,
-            required: false
-        },
-
-        labelClass: {
-            type: String,
-            required: false
-        },
-
-        shape: {
-            type: String as PropType<"rounded" | "square">,
-            default: "square",
-            required: false
-        },
-
-        contentPosition: {
-            type: String as PropType<"start" | "center" | "end" | "none">,
-            default: "center",
-            required: false
-        },
-
-        type: {
-            type: String as PropType<"button" | "reset" | "submit">,
-            default: "button",
-            required: false
-        },
-
-        size: {
-            type: String as PropType<"small" | "medium" | "large">,
-            default: "medium",
-            required: false
-        },
-
-        variant: {
-            type: String as PropType<ButtonVariants>,
-            default: "default",
-            required: false
-        },
-
-        disabled: {
-            type: Boolean,
-            default: false,
-            required: false
-        },
-
-        hoverEffect: {
-            type: Boolean,
-            default: true,
-            required: false
-        },
-
-        leftIcon: {
-            type: String,
-            required: false
-        },
-
-        rightIcon: {
-            type: String,
-            required: false
-        },
-
-        /**
-         * Associates the button with a form element (`id` of `<form>`).
-         */
-        form: {
-            type: String,
-            required: false
-        },
-
-        hoverStyle: {
-            type: String,
-            required: false
-        },
-
-        backgroundStyle: {
-            type: String,
-            required: false
-        },
-
-        borderStyle: {
-            type: String,
-            required: false
-        },
-
-        radiusStyle: {
-            type: String,
-            required: false
-        }
+        ...ButtonProps
     },
 
     emits: ["click", "keydown"],
@@ -186,6 +238,10 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Gets the circle button size
+         * @returns {unknown} The circle button size
+         */
         circleButtonSize(): string {
             if (this.shape !== "rounded") {
                 return "";
@@ -203,6 +259,10 @@ export default defineComponent({
             return `${base}px`;
         },
 
+        /**
+         * Gets the hover class
+         * @returns {unknown} The hover class
+         */
         hoverClass() {
             if (this.hoverStyle) {
                 return this.hoverStyle;
@@ -243,6 +303,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the background class
+         * @returns {unknown} The background class
+         */
         backgroundClass() {
             if (this.backgroundStyle) {
                 return this.backgroundStyle;
@@ -264,6 +328,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the border class
+         * @returns {unknown} The border class
+         */
         borderClass() {
             if (this.borderStyle) {
                 return this.borderStyle;
@@ -287,6 +355,10 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Gets the shape class
+         * @returns {unknown} The shape class
+         */
         shapeClass() {
             if (this.radiusStyle) {
                 return this.radiusStyle;
@@ -301,26 +373,52 @@ export default defineComponent({
     },
 
     methods: {
+        /**
+         * Handles the click
+         * @param {MouseEvent} event The event
+         * @returns {void}
+         */
         handleClick(event: MouseEvent) {
             this.$emit("click", event);
         },
 
+        /**
+         * Handles the keydown
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
         handleKeydown(event: KeyboardEvent) {
             this.$emit("keydown", event);
         },
 
+        /**
+         * Handles the mouse down
+         * @returns {void}
+         */
         handleMouseDown() {
             this.isPressed = true;
         },
 
+        /**
+         * Handles the mouse up
+         * @returns {void}
+         */
         handleMouseUp() {
             this.isPressed = false;
         },
 
+        /**
+         * Handles the mouse enter
+         * @returns {void}
+         */
         handleMouseEnter() {
             this.hovered = true;
         },
 
+        /**
+         * Handles the mouse leave
+         * @returns {void}
+         */
         handleMouseLeave() {
             this.isPressed = false;
             this.hovered = false;

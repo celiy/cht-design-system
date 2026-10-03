@@ -9,6 +9,9 @@ export default defineComponent({
     name: "Example",
 
     props: {
+        /**
+         * The prop type of the example
+         */
         propType: {
             type: String as PropType<"normal" | "not-normal">,
             default: "normal",
@@ -32,6 +35,10 @@ export default defineComponent({
 
     },
 
+    /**
+     * Mounts the component
+     * @returns {void}
+     */
     mounted() {
 
     },

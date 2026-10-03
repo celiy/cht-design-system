@@ -54,21 +54,33 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * Whether the contextmenu is options
+         */
         options: {
             type: Array as PropType<OptionItem[]>,
             required: true
         },
 
+        /**
+         * Whether the contextmenu is close on select
+         */
         closeOnSelect: {
             type: Boolean,
             default: true
         },
 
+        /**
+         * Whether the contextmenu is disabled
+         */
         disabled: {
             type: Boolean,
             default: false
         },
 
+        /**
+         * The max height px of the contextmenu
+         */
         maxHeightPx: {
             type: Number,
             default: 280
@@ -91,6 +103,11 @@ export default defineComponent({
     },
 
     watch: {
+        /**
+         * Handles the is open state
+         * @param {boolean} open The open state
+         * @returns {void}
+         */
         isOpen(open: boolean) {
             if (open) {
                 this.$nextTick(() => this.updatePosition());
@@ -105,6 +122,10 @@ export default defineComponent({
         }
     },
 
+    /**
+     * Unmounts the component
+     * @returns {void}
+     */
     beforeUnmount() {
         this.clearLongPress();
         this.detachListeners();
@@ -141,6 +162,11 @@ export default defineComponent({
             this.openAt(event.clientX, event.clientY);
         },
 
+        /**
+         * Handles the touch start
+         * @param {TouchEvent} event The event
+         * @returns {void}
+         */
         onTouchStart(event: TouchEvent) {
             if (this.disabled || this.isLinkTarget(event)) {
                 return;
@@ -163,6 +189,11 @@ export default defineComponent({
             }, LONG_PRESS_MS);
         },
 
+        /**
+         * Handles the touch move
+         * @param {TouchEvent} event The event
+         * @returns {void}
+         */
         onTouchMove(event: TouchEvent) {
             const touch = event.touches[0];
 
@@ -178,10 +209,19 @@ export default defineComponent({
             }
         },
 
+        /**
+         * Handles the touch end
+         * @returns {void}
+         */
         onTouchEnd() {
             this.clearLongPress();
         },
 
+        /**
+         * Handles the click capture
+         * @param {MouseEvent} event The event
+         * @returns {void}
+         */
         onClickCapture(event: MouseEvent) {
             if (!this.ignoreNextClick) {
                 return;
@@ -192,6 +232,12 @@ export default defineComponent({
             this.ignoreNextClick = false;
         },
 
+        /**
+         * Opens the menu at the cursor
+         * @param {number} x The x coordinate
+         * @param {number} y The y coordinate
+         * @returns {void}
+         */
         openAt(x: number, y: number) {
             if (openContextMenu && openContextMenu !== this) {
                 openContextMenu.close();
@@ -203,6 +249,10 @@ export default defineComponent({
             this.isOpen = true;
         },
 
+        /**
+         * Closes the menu
+         * @returns {void}
+         */
         close() {
             if (openContextMenu === this) {
                 openContextMenu = null;
@@ -211,6 +261,11 @@ export default defineComponent({
             this.isOpen = false;
         },
 
+        /**
+         * Handles the select
+         * @param {string} value The value
+         * @returns {void}
+         */
         onSelect(value: string) {
             this.$emit("click:value", value);
 
@@ -221,6 +276,7 @@ export default defineComponent({
 
         /**
          * Keeps the panel inside the viewport, flipping up if there is no room below the cursor.
+         * @returns {void}
          */
         updatePosition() {
             if (!this.isOpen) {
@@ -251,6 +307,11 @@ export default defineComponent({
             };
         },
 
+        /**
+         * Handles the pointer outside
+         * @param {PointerEvent} event The event
+         * @returns {void}
+         */
         handlePointerOutside(event: PointerEvent) {
             if (event.button === 2) {
                 return;
@@ -266,6 +327,11 @@ export default defineComponent({
             this.close();
         },
 
+        /**
+         * Handles the document context menu
+         * @param {MouseEvent} event The event
+         * @returns {void}
+         */
         handleDocumentContextMenu(event: MouseEvent) {
             const root = this.$refs.rootRef as HTMLElement | undefined;
             const panel = this.$refs.panelRef as HTMLElement | undefined;
@@ -278,6 +344,11 @@ export default defineComponent({
             this.close();
         },
 
+        /**
+         * Handles the keydown
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
         handleKeydown(event: KeyboardEvent) {
             if (event.key !== "Escape") {
                 return;
@@ -287,6 +358,10 @@ export default defineComponent({
             this.close();
         },
 
+        /**
+         * Clears the long press
+         * @returns {void}
+         */
         clearLongPress() {
             if (this.longPressTimer == null) {
                 return;
@@ -296,6 +371,10 @@ export default defineComponent({
             this.longPressTimer = null;
         },
 
+        /**
+         * Detaches the listeners
+         * @returns {void}
+         */
         detachListeners() {
             window.removeEventListener("scroll", this.updatePosition, true);
             window.removeEventListener("resize", this.updatePosition);

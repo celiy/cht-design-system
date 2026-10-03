@@ -30,21 +30,33 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * The value of the qrcode
+         */
         value: {
             type: String,
             required: true
         },
 
+        /**
+         * The size of the qrcode
+         */
         size: {
             type: Number,
             default: 192
         },
 
+        /**
+         * The level of the qrcode
+         */
         level: {
             type: String as PropType<Level>,
             default: "M"
         },
 
+        /**
+         * The margin of the qrcode
+         */
         margin: {
             type: Number,
             default: 1
@@ -52,6 +64,10 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Gets the aria label
+         * @returns {unknown} The aria label
+         */
         ariaLabel(): string {
             return `Código QR: ${this.value}`;
         }
