@@ -17,7 +17,7 @@
                 />
 
                 <Input
-                    id="options-list-search"
+                    :id="searchInputId"
                     v-model="localSearchQuery"
                     class="my-1"
                     type="text"
@@ -254,7 +254,8 @@ export default defineComponent({
             nestedItem: null as OptionItem | null,
             nestedPanelStyle: {} as Record<string, string>,
             nestedCloseTimer: null as number | null,
-            searchExternalTimer: null as number | null
+            searchExternalTimer: null as number | null,
+            searchInputId: `options-list-search-${Math.random().toString(36).slice(2, 10)}`
         };
     },
 
@@ -442,6 +443,10 @@ export default defineComponent({
          * @returns {boolean} True if the item is selected
          */
         isItemSelected(item: OptionItem): boolean {
+            if (item.separator) {
+                return false;
+            }
+
             return Boolean(this.isOptionSelected?.(item.value, item));
         },
 
@@ -827,7 +832,11 @@ export default defineComponent({
          * @param {OptionItem} item The item
          * @returns {{ content: string; placement: "top" | "bottom" | "left" | "right" | "center" } | undefined} The option tooltip
          */
-        optionTooltip(item: OptionItem): { content: string; placement: "top" | "bottom" | "left" | "right" | "center" } | undefined {
+        optionTooltip(
+            item: OptionItem
+        ):
+            | { content: string; placement: "top" | "bottom" | "left" | "right" | "center" }
+            | undefined {
             if (!item.tooltip) {
                 return undefined;
             }

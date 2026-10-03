@@ -979,5 +979,4 @@ export default defineComponent({
     opacity: 1;
     margin-top: 0.5rem;
 }
-
 </style>

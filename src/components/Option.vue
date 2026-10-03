@@ -5,7 +5,11 @@
         :class="{
             'text-destructive!': isDestructive,
             'bg-destructive/20!':
-                (showCheckmark || showCheckboxSwitch) && selected && isDestructive && !hasChildren,
+                (showCheckmark || showCheckboxSwitch) &&
+                selected &&
+                isDestructive &&
+                !hasChildren &&
+                !separator,
             'bg-destructive/30!': highlighted && !$project.device.isMobile && isDestructive,
             'hover:bg-destructive/30!': isSelectable && isDestructive && !disabled,
 
@@ -15,7 +19,8 @@
                 selected &&
                 !highlighted &&
                 !isDestructive &&
-                !hasChildren,
+                !hasChildren &&
+                !separator,
             'bg-accent!': highlighted && !$project.device.isMobile && !isDestructive,
             'hover:bg-accent': isSelectable && !isDestructive && !disabled,
 
@@ -97,7 +102,7 @@
             </div>
 
             <div
-                v-if="showCheckmark || showCheckboxSwitch || hasChildren"
+                v-if="(showCheckmark || showCheckboxSwitch || hasChildren) && !separator"
 
                 class="flex shrink-0 items-center gap-2"
             >
