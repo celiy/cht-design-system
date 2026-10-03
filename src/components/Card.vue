@@ -48,9 +48,9 @@
 
         <!-- Footer -->
         <template v-if="$slots.footer">
-            <div :class="footerClass">
+            <footer :class="footerClass">
                 <slot name="footer" />
-            </div>
+            </footer>
         </template>
     </div>
 </template>

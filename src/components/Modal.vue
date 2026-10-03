@@ -135,7 +135,7 @@
                         </div>
 
                         <!-- Footer for Modal, Blank and Drawer-->
-                        <div
+                        <footer
                             v-if="
                                 $slots.footer &&
                                 (variant === 'blank' || variant === 'modal' || variant === 'drawer')
@@ -144,7 +144,7 @@
                             :class="[footerClass, { 'mt-auto': variant === 'drawer' }]"
                         >
                             <slot name="footer" />
-                        </div>
+                        </footer>
                     </div>
                 </Transition>
             </div>

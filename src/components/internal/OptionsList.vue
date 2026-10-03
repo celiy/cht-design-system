@@ -68,7 +68,7 @@
 
             class="px-3 py-2 text-center text-sm text-muted-foreground!"
         >
-            <small class="text-muted-foreground!">Nenhum resultado encontrado.</small>
+            <small-muted>Nenhum resultado encontrado.</small-muted>
 
             <div
                 v-if="$slots.insideEmptyPanel"

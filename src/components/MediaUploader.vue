@@ -1,9 +1,10 @@
 <template>
-    <div class="w-full flex flex-col gap-3">
+    <div class="flex w-full flex-col gap-3">
         <label
             v-if="label"
+
             :for="id"
-            class="text-foreground font-semibold text-sm"
+            class="text-sm font-semibold text-foreground"
         >
             {{ label }}
         </label>
@@ -11,23 +12,26 @@
         <input
             :id="id"
             ref="fileInputRef"
+
             class="hidden"
             type="file"
             :accept="acceptAttribute"
             :multiple="multiple"
             :disabled="disabled"
+
             @change="onInputChange"
         />
 
         <button
             type="button"
-            class="w-full border border-dashed rounded p-4 transition-all text-left bg-card"
+            class="w-full rounded border border-dashed bg-card p-4 text-left transition-all"
             :class="{
                 'border-primary/70 bg-primary/10': isDragActive && !disabled,
                 'border-border/70 hover:border-border': !isDragActive && !disabled,
-                'opacity-60 cursor-not-allowed': disabled
+                'cursor-not-allowed opacity-60': disabled
             }"
             :disabled="disabled"
+
             @click="openFilePicker"
             @dragenter.prevent="onDragEnter"
             @dragover.prevent="onDragOver"
@@ -35,7 +39,7 @@
             @drop.prevent="onDrop"
         >
             <div class="flex items-start gap-3">
-                <i class="fa-solid fa-cloud-arrow-up text-primary mt-0.5" />
+                <i class="fa-solid fa-cloud-arrow-up mt-0.5 text-primary" />
 
                 <div class="flex flex-col gap-1">
                     <span class="text-sm font-medium text-foreground">
@@ -49,19 +53,27 @@
             </div>
         </button>
 
-        <div v-if="items.length > 0" class="w-full flex flex-wrap gap-3">
+        <div
+            v-if="items.length > 0"
+
+            class="flex w-full flex-wrap gap-3"
+        >
             <div
                 v-for="item in items"
                 :key="item.key"
+
                 class="media-thumb"
             >
-                <div class="relative w-[88px] h-[88px] rounded border border-border/60 bg-input/20 overflow-hidden">
+                <div
+                    class="relative h-[88px] w-[88px] overflow-hidden rounded border border-border/60 bg-input/20"
+                >
                     <button
                         type="button"
-                        class="absolute top-1 right-1 w-5 h-5 rounded-full bg-popover border border-border/80 text-muted-foreground hover:text-foreground text-[11px] leading-none z-10 cursor-pointer"
+                        class="absolute top-1 right-1 z-10 h-5 w-5 cursor-pointer rounded-full border border-border/80 bg-popover text-[11px] leading-none text-muted-foreground hover:text-foreground"
                         title="Remover"
                         aria-label="Remover"
                         :disabled="disabled"
+
                         @click="removeFile(item.key)"
                     >
                         <i class="fa-solid fa-xmark" />
@@ -79,13 +91,18 @@
 
                     <div
                         v-else
-                        class="w-full h-full flex items-center justify-center relative"
+
+                        class="relative flex h-full w-full items-center justify-center"
                     >
-                        <i :class="item.iconClass" class="text-4xl opacity-90" />
+                        <i
+                            :class="item.iconClass"
+                            class="text-4xl opacity-90"
+                        />
 
                         <span
                             v-if="item.isUnknownType"
-                            class="absolute text-[10px] font-semibold uppercase bg-background/80 px-1 rounded"
+
+                            class="absolute rounded bg-background/80 px-1 text-[10px] font-semibold uppercase"
                         >
                             {{ item.extensionLabel }}
                         </span>
@@ -93,7 +110,7 @@
                 </div>
 
                 <span
-                    class="block mt-1 text-xs text-muted-foreground truncate"
+                    class="mt-1 block truncate text-xs text-muted-foreground"
                     :title="item.file.name"
                 >
                     {{ item.file.name }}
@@ -103,9 +120,10 @@
 
         <button
             type="button"
-            class="w-full text-left p-2.5 rounded border border-border/70 bg-input/30 transition-all text-sm text-foreground"
-            :class="{ 'opacity-60 cursor-not-allowed': disabled }"
+            class="w-full rounded border border-border/70 bg-input/30 p-2.5 text-left text-sm text-foreground transition-all"
+            :class="{ 'cursor-not-allowed opacity-60': disabled }"
             :disabled="disabled"
+
             @click="openFilePicker"
         >
             <span class="block truncate">
@@ -113,12 +131,9 @@
             </span>
         </button>
 
-        <small   
-            v-if="helperText"
-            class="text-muted-foreground!"
-        >
+        <small-muted v-if="helperText">
             {{ helperText }}
-        </small>
+        </small-muted>
     </div>
 </template>
 
@@ -275,7 +290,7 @@ export default defineComponent({
 
             return raw
                 .split(",")
-                .map(token => token.trim().toLowerCase())
+                .map((token) => token.trim().toLowerCase())
                 .filter(Boolean);
         },
 
@@ -332,7 +347,7 @@ export default defineComponent({
          * @returns {unknown} The items
          */
         items(): MediaItem[] {
-            return this.internalFiles.map(file => {
+            return this.internalFiles.map((file) => {
                 const key = this.fileKey(file);
                 const extension = this.fileExtension(file);
                 const isImage = this.fileIsImage(file);
@@ -424,10 +439,7 @@ export default defineComponent({
                 return "fa-solid fa-file-video text-blue-400";
             }
 
-            if (
-                mime.includes("word") ||
-                ["doc", "docx", "odt", "rtf"].includes(ext)
-            ) {
+            if (mime.includes("word") || ["doc", "docx", "odt", "rtf"].includes(ext)) {
                 return "fa-solid fa-file-word text-blue-500";
             }
 
@@ -501,8 +513,8 @@ export default defineComponent({
          * @returns {void}
          */
         replaceFiles(nextFiles: File[], emitChanges: boolean) {
-            const previousKeys = new Set(this.internalFiles.map(file => this.fileKey(file)));
-            const nextKeys = new Set(nextFiles.map(file => this.fileKey(file)));
+            const previousKeys = new Set(this.internalFiles.map((file) => this.fileKey(file)));
+            const nextKeys = new Set(nextFiles.map((file) => this.fileKey(file)));
 
             for (const key of previousKeys) {
                 if (!nextKeys.has(key) && this.previewUrls[key]) {
@@ -695,7 +707,7 @@ export default defineComponent({
                 return;
             }
 
-            const next = this.internalFiles.filter(file => this.fileKey(file) !== key);
+            const next = this.internalFiles.filter((file) => this.fileKey(file) !== key);
             this.replaceFiles(next, true);
         }
     }

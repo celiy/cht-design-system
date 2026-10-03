@@ -124,13 +124,13 @@
         </div>
 
         <!-- Helper text -->
-        <small
+        <small-muted
             v-if="helperText"
 
-            class="mt-2 text-muted-foreground!"
+            class="mt-2"
         >
             {{ helperText }}
-        </small>
+        </small-muted>
     </div>
 </template>
 

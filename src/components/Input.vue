@@ -166,13 +166,13 @@
         </transition>
 
         <!-- Helper text -->
-        <small
+        <small-muted
             v-if="helperText"
 
-            class="mt-1.5 text-sm! text-muted-foreground!"
+            class="mt-1.5"
         >
             {{ helperText }}
-        </small>
+        </small-muted>
     </div>
 </template>
 

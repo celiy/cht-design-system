@@ -12,7 +12,9 @@
 
             <div
                 class="flex w-full items-stretch gap-2"
-                :class="{ 'flex-row-reverse': $slots['trigger-aside'] && triggerAsideSide === 'left' }"
+                :class="{
+                    'flex-row-reverse': $slots['trigger-aside'] && triggerAsideSide === 'left'
+                }"
             >
                 <div
                     ref="anchorRef"
@@ -112,13 +114,13 @@
                 </div>
             </div>
 
-            <small
+            <small-muted
                 v-if="helperText"
 
-                class="mt-2 text-muted-foreground!"
+                class="mt-2"
             >
                 {{ helperText }}
-            </small>
+            </small-muted>
         </div>
 
         <FloatingPanel
