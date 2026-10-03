@@ -45,6 +45,7 @@
                     }
                 ]"
             >
+                <!-- Textarea content -->
                 <textarea
                     v-if="isTextarea"
 
@@ -66,14 +67,13 @@
                     @keydown="onKeydown"
                 />
 
-                <!-- Input/textarea content -->
+                <!-- Input content -->
                 <div
                     v-else
 
                     class="flex min-w-0 items-center gap-2"
                     :class="[fit ? 'w-fit' : 'w-full', inputClass]"
                 >
-                    <!-- Input -->
                     <input
                         :id="inputId"
                         v-maska="mask"
