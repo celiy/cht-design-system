@@ -50,7 +50,7 @@
             </span>
 
             <i
-                v-if="!$project.device.isMobile"
+                v-if="!$project.device.isMobile && !$project.device.isTablet"
 
                 class="fa-solid fa-chevron-right inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
                 :class="[
@@ -117,8 +117,20 @@
                         >
                             <div class="relative mr-2 ml-4 w-0.5 shrink-0 self-stretch">
                                 <div
-                                    class="absolute inset-0 z-0 bg-sidebar-border"
-                                    :class="[idx === link.links.length - 1 ? 'rounded-full' : '']"
+                                    class="absolute inset-0 z-0"
+                                    :class="[
+                                        idx === link.links.length - 1 ? 'rounded-full' : '',
+                                        {
+                                            'bg-linear-to-b from-sidebar-border to-transparent':
+                                                $project.style.customTheme === 'hodiernus' &&
+                                                idx === link.links.length - 1,
+                                            'bg-sidebar-border':
+                                                $project.style.customTheme !== 'hodiernus' ||
+                                                idx !== link.links.length - 1 ||
+                                                ($project.style.customTheme === 'hodiernus' &&
+                                                    idx !== link.links.length - 1)
+                                        }
+                                    ]"
                                 />
 
                                 <div
@@ -161,7 +173,7 @@
                                 </span>
 
                                 <i
-                                    v-if="!$project.device.isMobile"
+                                    v-if="!$project.device.isMobile && !$project.device.isTablet"
 
                                     class="fa-solid fa-chevron-right inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
                                     :class="[

@@ -28,12 +28,15 @@
             @update:width="onSidebarWidth"
             @resize-start="isResizing = true"
             @resize-end="isResizing = false"
-            @touchstart="onTouchStart"
-            @touchmove="onTouchMove"
-            @touchend="onTouchEnd"
-            @touchcancel="onTouchCancel"
         >
-            <nav class="box-border flex h-full min-h-0 w-full flex-col px-2 pt-2 select-none">
+            <nav
+                class="box-border flex h-full min-h-0 w-full flex-col px-2 pt-2 select-none"
+
+                @touchstart="onTouchStart"
+                @touchmove="onTouchMove"
+                @touchend="onTouchEnd"
+                @touchcancel="onTouchCancel"
+            >
                 <!-- Title and description -->
                 <slot name="header" />
 
@@ -41,7 +44,8 @@
                 <div
                     v-if="resolvedNav"
 
-                    class="sidebar-links-scroll-hidden mb-8 min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-1 pb-2 pl-2"
+                    class="mb-8 min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-1 pb-2 pl-2"
+                    :class="{ 'sidebar-links-scroll-hidden': !showScrollBar }"
                 >
                     <SideBarLinks
                         :items="resolvedNav"
@@ -244,6 +248,14 @@ export default defineComponent({
         toggleKeybind: {
             type: Boolean,
             default: true
+        },
+
+        /**
+         * When true, the scroll bar is shown.
+         */
+        showScrollBar: {
+            type: Boolean,
+            default: false
         }
     },
 

@@ -3,6 +3,7 @@
         class="flex flex-col"
         :class="[fit ? 'w-fit' : 'w-full']"
 
+        @mousedown="$emit('mousedown', $event)"
         @click="$emit('click', $event)"
     >
         <!-- Label -->
@@ -506,6 +507,7 @@ export default defineComponent({
         "update:value",
         "update:modelValue",
         "focus",
+        "mousedown",
         "click",
         "keydown",
         "paste",
