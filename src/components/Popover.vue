@@ -146,6 +146,7 @@ export default defineComponent({
          */
         minWidthPx: {
             type: Number,
+            default: 280,
             required: false
         },
 
