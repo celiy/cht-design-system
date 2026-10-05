@@ -26,13 +26,20 @@
             class="box-border rounded transition-shadow"
             :class="{
                 'shadow-sm': !noShadow && variant !== 'display',
+                'cursor-text': !isReadonlyMode && !disabled,
 
                 'hover-ring':
-                    variant === 'secondary' && isFocused && !(error || errorsMessage.length > 0),
+                    variant === 'secondary' &&
+                    isFocused &&
+                    !(error || errorsMessage.length > 0 || visualError),
 
                 'hover-ring-destructive':
-                    variant === 'secondary' && isFocused && (error || errorsMessage.length > 0)
+                    variant === 'secondary' &&
+                    isFocused &&
+                    (error || errorsMessage.length > 0 || visualError)
             }"
+
+            @click="focusField"
         >
             <!-- Input/textarea -->
             <div
@@ -52,7 +59,7 @@
                     v-if="isTextarea"
 
                     :id="inputId"
-                    ref="textareaEl"
+                    ref="fieldEl"
 
                     class="pt-2 pl-2.5 focus:ring-0 focus:outline-none"
                     :class="[fit ? 'w-fit' : 'w-full', inputClass]"
@@ -67,6 +74,8 @@
                     @blur="onBlur"
                     @input="onInput($event)"
                     @keydown="onKeydown"
+                    @paste="onPaste"
+                    @beforeinput="onBeforeInput"
                 />
 
                 <!-- Input content -->
@@ -78,6 +87,8 @@
                 >
                     <input
                         :id="inputId"
+                        ref="fieldEl"
+
                         v-maska="mask"
                         class="bg-transparent focus:ring-0 focus:outline-none"
                         :class="[inputClass, 'w-full min-w-0 flex-1']"
@@ -93,6 +104,8 @@
                         @blur="onBlur"
                         @input="onInput($event)"
                         @keydown="onKeydown"
+                        @paste="onPaste"
+                        @beforeinput="onBeforeInput"
                     />
 
                     <!-- Password toggle -->
@@ -135,37 +148,41 @@
                     </div>
                 </div>
 
+                <div
+                    v-if="kbd"
+
+                    class="flex items-center gap-1"
+                >
+                    <div
+                        v-for="key in kbd"
+                        :key="key.key"
+
+                        class="flex items-center gap-1"
+                    >
+                        <kbd class="small-kbd">
+                            {{ key.key.toUpperCase() }}
+                        </kbd>
+
+                        <span
+                            v-if="key.key !== kbd[kbd.length - 1]?.key"
+
+                            class="-translate-y-0.5"
+                        >
+                            +
+                        </span>
+                    </div>
+                </div>
+
                 <slot name="input" />
             </div>
         </div>
 
         <!-- Error message -->
-        <transition name="expand-error">
-            <span
-                v-if="error || errorsMessage.length > 0"
-
-                class="mt-2 block rounded border border-destructive/20! bg-destructive/10 p-1 px-1.5 text-destructive/90"
-                :class="{ 'error-active': isFocused }"
-            >
-                <i class="fa-solid fa-warning mr-2 text-sm" />
-
-                <span v-if="error">
-                    {{ error }}
-                </span>
-
-                <span
-                    v-for="(errorMessage, index) of errorsMessage"
-                    v-else-if="errorsMessage?.length > 0"
-                    :key="index"
-
-                    class="text-sm"
-                >
-                    {{ errorMessage }}
-
-                    <br v-if="index > 1" />
-                </span>
-            </span>
-        </transition>
+        <InputErrorMsg
+            :error="error"
+            :errors-message="errorsMessage"
+            :is-focused="isFocused"
+        />
 
         <!-- Helper text -->
         <small-muted
@@ -185,6 +202,11 @@ import validatePhone from "@shared/validators/phone";
 import { validateCPF, validateCNPJ } from "@shared/validators/documents";
 import { vMaska } from "maska/vue";
 import type { MaskInputOptions } from "maska";
+import { advanceKbdSequence, isTypingTarget, kbdKeyNames } from "@shared/frontend/keybinds";
+import { constrainInputValue } from "./internal/inputValueConstraints.ts";
+import InputErrorMsg from "./internal/InputErrorMsg.vue";
+
+const KBD_SEQUENCE_MS = 1000;
 
 function formatMoneyMask(input: string): string {
     const digits = input.replace(/\D/g, "");
@@ -211,6 +233,10 @@ const MONEY_MASK: MaskInputOptions = {
 
 export default defineComponent({
     name: "Input",
+
+    components: {
+        InputErrorMsg
+    },
 
     directives: { maska: vMaska },
 
@@ -306,6 +332,15 @@ export default defineComponent({
         },
 
         /**
+         * Make the input visually error
+         */
+        visualError: {
+            type: Boolean,
+            required: false,
+            default: false
+        },
+
+        /**
          * Indicates whether the field is required.
          */
         required: {
@@ -344,6 +379,14 @@ export default defineComponent({
         maxSize: {
             type: Number,
             default: 255,
+            required: false
+        },
+
+        /**
+         * Regex the field value must match while typing. Empty always allowed.
+         */
+        pattern: {
+            type: [String, RegExp] as PropType<string | RegExp>,
             required: false
         },
 
@@ -446,10 +489,28 @@ export default defineComponent({
             type: Boolean,
             default: false,
             required: false
+        },
+
+        /**
+         * Shortcut keys that focus this field. One item focuses on that key;
+         * several items must be pressed in array order.
+         */
+        kbd: {
+            type: Array as PropType<{ key: string }[]>,
+            default: () => [],
+            required: false
         }
     },
 
-    emits: ["update:value", "update:modelValue", "focus", "click", "keydown"],
+    emits: [
+        "update:value",
+        "update:modelValue",
+        "focus",
+        "click",
+        "keydown",
+        "paste",
+        "beforeinput"
+    ],
 
     data() {
         return {
@@ -458,7 +519,9 @@ export default defineComponent({
             localValue: "",
             isInputValid: true,
             hasValueEver: false,
-            passwordRevealed: false
+            passwordRevealed: false,
+            kbdStep: 0,
+            kbdTimer: null as number | null
         };
     },
 
@@ -655,7 +718,7 @@ export default defineComponent({
                 unfocused: "border-input"
             };
 
-            if (this.error || this.errorsMessage.length > 0) {
+            if (this.error || this.errorsMessage.length > 0 || this.visualError) {
                 color.focused = "border-destructive";
                 color.unfocused = "border-destructive/40";
             }
@@ -702,6 +765,10 @@ export default defineComponent({
             }
 
             return undefined;
+        },
+
+        kbdKeys(): string[] {
+            return kbdKeyNames(this.kbd);
         }
     },
 
@@ -729,6 +796,14 @@ export default defineComponent({
             this.$nextTick(() => {
                 this.syncTextareaHeight();
             });
+        },
+
+        kbdKeys: {
+            handler() {
+                this.resetKbdSequence();
+                this.syncKbdListener();
+            },
+            immediate: true
         }
     },
 
@@ -750,7 +825,25 @@ export default defineComponent({
         });
     },
 
+    beforeUnmount() {
+        this.teardownKbdListener();
+        this.clearKbdTimer();
+    },
+
     methods: {
+        /**
+         * Focuses the field
+         * @returns {void}
+         */
+        focusField() {
+            const field = this.$refs.fieldEl as HTMLInputElement | undefined;
+
+            if (field != null) {
+                field.focus();
+                field.select();
+            }
+        },
+
         /**
          * Persists the current value in localStorage when useMemo is enabled.
          *
@@ -774,7 +867,9 @@ export default defineComponent({
                 return;
             }
 
-            let value = (event.target as HTMLInputElement).value;
+            const field = event.target as HTMLInputElement;
+            let value = field.value;
+            const previous = this.localValue;
 
             for (const numericKind of this.numericTypes) {
                 if (this.type === numericKind) {
@@ -783,11 +878,16 @@ export default defineComponent({
                 }
             }
 
-            // Enforce minSize and maxSize if value is a string
-            if (typeof value === "string") {
-                if (this.maxSize && value.length > this.maxSize) {
-                    value = value.slice(0, this.maxSize);
-                }
+            value = constrainInputValue(value, previous, {
+                maxSize: this.maxSize,
+                pattern: this.pattern
+            });
+
+            // Keep the DOM in sync when Vue skips the re-render (same localValue).
+            field.value = value;
+
+            if (value === previous) {
+                return;
             }
 
             this.localValue = value;
@@ -818,7 +918,7 @@ export default defineComponent({
                 return;
             }
 
-            const el = this.$refs.textareaEl as HTMLTextAreaElement | undefined;
+            const el = this.$refs.fieldEl as HTMLTextAreaElement | undefined;
 
             if (!el) {
                 return;
@@ -867,6 +967,98 @@ export default defineComponent({
          */
         onKeydown(event: KeyboardEvent) {
             this.$emit("keydown", event);
+        },
+
+        onPaste(event: ClipboardEvent) {
+            this.$emit("paste", event);
+        },
+
+        onBeforeInput(event: InputEvent) {
+            this.$emit("beforeinput", event);
+        },
+
+        /**
+         * Syncs the keyboard listener
+         * @returns {void}
+         */
+        syncKbdListener() {
+            this.teardownKbdListener();
+
+            if (this.kbdKeys.length === 0) {
+                return;
+            }
+
+            window.addEventListener("keydown", this.onWindowKeydown);
+        },
+
+        /**
+         * Teardown the keyboard listener
+         * @returns {void}
+         */
+        teardownKbdListener() {
+            window.removeEventListener("keydown", this.onWindowKeydown);
+        },
+
+        /**
+         * Clears the keyboard timer
+         * @returns {void}
+         */
+        clearKbdTimer() {
+            if (this.kbdTimer == null) {
+                return;
+            }
+
+            window.clearTimeout(this.kbdTimer);
+            this.kbdTimer = null;
+        },
+
+        /**
+         * Resets the keyboard sequence
+         * @returns {void}
+         */
+        resetKbdSequence() {
+            this.kbdStep = 0;
+            this.clearKbdTimer();
+        },
+
+        /**
+         * Handles the window keydown
+         * @param {KeyboardEvent} event The event
+         * @returns {void}
+         */
+        onWindowKeydown(event: KeyboardEvent) {
+            if (this.disabled || this.kbdKeys.length === 0) {
+                return;
+            }
+
+            if (isTypingTarget(event)) {
+                this.resetKbdSequence();
+                return;
+            }
+
+            const field = this.$refs.fieldEl as HTMLElement | undefined;
+
+            if (field != null && document.activeElement === field) {
+                return;
+            }
+
+            const next = advanceKbdSequence(this.kbdStep, event, this.kbdKeys);
+
+            this.kbdStep = next.step;
+            this.clearKbdTimer();
+
+            if (next.complete) {
+                event.preventDefault();
+                field?.focus();
+                return;
+            }
+
+            if (next.step > 0) {
+                this.kbdTimer = window.setTimeout(() => {
+                    this.kbdTimer = null;
+                    this.kbdStep = 0;
+                }, KBD_SEQUENCE_MS);
+            }
         },
 
         /**
@@ -961,24 +1153,3 @@ export default defineComponent({
     }
 });
 </script>
-
-<style scoped>
-.expand-error-enter-active,
-.expand-error-leave-active {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.expand-error-enter-from,
-.expand-error-leave-to {
-    max-height: 0;
-    opacity: 0;
-    margin-top: 0;
-}
-
-.expand-error-enter-to,
-.expand-error-leave-from {
-    max-height: 40px;
-    opacity: 1;
-    margin-top: 0.5rem;
-}
-</style>

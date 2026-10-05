@@ -1,6 +1,6 @@
 <template>
     <div
-        class="block rounded text-sm transition-all select-none"
+        class="block min-w-0 rounded text-sm transition-all select-none"
         v-bind="$attrs"
         :class="{
             'text-destructive!': isDestructive,
@@ -34,8 +34,8 @@
         @click="$emit('click', $event)"
         @mouseenter="$emit('mouseenter', $event)"
     >
-        <div class="flex flex-nowrap items-center justify-between gap-2">
-            <div class="flex w-full flex-nowrap items-center gap-2">
+        <div class="flex min-w-0 flex-nowrap items-center justify-between gap-2">
+            <div class="flex min-w-0 flex-1 flex-nowrap items-center gap-2">
                 <span
                     v-if="indicator"
 
@@ -46,6 +46,7 @@
                 <i
                     v-if="icon"
 
+                    class="shrink-0"
                     :class="`fa-solid ${icon} text-sm`"
                 />
 
@@ -59,34 +60,34 @@
                 <span
                     v-if="label"
 
-                    class="flex w-full flex-col truncate text-sm font-medium"
+                    class="flex min-w-0 w-full flex-col text-sm font-medium"
                 >
                     <template v-if="labelHelper && label && labelHelperPosition === 'left'">
-                        <div class="flex gap-2">
-                            <span>
+                        <div class="flex min-w-0 gap-2">
+                            <span class="min-w-0 truncate">
                                 {{ label }}
                             </span>
 
-                            <span class="text-muted-foreground!">
+                            <span class="shrink-0 text-muted-foreground!">
                                 {{ labelHelper }}
                             </span>
                         </div>
                     </template>
 
                     <template v-else-if="labelHelper && label && labelHelperPosition === 'right'">
-                        <div class="flex justify-between">
-                            <span>
+                        <div class="flex min-w-0 justify-between gap-2">
+                            <span class="min-w-0 truncate">
                                 {{ label }}
                             </span>
 
-                            <span class="text-muted-foreground!">
+                            <span class="shrink-0 text-muted-foreground!">
                                 {{ labelHelper }}
                             </span>
                         </div>
                     </template>
 
                     <template v-else>
-                        <span>
+                        <span class="truncate">
                             {{ label }}
                         </span>
                     </template>
@@ -94,7 +95,7 @@
                     <span
                         v-if="optionHelperText"
 
-                        class="text-xs text-muted-foreground!"
+                        class="truncate text-xs text-muted-foreground!"
                     >
                         {{ optionHelperText }}
                     </span>

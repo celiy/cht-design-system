@@ -325,7 +325,11 @@ export default defineComponent({
             urlSyncReady: false,
             urlSyncFromRoute: false,
 
-            showModal: true
+            showModal: true,
+
+            dismissLocked: false,
+            dismissUnlockTimer: null as number | null,
+            pointersDown: 0
         };
     },
 
@@ -509,6 +513,7 @@ export default defineComponent({
                     this.resetDrawerDrag();
                     pushModalLayer(this.modalLayerId);
                     this.layerIndex = getModalLayerIndex(this.modalLayerId);
+                    this.armDismissLock();
 
                     this.$nextTick(() => {
                         setTimeout(() => {
@@ -522,6 +527,7 @@ export default defineComponent({
                         }, 0);
                     });
                 } else {
+                    this.clearDismissLock();
                     document.removeEventListener(
                         "click",
                         this.handleClickOutside,
@@ -573,6 +579,10 @@ export default defineComponent({
      * @returns {void}
      */
     mounted() {
+        window.addEventListener("pointerdown", this.trackPointerDown, true);
+        window.addEventListener("pointerup", this.trackPointerUp, true);
+        window.addEventListener("pointercancel", this.trackPointerUp, true);
+
         if (!this.shouldSyncModalUrl()) {
             this.urlSyncReady = true;
 
@@ -610,6 +620,10 @@ export default defineComponent({
         }
 
         document.removeEventListener("click", this.handleClickOutside, OUTSIDE_CLICK_LISTENER_OPTS);
+        this.clearDismissLock();
+        window.removeEventListener("pointerdown", this.trackPointerDown, true);
+        window.removeEventListener("pointerup", this.trackPointerUp, true);
+        window.removeEventListener("pointercancel", this.trackPointerUp, true);
         this.teardownDrawerPointerListeners();
         popModalLayer(this.modalLayerId);
     },
@@ -724,7 +738,7 @@ export default defineComponent({
          * @param event Click or pointer event from backdrop / outside
          */
         onOverlayDismiss(event: Event) {
-            if (this.keepOpen) {
+            if (this.keepOpen || this.dismissLocked) {
                 return;
             }
 
@@ -963,12 +977,83 @@ export default defineComponent({
         },
 
         /**
+         * Arms the dismiss lock.
+         *
+         * @param event The mouse event
+         */
+        armDismissLock() {
+            this.clearDismissLock();
+            this.dismissLocked = true;
+
+            if (this.pointersDown > 0) {
+                window.addEventListener("pointerup", this.onDismissLockPointerUp, true);
+                window.addEventListener("pointercancel", this.onDismissLockPointerUp, true);
+                return;
+            }
+
+            this.dismissUnlockTimer = window.setTimeout(() => {
+                this.dismissUnlockTimer = null;
+                this.dismissLocked = false;
+            }, 0);
+        },
+
+        /**
+         * Tracks the pointer down event.
+         */
+        trackPointerDown() {
+            this.pointersDown += 1;
+        },
+
+        /**
+         * Tracks the pointer up event.
+         */
+        trackPointerUp() {
+            this.pointersDown = Math.max(0, this.pointersDown - 1);
+        },
+
+        /**
+         * Handles the dismiss lock pointer up event.
+         */
+        onDismissLockPointerUp() {
+            window.removeEventListener("pointerup", this.onDismissLockPointerUp, true);
+            window.removeEventListener("pointercancel", this.onDismissLockPointerUp, true);
+
+            this.clearDismissUnlockTimer();
+            this.dismissUnlockTimer = window.setTimeout(() => {
+                this.dismissUnlockTimer = null;
+                this.dismissLocked = false;
+            }, 0);
+        },
+
+        /**
+         * Clears the dismiss unlock timer.
+         */
+        clearDismissUnlockTimer() {
+            if (this.dismissUnlockTimer == null) {
+                return;
+            }
+
+            window.clearTimeout(this.dismissUnlockTimer);
+            this.dismissUnlockTimer = null;
+        },
+
+        /**
+         * Clears the dismiss lock.
+         */
+        clearDismissLock() {
+            this.dismissLocked = false;
+            window.removeEventListener("pointerup", this.onDismissLockPointerUp, true);
+            window.removeEventListener("pointercancel", this.onDismissLockPointerUp, true);
+            this.clearDismissUnlockTimer();
+        },
+
+        /**
          * Handles the click outside event.
          *
          * @param event The mouse event
          */
         handleClickOutside(event: MouseEvent) {
-            if (this.keepOpen) {
+            if (this.keepOpen || this.dismissLocked) {
                 return;
             }
 

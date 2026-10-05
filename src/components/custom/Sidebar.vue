@@ -2,7 +2,7 @@
     <div class="relative flex h-full w-full">
         <Transition name="fade">
             <div
-                v-if="open && $project.device.isMobile"
+                v-if="open && isMobileOrTablet"
 
                 class="absolute inset-0 z-40 bg-black/50 md:hidden"
                 aria-hidden="true"
@@ -14,14 +14,14 @@
         <Resizable
             class="transition-translate absolute top-0 left-0 z-50 box-border flex h-full flex-col overflow-hidden border-r-sidebar-border shadow-lg transition-transform duration-300 ease-out"
             :class="[
-                open && $project.device.isMobile ? 'min-w-[80%] sm:min-w-[60%]' : '',
+                open && isMobileOrTablet ? 'min-w-[80%] sm:min-w-[60%]' : '',
                 variant === 'minimalist' ? 'bg-background' : 'bg-sidebar'
             ]"
             resize="right"
             :style="sidebarMotionStyle"
-            :hover-border="!$project.device.isMobile"
-            :disabled="$project.device.isMobile || !open"
-            :width="$project.device.isMobile ? undefined : currentWidth"
+            :hover-border="!isMobileOrTablet"
+            :disabled="isMobileOrTablet || !open"
+            :width="isMobileOrTablet ? undefined : currentWidth"
             :min-width="minSidebarWidth"
             :max-width="maxSidebarWidth"
 
@@ -101,7 +101,7 @@
             >
                 <div
                     class="flex p-2"
-                    :class="{ 'justify-end': $project.device.isMobile }"
+                    :class="{ 'justify-end': isMobileOrTablet }"
                 >
                     <Button
                         variant="transparent"
@@ -292,7 +292,7 @@ export default defineComponent({
          * Open/close transform only. Width is owned by `Resizable`.
          */
         sidebarMotionStyle(): Record<string, string> {
-            if (this.$project.device.isMobile) {
+            if (this.isMobileOrTablet) {
                 if (this.open) {
                     const dragPx = openSidebarDragPx(this.XDrag, this.XSwipeOffset);
 
@@ -325,11 +325,19 @@ export default defineComponent({
          * @returns {{ marginLeft: string }} The main content style.
          */
         mainContentStyle(): { marginLeft: string } {
-            if (this.$project.device.isMobile || !this.open) {
+            if (this.isMobileOrTablet || !this.open) {
                 return { marginLeft: "0px" };
             }
 
             return { marginLeft: this.currentWidth + "px" };
+        },
+
+        /**
+         * Checks if the device is mobile or tablet
+         * @returns {boolean} True if the device is mobile or tablet, false otherwise
+         */
+        isMobileOrTablet() {
+            return this.$project.device.isMobile || this.$project.device.isTablet;
         }
     },
 
@@ -398,7 +406,7 @@ export default defineComponent({
          * @returns {void}
          */
         async onLinkClick() {
-            if (this.$project.device.isMobile) {
+            if (this.isMobileOrTablet) {
                 await new Promise((resolve) => setTimeout(resolve, 50));
 
                 this.closeNav();
@@ -470,7 +478,7 @@ export default defineComponent({
          * @returns {void}
          */
         onTouchStart(e: TouchEvent) {
-            if (!this.$project.device.isMobile || !this.open) {
+            if (!this.isMobileOrTablet || !this.open) {
                 return;
             }
 
@@ -503,7 +511,7 @@ export default defineComponent({
         },
 
         onContentTouchStart(e: TouchEvent) {
-            if (!this.$project.device.isMobile || this.open) {
+            if (!this.isMobileOrTablet || this.open) {
                 return;
             }
 

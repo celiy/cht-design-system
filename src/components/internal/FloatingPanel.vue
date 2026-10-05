@@ -22,13 +22,7 @@
                     :close="close"
                 />
 
-                <div
-                    v-if="$slots.helperText"
-
-                    class="shrink-0"
-                >
-                    <slot name="helperText" />
-                </div>
+                <slot name="helperText" />
             </div>
         </Transition>
     </Teleport>
