@@ -1,9 +1,12 @@
 <template>
-    <div class="relative inline-block w-full">
+    <div
+        class="relative inline-block"
+        :class="{ 'w-full': !$slots.button }"
+    >
         <div
             ref="anchorRef"
 
-            class="w-full"
+            :class="{ 'w-full': !$slots.button }"
 
             @mouseenter="onTriggerEnter"
             @mouseleave="onTriggerLeave"
@@ -58,6 +61,8 @@
             :close-on-content-click="closeOnContentClick"
             :max-height-px="maxHeightPx"
             :min-width-px="minWidthPx"
+            :max-width-px="maxWidthPx"
+            :lock-to-anchor="lockToAnchor"
             :mobile-modal="mobileModal"
             :force-modal="forceModal"
             :panel-class="panelClass"
@@ -145,7 +150,23 @@ export default defineComponent({
         },
 
         /**
-         * Whether the popover is panel class
+         * Optional maximum width for the floating panel in pixels.
+         */
+        maxWidthPx: {
+            type: Number,
+            required: false
+        },
+
+        /**
+         * Whether the popover locks to the anchor
+         */
+        lockToAnchor: {
+            type: Boolean,
+            default: true
+        },
+
+        /**
+         * The class of the floating panel
          */
         panelClass: {
             type: String,

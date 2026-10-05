@@ -19,7 +19,7 @@
                     v-if="isOpen"
                     ref="panelRef"
 
-                    class="fixed z-50 min-w-40 border border-border rounded bg-popover shadow-md overflow-y-auto"
+                    class="popover-background fixed z-50 min-w-40 overflow-y-auto rounded border shadow-md"
                     :style="panelStyle"
 
                     @click.stop

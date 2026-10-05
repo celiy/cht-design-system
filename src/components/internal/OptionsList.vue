@@ -1,14 +1,12 @@
 <template>
     <div
-        ref="optionsScrollRef"
-
-        class="flex w-full min-w-0 flex-col overflow-y-auto overscroll-contain"
+        class="flex min-h-0 w-full min-w-0 flex-col overflow-hidden"
         :style="optionsScrollStyle"
     >
         <div
             v-if="search"
 
-            class="sticky top-0 z-10 shrink-0 bg-popover"
+            class="shrink-0"
         >
             <div class="flex items-center px-4">
                 <span
@@ -32,57 +30,63 @@
             <Marker separator />
         </div>
 
-        <template v-if="visibleOptions.length > 0">
-            <div
-                v-for="(item, idx) of visibleOptions"
-                :key="item.value ?? item.label ?? String(idx)"
-                :ref="(el) => setOptionRef(idx, el)"
-
-                @mouseenter="onItemMouseEnter(idx, item)"
-                @mouseleave="onItemMouseLeave(item)"
-            >
-                <Option
-                    v-tooltip="optionTooltip(item)"
-                    :label="item.label"
-                    :icon="item.icon"
-                    :indicator="item.indicator"
-                    :separator="item.separator"
-                    :value="item.value"
-                    :variant="item.variant"
-                    :show-checkmark="showCheckmark"
-                    :selected="isItemSelected(item)"
-                    :highlighted="isItemHighlighted(idx, item)"
-                    :first="idx === 0"
-                    :last="idx === visibleOptions.length - 1"
-                    :disabled="item.disabled"
-                    :has-children="hasChildren(item)"
-                    :option-helper-text="item.optionHelperText"
-
-                    @click="onItemClick(item)"
-                />
-            </div>
-        </template>
-
         <div
-            v-else
+            ref="optionsScrollRef"
 
-            class="px-3 py-2 text-center text-sm text-muted-foreground!"
+            class="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         >
-            <small-muted>Nenhum resultado encontrado.</small-muted>
+            <template v-if="visibleOptions.length > 0">
+                <div
+                    v-for="(item, idx) of visibleOptions"
+                    :key="item.value ?? item.label ?? String(idx)"
+                    :ref="(el) => setOptionRef(idx, el)"
+
+                    @mouseenter="onItemMouseEnter(idx, item)"
+                    @mouseleave="onItemMouseLeave(item)"
+                >
+                    <Option
+                        v-tooltip="optionTooltip(item)"
+                        :label="item.label"
+                        :icon="item.icon"
+                        :indicator="item.indicator"
+                        :separator="item.separator"
+                        :value="item.value"
+                        :variant="item.variant"
+                        :show-checkmark="showCheckmark"
+                        :selected="isItemSelected(item)"
+                        :highlighted="isItemHighlighted(idx, item)"
+                        :first="idx === 0"
+                        :last="idx === visibleOptions.length - 1"
+                        :disabled="item.disabled"
+                        :has-children="hasChildren(item)"
+                        :option-helper-text="item.optionHelperText"
+
+                        @click="onItemClick(item)"
+                    />
+                </div>
+            </template>
 
             <div
-                v-if="$slots.insideEmptyPanel"
+                v-else
 
-                class="contents"
+                class="flex flex-col items-center justify-center px-3 py-2 text-center text-sm text-muted-foreground!"
             >
-                <slot name="insideEmptyPanel" />
+                <small-muted>Nenhum resultado encontrado.</small-muted>
+
+                <div
+                    v-if="$slots.insideEmptyPanel"
+
+                    class="contents"
+                >
+                    <slot name="insideEmptyPanel" />
+                </div>
             </div>
         </div>
 
         <div
             v-if="$slots.panelFooter && visibleOptions.length > 0"
 
-            class="sticky bottom-0 shrink-0 border-t bg-popover px-3 py-2"
+            class="shrink-0 border-t px-3 py-2"
         >
             <slot name="panelFooter" />
         </div>
@@ -92,7 +96,7 @@
                 v-if="nestedItem"
                 ref="nestedPanelRef"
 
-                class="absolute z-[1200] flex max-h-[280px] min-w-[11rem] flex-col overflow-y-auto overscroll-contain rounded border border-border bg-popover shadow-md"
+                class="popover-background absolute z-[1200] flex max-h-[280px] min-w-[11rem] flex-col overflow-y-auto overscroll-contain rounded border shadow-md"
                 :style="nestedPanelStyle"
                 data-cht-floating-panel
 
@@ -112,7 +116,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from "vue";
+import { defineComponent, unref, type PropType } from "vue";
 import Input from "../Input.vue";
 import Marker from "../Marker.vue";
 import Option from "../Option.vue";
@@ -181,6 +185,13 @@ export default defineComponent({
 
     directives: {
         tooltip
+    },
+
+    inject: {
+        chtModalIsOpen: {
+            from: "chtModalIsOpen",
+            default: null
+        }
     },
 
     props: {
@@ -321,6 +332,14 @@ export default defineComponent({
          */
         visibleOptions() {
             this.resetHighlight();
+        },
+
+        chtModalIsOpen(open: unknown) {
+            if (!unref(open)) {
+                return;
+            }
+
+            this.$nextTick(() => this.focusSearchInput());
         }
     },
 
@@ -664,7 +683,7 @@ export default defineComponent({
          * @returns {void}
          */
         focusSearchInput() {
-            if (!this.search) {
+            if (!this.search || !this.isKeyListenerActive()) {
                 return;
             }
 

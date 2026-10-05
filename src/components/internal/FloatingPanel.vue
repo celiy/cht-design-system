@@ -5,8 +5,11 @@
                 v-if="isOpen && !useSheetModal"
                 ref="panelRef"
 
-                class="absolute left-0 z-[1100] flex min-w-fit flex-col overflow-hidden rounded border border-border bg-popover shadow-md"
-                :class="[panelClass, positionAbove ? 'dropdown-origin-bottom' : 'dropdown-origin-top']"
+                class="popover-background absolute left-0 z-[1100] flex min-w-fit flex-col overflow-hidden rounded border border-border shadow-md"
+                :class="[
+                    panelClass,
+                    positionAbove ? 'dropdown-origin-bottom' : 'dropdown-origin-top'
+                ]"
                 :style="{ maxHeight: maxHeightPx + 'px', ...panelStyle }"
                 data-cht-floating-panel
 
@@ -36,6 +39,7 @@
     -->
     <Modal
         v-if="useSheetModal"
+
         variant="blank"
         size="small"
         :is-open="isOpen"
@@ -76,7 +80,12 @@ import {
     unregisterOpenFloatingPanel
 } from "@shared/frontend/floatingPanels";
 import Modal from "../Modal.vue";
-import { shouldPositionAbove } from "./floatingPanelPlacement.js";
+import {
+    clampPanelLeft,
+    panelWidthConstraints,
+    preferredPanelLeft,
+    shouldPositionAbove
+} from "./floatingPanelPlacement.js";
 
 const NARROW_VIEWPORT = "(max-width: 767px)";
 const HOVER_CLOSE_DELAY_MS = 120;
@@ -123,6 +132,23 @@ export default defineComponent({
         minWidthPx: {
             type: Number,
             required: false
+        },
+
+        /**
+         * Optional maximum panel width in pixels.
+         */
+        maxWidthPx: {
+            type: Number,
+            required: false
+        },
+
+        /**
+         * When true, the panel width matches the trigger (Select/Dropdown).
+         * Popover sets this false so content can grow past a narrow icon.
+         */
+        lockToAnchor: {
+            type: Boolean,
+            default: true
         },
 
         /**
@@ -285,8 +311,10 @@ export default defineComponent({
                 this.registerWithAncestorModal();
 
                 if (!this.useSheetModal) {
-                    this.$nextTick(() => this.updatePosition());
-                    this.attachLayoutObservers();
+                    this.$nextTick(() => {
+                        this.attachLayoutObservers();
+                        this.updatePosition();
+                    });
                     window.addEventListener("scroll", this.schedulePositionUpdate, true);
                     window.addEventListener("resize", this.schedulePositionUpdate);
                     document.addEventListener("keydown", this.handleKeydown);
@@ -338,8 +366,7 @@ export default defineComponent({
             this.unregisterFromAncestorModal();
 
             const register = this.registerChtFloatingPanelCloser as
-                | ((close: () => void) => () => void)
-                | null;
+                ((close: () => void) => () => void) | null;
 
             if (typeof register === "function") {
                 this.unregisterFloatingPanelCloser = register(() => {
@@ -531,6 +558,12 @@ export default defineComponent({
 
             this.layoutObserver.observe(trigger);
 
+            const panel = this.$refs.panelRef as HTMLElement | undefined;
+
+            if (panel) {
+                this.layoutObserver.observe(panel);
+            }
+
             let ancestor: HTMLElement | null = trigger.parentElement;
 
             while (ancestor && ancestor !== document.body) {
@@ -637,12 +670,23 @@ export default defineComponent({
             const spaceBelow = window.innerHeight - rect.bottom;
             const spaceAbove = rect.top;
             const anchorWidth = rect.width;
-            const minWidth = Math.max(anchorWidth, this.minWidthPx ?? 0);
-            const maxLeft = Math.max(
-                viewportPadding,
-                window.innerWidth - minWidth - viewportPadding
+            const { lockWidth, width, minWidth, maxWidth } = panelWidthConstraints(
+                anchorWidth,
+                this.minWidthPx,
+                this.maxWidthPx,
+                window.innerWidth - viewportPadding * 2,
+                this.lockToAnchor
             );
-            const clampedLeft = Math.min(Math.max(rect.left, viewportPadding), maxLeft);
+            const measured = panel?.offsetWidth ?? 0;
+            const panelWidth = lockWidth
+                ? width
+                : Math.min(Math.max(measured || width, minWidth), maxWidth);
+            const clampedLeft = clampPanelLeft(
+                preferredPanelLeft(rect.left, anchorWidth, panelWidth),
+                panelWidth,
+                window.innerWidth,
+                viewportPadding
+            );
 
             this.positionAbove = shouldPositionAbove(
                 spaceAbove,
@@ -659,14 +703,13 @@ export default defineComponent({
             this.panelStyle = {
                 position: "fixed",
                 left: `${clampedLeft}px`,
-                width: `${minWidth}px`,
-                maxWidth: `calc(100vw - ${viewportPadding * 2}px)`,
+                width: lockWidth ? `${width}px` : "auto",
+                ...(minWidth > 0 ? { minWidth: `${minWidth}px` } : {}),
+                maxWidth: `${maxWidth}px`,
                 height: "auto",
                 maxHeight: `${maxHeight}px`,
                 top: this.positionAbove ? "auto" : `${rect.bottom + gap}px`,
-                bottom: this.positionAbove
-                    ? `${window.innerHeight - rect.top + gap}px`
-                    : "auto"
+                bottom: this.positionAbove ? `${window.innerHeight - rect.top + gap}px` : "auto"
             };
         },
 

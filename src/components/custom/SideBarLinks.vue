@@ -24,6 +24,7 @@
             active-class=""
             exact-active-class=""
 
+            @click="onLinkClick(link)"
             @mouseenter="hoverLink(link)"
             @mouseleave="unhoverLink()"
             @mouseup="onUp()"
@@ -49,6 +50,8 @@
             </span>
 
             <i
+                v-if="!$project.device.isMobile"
+
                 class="fa-solid fa-chevron-right inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
                 :class="[
                     isActive(link.link) ? 'text-primary!' : 'text-sidebar-foreground/90!',
@@ -135,6 +138,7 @@
                                 ]"
                                 :to="sublink.link"
 
+                                @click="onLinkClick(sublink)"
                                 @mouseenter="hoverLink(sublink)"
                                 @mouseleave="unhoverLink()"
                                 @mouseup="onUp()"
@@ -157,6 +161,8 @@
                                 </span>
 
                                 <i
+                                    v-if="!$project.device.isMobile"
+
                                     class="fa-solid fa-chevron-right inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
                                     :class="[
                                         isActive(sublink.link)
@@ -192,6 +198,8 @@ export default defineComponent({
             default: () => []
         }
     },
+
+    emits: ["link-click"],
 
     data() {
         return {
@@ -322,6 +330,15 @@ export default defineComponent({
          */
         onOut() {
             this.isDown = false;
+        },
+
+        /**
+         * Handles the link click
+         * @param {any} link The link
+         * @returns {void}
+         */
+        onLinkClick(link: any) {
+            this.$emit("link-click", link);
         }
     }
 });

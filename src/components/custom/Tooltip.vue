@@ -16,11 +16,10 @@
         <Teleport to="body">
             <div
                 v-if="visible"
-
                 ref="tipRef"
-                role="tooltip"
 
-                class="pointer-events-none fixed top-0 left-0 z-100000 max-w-64 rounded border bg-secondary px-2.5 py-1.5 text-xs leading-snug text-secondary-foreground shadow-md"
+                role="tooltip"
+                class="tooltip-background pointer-events-none fixed top-0 left-0 z-100000 max-w-64 rounded border px-2.5 py-1.5 text-xs leading-snug text-secondary-foreground shadow-md"
                 :class="{ invisible: !ready }"
                 :style="tipStyle"
             >
@@ -32,10 +31,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import {
-    followTooltipPosition,
-    TOOLTIP_DEFAULT_OFFSET
-} from "../internal/tooltipFollow";
+import { followTooltipPosition, TOOLTIP_DEFAULT_OFFSET } from "../internal/tooltipFollow";
 
 const DEFAULT_SHOW_DELAY = 40;
 const DEFAULT_FOLLOW_MS = 60;
@@ -439,10 +435,10 @@ export default defineComponent({
             const rect = trigger.getBoundingClientRect();
 
             return (
-                this.pointerX >= rect.left
-                && this.pointerX <= rect.right
-                && this.pointerY >= rect.top
-                && this.pointerY <= rect.bottom
+                this.pointerX >= rect.left &&
+                this.pointerX <= rect.right &&
+                this.pointerY >= rect.top &&
+                this.pointerY <= rect.bottom
             );
         },
 

@@ -11,7 +11,7 @@
                 <div
                     v-show="modalOpen"
 
-                    class="absolute inset-0 bg-black/50"
+                    class="modal-overlay absolute inset-0"
                     aria-hidden="true"
 
                     @click="onOverlayDismiss"

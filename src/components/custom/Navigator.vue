@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full border-b bg-background shadow-sm">
+    <div class="navigator-background w-full border-b shadow-sm">
         <slot />
     </div>
 </template>

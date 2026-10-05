@@ -343,7 +343,7 @@ export default defineComponent({
          */
         onTouchEnd() {
             this.isSwiping = false;
-            const threshold = 100;
+            const threshold = 50;
 
             if (this.swipeOffset < -threshold && this.pos < this.itemCount - 1) {
                 this.next();

@@ -1,14 +1,12 @@
 <template>
     <Teleport to="body">
         <div
-            class="fixed inset-0 z-[200000] pointer-events-none p-4 flex"
-
+            class="pointer-events-none fixed inset-0 z-[200000] flex p-4"
             :class="positionClass"
         >
             <div
                 data-cht-toast
-                class="pointer-events-auto relative flex flex-col toast-stack"
-
+                class="toast-stack pointer-events-auto relative flex flex-col"
                 :class="stackAlignClass"
                 :style="stackBoxStyle"
 
@@ -25,8 +23,7 @@
                         :key="item.id"
                         :ref="(el) => bindPanel(item.id, el)"
 
-                        class="w-full touch-pan-y toast-item-panel"
-
+                        class="toast-item-panel w-full touch-pan-y"
                         :class="stackItemClass"
                         :style="itemWrapperStyle(index, item.id)"
 
@@ -37,15 +34,19 @@
                         @touchend="onTouchEnd(item.id)"
                         @touchcancel="onTouchCancel"
                     >
-                        <div class="relative w-full rounded border bg-card shadow-sm overflow-hidden" :class="variantClass(item.type)">
-                            <div class="relative flex items-center gap-2 py-2 px-3 text-xs font-medium">
+                        <div
+                            class="popover-background relative w-full overflow-hidden rounded border shadow-sm"
+                            :class="variantClass(item.type)"
+                        >
+                            <div
+                                class="relative flex items-center gap-2 px-3 py-2 text-xs font-medium"
+                            >
                                 <i
                                     class="fa-solid shrink-0 text-sm"
-
                                     :class="iconClass(item.type)"
                                 />
 
-                                <span class="flex-1 min-w-0 wrap-break-words">
+                                <span class="wrap-break-words min-w-0 flex-1">
                                     {{ item.message }}
                                 </span>
 
@@ -53,7 +54,6 @@
                                     v-if="item.closeButton"
 
                                     class="shrink-0"
-
                                     size="small"
                                     :label="item.closeButton"
                                     :hover-effect="false"
@@ -69,7 +69,6 @@
                             >
                                 <div
                                     class="h-full origin-left"
-
                                     :class="progressBarClass(item.type)"
                                     :style="{ width: `${toastProgress(item.id) * 100}%` }"
                                 />
@@ -88,14 +87,7 @@ import Button from "./Button.vue";
 import { toast, useToastItems, getToastProgress, type ToastType } from "../toast/toast";
 
 export type ToastPosition =
-    | "top"
-    | "bottom"
-    | "left"
-    | "right"
-    | "top-left"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-right";
+    "top" | "bottom" | "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 const MAX_VISIBLE = 4;
 const STACK_OFFSET_PX = 10;
@@ -167,9 +159,11 @@ export default defineComponent({
          * @returns {boolean} True if is top anchored
          */
         isTopAnchored() {
-            return this.position === "top"
-                || this.position === "top-left"
-                || this.position === "top-right";
+            return (
+                this.position === "top" ||
+                this.position === "top-left" ||
+                this.position === "top-right"
+            );
         },
 
         /**
@@ -182,9 +176,9 @@ export default defineComponent({
             }
 
             if (
-                this.position === "right"
-                || this.position === "top-right"
-                || this.position === "bottom-right"
+                this.position === "right" ||
+                this.position === "top-right" ||
+                this.position === "bottom-right"
             ) {
                 return "end" as const;
             }
@@ -232,7 +226,8 @@ export default defineComponent({
                 height += STACK_GAP_PX * (items.length - 1);
             } else {
                 const newest = items[items.length - 1];
-                const frontHeight = newest === undefined ? FALLBACK_TOAST_HEIGHT : this.heightOf(newest.id);
+                const frontHeight =
+                    newest === undefined ? FALLBACK_TOAST_HEIGHT : this.heightOf(newest.id);
 
                 height = frontHeight + STACK_OFFSET_PX * (items.length - 1);
             }
@@ -251,10 +246,10 @@ export default defineComponent({
          */
         positionClass() {
             const classes: Record<ToastPosition, string> = {
-                "top": "flex-col items-center justify-start",
-                "bottom": "flex-col items-center justify-end",
-                "left": "flex-col items-start justify-center",
-                "right": "flex-col items-end justify-center",
+                top: "flex-col items-center justify-start",
+                bottom: "flex-col items-center justify-end",
+                left: "flex-col items-start justify-center",
+                right: "flex-col items-end justify-center",
                 "top-left": "flex-col items-start justify-start",
                 "top-right": "flex-col items-end justify-start",
                 "bottom-left": "flex-col items-start justify-end",
@@ -270,7 +265,7 @@ export default defineComponent({
          */
         stackItemClass() {
             return {
-                "absolute": true,
+                absolute: true,
                 "left-0": this.stackAlign === "start",
                 "right-0": this.stackAlign === "end",
                 "toast-stack-center": this.stackAlign === "center"
@@ -310,10 +305,10 @@ export default defineComponent({
          */
         variantClass(type: ToastType) {
             return {
-                "border-2 border-success/50! text-success rounded": type === "success",
-                "border-2 border-info/50! text-info rounded": type === "info",
-                "border-2 border-destructive/50! text-destructive rounded": type === "error",
-                "border-2 border-warning/50! text-warning rounded": type === "warning"
+                "border-2-success/50! text-success rounded": type === "success",
+                "border-2-info/50! text-info rounded": type === "info",
+                "border-2-destructive/50! text-destructive rounded": type === "error",
+                "border-2-warning/50! text-warning rounded": type === "warning"
             };
         },
 
@@ -620,12 +615,16 @@ export default defineComponent({
 
 <style scoped>
 .toast-stack {
-    transition: height 0.2s ease-out, width 0.2s ease-out;
+    transition:
+        height 0.2s ease-out,
+        width 0.2s ease-out;
 }
 
 .toast-item-panel {
     transform: translate3d(var(--toast-x, 0px), var(--toast-y, 0px), 0);
-    transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+    transition:
+        transform 0.2s ease-out,
+        opacity 0.2s ease-out;
 }
 
 .toast-stack-center {
@@ -635,15 +634,23 @@ export default defineComponent({
 
 .toast-item-enter-from {
     opacity: 0;
-    transform: translate3d(var(--toast-x, 0px), calc(var(--toast-y, 0px) + var(--toast-enter-y, 12px)), 0);
+    transform: translate3d(
+        var(--toast-x, 0px),
+        calc(var(--toast-y, 0px) + var(--toast-enter-y, 12px)),
+        0
+    );
 }
 
 .toast-item-enter-active {
-    transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+    transition:
+        transform 0.2s ease-out,
+        opacity 0.2s ease-out;
 }
 
 .toast-item-leave-active {
-    transition: transform 0.2s ease, opacity 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
     pointer-events: none;
 }
 

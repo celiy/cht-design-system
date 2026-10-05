@@ -114,13 +114,11 @@
                 </div>
             </div>
 
-            <small-muted
-                v-if="helperText"
-
-                class="mt-2"
-            >
-                {{ helperText }}
-            </small-muted>
+            <div class="mt-2">
+                <small-muted v-if="helperText">
+                    {{ helperText }}
+                </small-muted>
+            </div>
         </div>
 
         <FloatingPanel
@@ -164,13 +162,15 @@
             </OptionsList>
 
             <template #helperText>
-                <small
+                <div
                     v-if="inHelperText"
 
-                    class="px-3 pb-2 text-muted-foreground!"
+                    class="px-3 pb-2"
                 >
-                    {{ inHelperText }}
-                </small>
+                    <small-muted>
+                        {{ inHelperText }}
+                    </small-muted>
+                </div>
             </template>
         </FloatingPanel>
 

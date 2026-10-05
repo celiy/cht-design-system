@@ -12,7 +12,7 @@
         </Transition>
 
         <Resizable
-            class="absolute top-0 left-0 z-50 box-border flex h-full flex-col overflow-hidden border-r-sidebar-border shadow-lg transition-transform duration-300 ease-out"
+            class="transition-translate absolute top-0 left-0 z-50 box-border flex h-full flex-col overflow-hidden border-r-sidebar-border shadow-lg transition-transform duration-300 ease-out"
             :class="[
                 open && $project.device.isMobile ? 'min-w-[80%] sm:min-w-[60%]' : '',
                 variant === 'minimalist' ? 'bg-background' : 'bg-sidebar'
@@ -28,6 +28,10 @@
             @update:width="onSidebarWidth"
             @resize-start="isResizing = true"
             @resize-end="isResizing = false"
+            @touchstart="onTouchStart"
+            @touchmove="onTouchMove"
+            @touchend="onTouchEnd"
+            @touchcancel="onTouchCancel"
         >
             <nav class="box-border flex h-full min-h-0 w-full flex-col px-2 pt-2 select-none">
                 <!-- Title and description -->
@@ -39,7 +43,11 @@
 
                     class="sidebar-links-scroll-hidden mb-8 min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-1 pb-2 pl-2"
                 >
-                    <SideBarLinks :items="resolvedNav" />
+                    <SideBarLinks
+                        :items="resolvedNav"
+
+                        @link-click="onLinkClick"
+                    />
                 </div>
 
                 <slot name="sidebar-body" />
@@ -68,7 +76,8 @@
                 class="sticky top-0 z-10 w-fit shrink-0 px-2 pt-2"
             >
                 <Button
-                    variant="transparent"
+                    background-style="background-transparent"
+                    hover-style="hover:bg-accent!"
 
                     @click="toggleOpenClose"
                 >
@@ -76,6 +85,8 @@
                 </Button>
 
                 <Keybind
+                    v-if="toggleKeybind"
+
                     key-name="s"
 
                     @trigger="toggleOpenClose"
@@ -101,6 +112,8 @@
                     </Button>
 
                     <Keybind
+                        v-if="toggleKeybind"
+
                         key-name="s"
 
                         @trigger="toggleOpenClose"
@@ -111,7 +124,14 @@
             </div>
 
             <!-- Content -->
-            <div class="flex min-h-0 flex-1 flex-col">
+            <div
+                :class="contentContainerClass"
+
+                @touchstart="onContentTouchStart"
+                @touchmove="onContentTouchMove"
+                @touchend="onContentTouchEnd"
+                @touchcancel="onContentTouchCancel"
+            >
                 <slot />
             </div>
         </div>
@@ -124,6 +144,14 @@ import Button from "../Button.vue";
 import Keybind from "../internal/Keybind.vue";
 import Resizable from "./Resizable.vue";
 import SideBarLinks from "./SideBarLinks.vue";
+import {
+    closedSidebarPeekPx,
+    nextHorizontalDrag,
+    openSidebarDragPx,
+    shouldCloseSidebarOnSwipeEnd,
+    shouldOpenSidebarOnSwipeEnd,
+    shouldRebaseTouchOrigin
+} from "./sidebarSwipe";
 
 export default defineComponent({
     name: "Sidebar",
@@ -190,6 +218,32 @@ export default defineComponent({
         variant: {
             type: String as PropType<"minimalist" | "default">,
             default: "default"
+        },
+
+        /**
+         * The class of the content container
+         */
+        contentContainerClass: {
+            type: String,
+            default: "flex min-h-0 flex-1 flex-col",
+            required: false
+        },
+
+        /**
+         * The start open state of the sidebar
+         */
+        startOpen: {
+            type: Boolean,
+            default: true
+        },
+
+        /**
+         * When false, the `s` keybind is not registered. Use this when nesting
+         * a Sidebar inside another (docs demos).
+         */
+        toggleKeybind: {
+            type: Boolean,
+            default: true
         }
     },
 
@@ -197,9 +251,17 @@ export default defineComponent({
 
     data() {
         return {
-            open: true,
+            open: this.startOpen,
             currentWidth: this.sidebarWidth as number,
-            isResizing: false
+            isResizing: false,
+            touchStartX: 0,
+            touchStartY: 0,
+            touchLastX: 0,
+            touchLastY: 0,
+            XSwipeOffset: 0,
+            YSwipeOffset: 0,
+            XDrag: true,
+            isSwiping: false
         };
     },
 
@@ -219,12 +281,37 @@ export default defineComponent({
         },
 
         /**
+         * The absolute value of the Y swipe offset
+         * @returns {number} The absolute value of the Y swipe offset
+         */
+        absoluteYSwipeOffset() {
+            return Math.abs(this.YSwipeOffset);
+        },
+
+        /**
          * Open/close transform only. Width is owned by `Resizable`.
          */
         sidebarMotionStyle(): Record<string, string> {
             if (this.$project.device.isMobile) {
+                if (this.open) {
+                    const dragPx = openSidebarDragPx(this.XDrag, this.XSwipeOffset);
+
+                    return {
+                        transform: `translateX(${dragPx}px)`
+                    };
+                }
+
+                const peekPx = closedSidebarPeekPx(this.XDrag, this.XSwipeOffset);
+
+                if (peekPx > 0) {
+                    console.log(peekPx);
+                    return {
+                        transform: `translateX(min(-100px, calc(-100% + ${peekPx}px)))`
+                    };
+                }
+
                 return {
-                    transform: this.open ? "translateX(0)" : "translateX(-100%)"
+                    transform: "translateX(-100%)"
                 };
             }
 
@@ -304,6 +391,139 @@ export default defineComponent({
 
                 el.scrollTo({ top: 0, left: 0, behavior: "smooth" });
             });
+        },
+
+        /**
+         * Handles the link click
+         * @returns {void}
+         */
+        async onLinkClick() {
+            if (this.$project.device.isMobile) {
+                await new Promise((resolve) => setTimeout(resolve, 50));
+
+                this.closeNav();
+            }
+        },
+
+        resetSwipe() {
+            this.isSwiping = false;
+            this.XSwipeOffset = 0;
+            this.YSwipeOffset = 0;
+            this.XDrag = true;
+        },
+
+        beginSwipe(e: TouchEvent) {
+            const touch = e.touches[0];
+
+            if (!touch) {
+                return;
+            }
+
+            this.touchStartX = touch.clientX;
+            this.touchStartY = touch.clientY;
+            this.touchLastX = touch.clientX;
+            this.touchLastY = touch.clientY;
+            this.isSwiping = true;
+            this.XSwipeOffset = 0;
+            this.YSwipeOffset = 0;
+            this.XDrag = true;
+        },
+
+        applyTouchMove(e: TouchEvent) {
+            if (!this.isSwiping) {
+                return;
+            }
+
+            const touch = e.touches[0];
+
+            if (!touch) {
+                return;
+            }
+
+            if (
+                shouldRebaseTouchOrigin(
+                    this.touchLastX,
+                    this.touchLastY,
+                    touch.clientX,
+                    touch.clientY
+                )
+            ) {
+                this.touchStartX = touch.clientX;
+                this.touchStartY = touch.clientY;
+                this.touchLastX = touch.clientX;
+                this.touchLastY = touch.clientY;
+                this.XSwipeOffset = 0;
+                this.YSwipeOffset = 0;
+                return;
+            }
+
+            this.touchLastX = touch.clientX;
+            this.touchLastY = touch.clientY;
+            this.XSwipeOffset = touch.clientX - this.touchStartX;
+            this.YSwipeOffset = touch.clientY - this.touchStartY;
+            this.XDrag = nextHorizontalDrag(this.XDrag, this.absoluteYSwipeOffset);
+        },
+
+        /**
+         * Handles the touch start
+         * @param {TouchEvent} e The event
+         * @returns {void}
+         */
+        onTouchStart(e: TouchEvent) {
+            if (!this.$project.device.isMobile || !this.open) {
+                return;
+            }
+
+            this.beginSwipe(e);
+        },
+
+        /**
+         * Handles the touch move
+         * @param {TouchEvent} e The event
+         * @returns {void}
+         */
+        onTouchMove(e: TouchEvent) {
+            this.applyTouchMove(e);
+        },
+
+        /**
+         * Handles the touch end
+         * @returns {void}
+         */
+        onTouchEnd() {
+            if (this.isSwiping && shouldCloseSidebarOnSwipeEnd(this.XDrag, this.XSwipeOffset)) {
+                this.closeNav();
+            }
+
+            this.resetSwipe();
+        },
+
+        onTouchCancel() {
+            this.resetSwipe();
+        },
+
+        onContentTouchStart(e: TouchEvent) {
+            if (!this.$project.device.isMobile || this.open) {
+                return;
+            }
+
+            this.beginSwipe(e);
+        },
+
+        onContentTouchMove(e: TouchEvent) {
+            this.applyTouchMove(e);
+        },
+
+        onContentTouchEnd() {
+            if (this.isSwiping && shouldOpenSidebarOnSwipeEnd(this.XDrag, this.XSwipeOffset)) {
+                this.openNav();
+            }
+
+            this.resetSwipe();
+        },
+
+        onContentTouchCancel() {
+            this.resetSwipe();
         }
     }
 });

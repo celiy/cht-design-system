@@ -195,13 +195,13 @@ export default defineComponent({
 
             if (this.backgroundStyle || this.borderStyle) {
                 return [
-                    this.backgroundStyle || "bg-muted/40",
+                    this.backgroundStyle || "item-background",
                     this.borderStyle || defaultBorder
                 ];
             }
 
             return {
-                "bg-muted/40": true,
+                "item-background": true,
                 ...defaultBorder
             };
         },

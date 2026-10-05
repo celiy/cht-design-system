@@ -38,13 +38,15 @@
             <div
                 :class="[
                     borderClass,
-                    'text-sm font-normal text-foreground/90',
+                    'flex items-center text-sm font-normal text-foreground/90',
                     {
                         'p-1.5 px-2.5': !isTextarea,
                         'rounded bg-input/30': variant === 'secondary'
                     }
                 ]"
             >
+                <slot name="prefix" />
+
                 <!-- Textarea content -->
                 <textarea
                     v-if="isTextarea"
