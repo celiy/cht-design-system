@@ -190,7 +190,8 @@ export default defineComponent({
                 "border-2-success/30": this.variant === "success",
                 "border-2-warning/30": this.variant === "warning",
                 "border-2-destructive/30": this.variant === "destructive",
-                "border-2-info/30": this.variant === "info"
+                "border-2-info/30": this.variant === "info",
+                "reveal-highlight": this.hoverEffect && !this.disabled
             };
 
             if (this.backgroundStyle || this.borderStyle) {

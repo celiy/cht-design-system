@@ -351,7 +351,8 @@ export default defineComponent({
                     this.variant === "default" ||
                     this.variant === "outline" ||
                     this.variant === "bordered",
-                "border-transparent": this.variant === "transparent"
+                "border-transparent": this.variant === "transparent",
+                "reveal-highlight": this.variant === "bordered"
             };
         },
 
