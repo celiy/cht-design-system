@@ -63,7 +63,7 @@
                         :id="inputId"
                         ref="fieldEl"
 
-                        class="pt-2 pl-2.5 focus:ring-0 focus:outline-none"
+                        class="h-14 min-h-10 pt-2 pl-2.5 focus:ring-0 focus:outline-none"
                         :class="[fit ? 'w-fit' : 'w-full', inputClass]"
                         :style="textareaStyle"
                         :rows="expandOnTyping ? 1 : undefined"
