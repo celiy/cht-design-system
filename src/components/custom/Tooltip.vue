@@ -356,11 +356,40 @@ export default defineComponent({
         },
 
         /**
+         * Handles scroll: keeps the tooltip while the pointer is still over the trigger
+         * @returns {void}
+         */
+        onScroll() {
+            if (this.rafId != null) {
+                return;
+            }
+
+            this.rafId = window.requestAnimationFrame(() => {
+                this.rafId = null;
+
+                if (!this.visible) {
+                    return;
+                }
+
+                const trigger = this.$refs.triggerRef as HTMLElement | undefined;
+                const target = document.elementFromPoint(this.pointerX, this.pointerY);
+
+                if (trigger && target && trigger.contains(target)) {
+                    this.placeNow();
+
+                    return;
+                }
+
+                this.hide();
+            });
+        },
+
+        /**
          * Binds the window guards
          * @returns {void}
          */
         bindWindowGuards() {
-            window.addEventListener("scroll", this.hide, true);
+            window.addEventListener("scroll", this.onScroll, true);
             window.addEventListener("blur", this.hide);
         },
 
@@ -369,7 +398,7 @@ export default defineComponent({
          * @returns {void}
          */
         unbindWindowGuards() {
-            window.removeEventListener("scroll", this.hide, true);
+            window.removeEventListener("scroll", this.onScroll, true);
             window.removeEventListener("blur", this.hide);
         },
 

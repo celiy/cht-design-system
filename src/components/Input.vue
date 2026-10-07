@@ -46,57 +46,28 @@
             <div
                 :class="[
                     borderClass,
-                    'flex items-center text-sm font-normal text-foreground/90',
+                    'text-sm font-normal text-foreground/90',
                     {
                         'p-1.5 px-2.5': !isTextarea,
                         'rounded bg-input/30': variant === 'secondary'
                     }
                 ]"
             >
-                <slot name="prefix" />
+                <div class="flex items-center">
+                    <slot name="prefix" />
 
-                <!-- Textarea content -->
-                <textarea
-                    v-if="isTextarea"
+                    <!-- Textarea content -->
+                    <textarea
+                        v-if="isTextarea"
 
-                    :id="inputId"
-                    ref="fieldEl"
-
-                    class="pt-2 pl-2.5 focus:ring-0 focus:outline-none"
-                    :class="[fit ? 'w-fit' : 'w-full', inputClass]"
-                    :style="textareaStyle"
-                    :rows="expandOnTyping ? 1 : undefined"
-                    :value="localValue"
-                    :placeholder="placeholder"
-                    :disabled="disabled"
-                    :readonly="isReadonlyMode"
-
-                    @focus="onFocus"
-                    @blur="onBlur"
-                    @input="onInput($event)"
-                    @keydown="onKeydown"
-                    @paste="onPaste"
-                    @beforeinput="onBeforeInput"
-                />
-
-                <!-- Input content -->
-                <div
-                    v-else
-
-                    class="flex min-w-0 items-center gap-2"
-                    :class="[fit ? 'w-fit' : 'w-full', inputClass]"
-                >
-                    <input
                         :id="inputId"
                         ref="fieldEl"
 
-                        v-maska="mask"
-                        class="bg-transparent focus:ring-0 focus:outline-none"
-                        :class="[inputClass, 'w-full min-w-0 flex-1']"
+                        class="h-14 min-h-10 pt-2 pl-2.5 focus:ring-0 focus:outline-none"
+                        :class="[fit ? 'w-fit' : 'w-full', inputClass]"
+                        :style="textareaStyle"
+                        :rows="expandOnTyping ? 1 : undefined"
                         :value="localValue"
-                        :type="htmlInputType"
-                        :name="id"
-                        :autocomplete="inputAutocomplete"
                         :placeholder="placeholder"
                         :disabled="disabled"
                         :readonly="isReadonlyMode"
@@ -109,68 +80,99 @@
                         @beforeinput="onBeforeInput"
                     />
 
-                    <!-- Password toggle -->
+                    <!-- Input content -->
                     <div
-                        v-if="showPasswordToggle"
+                        v-else
 
-                        class="flex shrink-0 self-center"
+                        class="flex min-w-0 items-center gap-2"
+                        :class="[fit ? 'w-fit' : 'w-full', inputClass]"
                     >
-                        <button
-                            type="button"
-                            class="rounded-md text-muted-foreground transition-colors hover:text-foreground"
-                            :aria-label="passwordRevealed ? 'Ocultar senha' : 'Mostrar senha'"
-                            :disabled="disabled"
+                        <input
+                            :id="inputId"
+                            ref="fieldEl"
 
-                            @click="togglePasswordVisibility"
+                            v-maska="mask"
+                            class="bg-transparent focus:ring-0 focus:outline-none"
+                            :class="[inputClass, 'w-full min-w-0 flex-1']"
+                            :value="localValue"
+                            :type="htmlInputType"
+                            :name="id"
+                            :autocomplete="inputAutocomplete"
+                            :placeholder="placeholder"
+                            :disabled="disabled"
+                            :readonly="isReadonlyMode"
+
+                            @focus="onFocus"
+                            @blur="onBlur"
+                            @input="onInput($event)"
+                            @keydown="onKeydown"
+                            @paste="onPaste"
+                            @beforeinput="onBeforeInput"
+                        />
+
+                        <!-- Password toggle -->
+                        <div
+                            v-if="showPasswordToggle"
+
+                            class="flex shrink-0 self-center"
                         >
-                            <i
-                                class="fa-solid text-sm"
-                                :class="passwordRevealed ? 'fa-eye-slash' : 'fa-eye'"
-                            />
-                        </button>
+                            <button
+                                type="button"
+                                class="rounded-md text-muted-foreground transition-colors hover:text-foreground"
+                                :aria-label="passwordRevealed ? 'Ocultar senha' : 'Mostrar senha'"
+                                :disabled="disabled"
+
+                                @click="togglePasswordVisibility"
+                            >
+                                <i
+                                    class="fa-solid text-sm"
+                                    :class="passwordRevealed ? 'fa-eye-slash' : 'fa-eye'"
+                                />
+                            </button>
+                        </div>
+
+                        <!-- Copy button -->
+                        <div
+                            v-if="showCopyButton"
+
+                            class="flex shrink-0 self-center"
+                        >
+                            <button
+                                type="button"
+                                class="rounded-md text-muted-foreground transition-colors hover:text-foreground"
+                                aria-label="Copiar conteúdo"
+                                :disabled="disabled"
+
+                                @click="copyValueToClipboard"
+                            >
+                                <i class="fa-solid fa-copy text-sm" />
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Copy button -->
                     <div
-                        v-if="showCopyButton"
-
-                        class="flex shrink-0 self-center"
-                    >
-                        <button
-                            type="button"
-                            class="rounded-md text-muted-foreground transition-colors hover:text-foreground"
-                            aria-label="Copiar conteúdo"
-                            :disabled="disabled"
-
-                            @click="copyValueToClipboard"
-                        >
-                            <i class="fa-solid fa-copy text-sm" />
-                        </button>
-                    </div>
-                </div>
-
-                <div
-                    v-if="kbd"
-
-                    class="flex items-center gap-1"
-                >
-                    <div
-                        v-for="key in kbd"
-                        :key="key.key"
+                        v-if="kbd"
 
                         class="flex items-center gap-1"
                     >
-                        <kbd class="small-kbd">
-                            {{ key.key.toUpperCase() }}
-                        </kbd>
+                        <div
+                            v-for="key in kbd"
+                            :key="key.key"
 
-                        <span
-                            v-if="key.key !== kbd[kbd.length - 1]?.key"
-
-                            class="-translate-y-0.5"
+                            class="flex items-center gap-1"
                         >
-                            +
-                        </span>
+                            <kbd class="small-kbd">
+                                {{ key.key.toUpperCase() }}
+                            </kbd>
+
+                            <span
+                                v-if="key.key !== kbd[kbd.length - 1]?.key"
+
+                                class="-translate-y-0.5"
+                            >
+                                +
+                            </span>
+                        </div>
                     </div>
                 </div>
 

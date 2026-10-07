@@ -323,8 +323,8 @@ export default defineComponent({
                 "bg-input/30 text-foreground/90": this.variant === "default",
                 "bg-transparent text-secondary-foreground shadow-none!":
                     this.variant === "transparent",
-                "bg-transparent text-foreground":
-                    this.variant === "outline" || this.variant === "bordered"
+                "bg-transparent text-foreground": this.variant === "outline",
+                "background-transparent text-foreground": this.variant === "bordered"
             };
         },
 
@@ -351,7 +351,8 @@ export default defineComponent({
                     this.variant === "default" ||
                     this.variant === "outline" ||
                     this.variant === "bordered",
-                "border-transparent": this.variant === "transparent"
+                "border-transparent": this.variant === "transparent",
+                "reveal-highlight": this.variant === "bordered"
             };
         },
 

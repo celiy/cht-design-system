@@ -220,12 +220,16 @@
                                         class="flex min-w-0 items-center gap-1"
                                     >
                                         <span class="min-w-0 truncate">
-                                            {{ toggleCellText(cell.value, toggleKey(index, cell.head)) }}
+                                            {{
+                                                toggleCellText(
+                                                    cell.value,
+                                                    toggleKey(index, cell.head)
+                                                )
+                                            }}
                                         </span>
 
                                         <Button
                                             v-bind="toggleButtonProps(cell.value)"
-
                                             type="button"
                                             :left-icon="
                                                 isToggleRevealed(toggleKey(index, cell.head))
