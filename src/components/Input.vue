@@ -26,7 +26,7 @@
         <div
             class="box-border rounded transition-shadow"
             :class="{
-                'shadow-sm': !noShadow && variant !== 'display',
+                'shadow-sm': !noShadow && variant === 'secondary',
                 'cursor-text': !isReadonlyMode && !disabled,
 
                 'hover-ring':
@@ -138,6 +138,7 @@
                             class="flex shrink-0 self-center"
                         >
                             <button
+                                v-tooltip="'Copiar conteúdo'"
                                 type="button"
                                 class="rounded-md text-muted-foreground transition-colors hover:text-foreground"
                                 aria-label="Copiar conteúdo"

@@ -4,7 +4,8 @@
             <div
                 v-if="open && isMobileOrTablet"
 
-                class="absolute inset-0 z-40 bg-black/50 md:hidden"
+                class="absolute inset-0 z-40 bg-black/50"
+                :class="isMobileOrTablet ? '' : 'hidden'"
                 aria-hidden="true"
 
                 @click="closeNav"
