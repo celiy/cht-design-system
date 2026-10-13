@@ -1,7 +1,7 @@
 <template>
     <div
-        class="flex items-start gap-3 rounded p-3 transition-all"
-        :class="[cardClass, hoverClass]"
+        class="flex gap-3 rounded p-3 transition-all"
+        :class="[`items-${position}`, cardClass, hoverClass]"
 
         @click="onClick"
     >
@@ -12,6 +12,9 @@
             :variant="variant"
             :icon="icon"
             :type="type === 'alert' ? 'icon' : 'card'"
+            :size="itemIconSize"
+            :background-style="itemBackgroundStyle"
+            :icon-style="itemIconStyle"
         />
 
         <!-- Label and description -->
@@ -20,19 +23,19 @@
                 <span
                     v-if="head"
 
-                    class="text-xs font-semibold text-muted-foreground"
+                    class="mb-0.5 text-xs font-semibold text-muted-foreground"
                 >
                     {{ head }}
                 </span>
 
                 <!-- Label -->
-                <p
+                <span
                     v-if="label"
 
                     :class="titleClass"
                 >
                     <b>{{ label }}</b>
-                </p>
+                </span>
 
                 <!-- Description -->
                 <span
@@ -147,6 +150,19 @@ export default defineComponent({
         },
 
         /**
+         * The size of the item icon
+         */
+        itemIconSize: {
+            type: String as PropType<"sm" | "md" | "lg">,
+            default: "md"
+        },
+
+        position: {
+            type: String as PropType<"start" | "center" | "end">,
+            default: "center"
+        },
+
+        /**
          * The background style of the item
          */
         backgroundStyle: {
@@ -166,6 +182,22 @@ export default defineComponent({
          * The hover style of the item
          */
         hoverStyle: {
+            type: String,
+            required: false
+        },
+
+        /**
+         * The background style of the item icon
+         */
+        itemBackgroundStyle: {
+            type: String,
+            required: false
+        },
+
+        /**
+         * The icon style of the item icon
+         */
+        itemIconStyle: {
             type: String,
             required: false
         }
@@ -229,7 +261,7 @@ export default defineComponent({
         titleClass() {
             if (this.type === "alert") {
                 return [
-                    "font-bold!",
+                    "leading-normal",
                     {
                         "text-foreground!": !this.disabled && !this.variant,
                         "text-muted-foreground!": this.disabled,
@@ -243,7 +275,7 @@ export default defineComponent({
                 ];
             }
 
-            return "text-foreground! select-none";
+            return "text-foreground select-none leading-5";
         },
 
         /**
@@ -265,7 +297,7 @@ export default defineComponent({
                 ];
             }
 
-            return "text-muted-foreground! select-none text-sm";
+            return "text-muted-foreground select-none text-sm mt-0.5";
         }
     },
 

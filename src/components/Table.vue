@@ -66,7 +66,7 @@
                             :class="alignClass(head)"
                         >
                             <span
-                                class="inline-flex max-w-full items-center"
+                                class="inline-flex max-w-full items-center gap-0.5"
                                 :class="{
                                     'cursor-pointer select-none hover:dark:brightness-120 hover:light:brightness-90':
                                         head.canSort
@@ -76,7 +76,16 @@
                                 @mouseleave="hoverField = ''"
                                 @click="sortField(head.field ?? '')"
                             >
+                                <!-- Mirrors the sort arrow so centered labels stay centered -->
+                                <span
+                                    v-if="head.canSort && head.position === 'center'"
+
+                                    class="fa-solid fa-arrow-down text-xs opacity-0"
+                                    aria-hidden="true"
+                                />
+
                                 {{ head.label }}
+
                                 <span
                                     v-if="head.canSort"
 

@@ -5,10 +5,7 @@
         class="flex h-fit shrink-0 items-center justify-center"
         :class="backgroundClass"
     >
-        <i
-            class="text-md"
-            :class="iconClass"
-        />
+        <span :class="iconClass" />
     </div>
 </template>
 
@@ -63,6 +60,11 @@ export default defineComponent({
          */
         iconStyle: {
             type: String
+        },
+
+        size: {
+            type: String as PropType<"sm" | "md" | "lg">,
+            default: "md"
         }
     },
 
@@ -97,8 +99,19 @@ export default defineComponent({
                 return [this.iconLabel, this.iconStyle];
             }
 
+            let iconSize = "";
+
+            if (this.size === "sm") {
+                iconSize = "text-sm";
+            } else if (this.size === "md") {
+                iconSize = "text-base";
+            } else if (this.size === "lg") {
+                iconSize = "text-3xl";
+            }
+
             return [
                 this.iconLabel,
+                iconSize,
                 {
                     "text-primary": this.variant === "primary",
                     "text-secondary-foreground": this.variant === "secondary",
@@ -123,8 +136,18 @@ export default defineComponent({
                 return ["p-3.5 rounded", this.backgroundStyle];
             }
 
+            let paddingSize = "";
+
+            if (this.size === "sm") {
+                paddingSize = "p-2";
+            } else if (this.size === "md") {
+                paddingSize = "p-3.5";
+            } else if (this.size === "lg") {
+                paddingSize = "p-4.5";
+            }
+
             return [
-                "p-3.5 rounded",
+                `${paddingSize} rounded`,
                 {
                     "bg-primary/15": this.variant === "primary",
                     "bg-secondary": this.variant === "secondary",

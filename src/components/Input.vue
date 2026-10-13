@@ -26,7 +26,7 @@
         <div
             class="box-border rounded transition-shadow"
             :class="{
-                'shadow-sm': !noShadow && variant !== 'display',
+                'shadow-sm': !noShadow && variant === 'secondary',
                 'cursor-text': !isReadonlyMode && !disabled,
 
                 'hover-ring':
@@ -49,7 +49,7 @@
                     'text-sm font-normal text-foreground/90',
                     {
                         'p-1.5 px-2.5': !isTextarea,
-                        'rounded bg-input/30': variant === 'secondary'
+                        'input-background rounded': variant === 'secondary'
                     }
                 ]"
             >
@@ -63,8 +63,12 @@
                         :id="inputId"
                         ref="fieldEl"
 
-                        class="h-14 min-h-10 pt-2 pl-2.5 focus:ring-0 focus:outline-none"
-                        :class="[fit ? 'w-fit' : 'w-full', inputClass]"
+                        class="focus:ring-0 focus:outline-none"
+                        :class="[
+                            fit ? 'w-fit' : 'w-full',
+                            expandOnTyping ? 'p-1.5 px-2.5' : 'h-14 min-h-10 pt-2 pl-2.5',
+                            inputClass
+                        ]"
                         :style="textareaStyle"
                         :rows="expandOnTyping ? 1 : undefined"
                         :value="localValue"
@@ -138,6 +142,7 @@
                             class="flex shrink-0 self-center"
                         >
                             <button
+                                v-tooltip="'Copiar conteúdo'"
                                 type="button"
                                 class="rounded-md text-muted-foreground transition-colors hover:text-foreground"
                                 aria-label="Copiar conteúdo"
@@ -714,23 +719,24 @@ export default defineComponent({
             }
 
             if (this.variant === "display") {
-                return "border border-border/80! rounded bg-input/15";
+                return "border-border/80 rounded input-display-background";
             }
 
             let color = {
-                focused: "border-ring",
-                unfocused: "border-input"
+                focused: "transition-all border-ring",
+                unfocused: "transition-all hover:border-ring/80 border-input"
             };
 
             if (this.error || this.errorsMessage.length > 0 || this.visualError) {
-                color.focused = "border-destructive";
-                color.unfocused = "border-destructive/40";
+                color.focused = "transition-all border-destructive";
+                color.unfocused =
+                    "transition-all hover:border-destructive/80 border-destructive/40";
             }
 
             if (this.isFocused) {
-                return "border " + color.focused;
+                return color.focused;
             } else {
-                return "border " + color.unfocused;
+                return color.unfocused;
             }
         },
 
@@ -771,6 +777,11 @@ export default defineComponent({
             return undefined;
         },
 
+        /**
+         * Resolves the keyboard keys that trigger focus on this field.
+         *
+         * @Returns - Array of key names in the order they must be pressed.
+         */
         kbdKeys(): string[] {
             return kbdKeyNames(this.kbd);
         }
@@ -882,13 +893,18 @@ export default defineComponent({
                 }
             }
 
+            const unconstrained = value;
+
             value = constrainInputValue(value, previous, {
                 maxSize: this.maxSize,
                 pattern: this.pattern
             });
 
-            // Keep the DOM in sync when Vue skips the re-render (same localValue).
-            field.value = value;
+            // Keep the DOM in sync when Vue skips the re-render (same localValue),
+            // but leave maska's formatted text alone unless a constraint changed the value.
+            if (!this.mask || value !== unconstrained) {
+                field.value = value;
+            }
 
             if (value === previous) {
                 return;

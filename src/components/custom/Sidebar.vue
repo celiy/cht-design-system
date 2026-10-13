@@ -4,7 +4,8 @@
             <div
                 v-if="open && isMobileOrTablet"
 
-                class="absolute inset-0 z-40 bg-black/50 md:hidden"
+                class="absolute inset-0 z-40 bg-black/50"
+                :class="isMobileOrTablet ? '' : 'hidden'"
                 aria-hidden="true"
 
                 @click="closeNav"
@@ -51,6 +52,7 @@
                         :items="resolvedNav"
 
                         @link-click="onLinkClick"
+                        @link-button-click="onLinkButtonClick"
                     />
                 </div>
 
@@ -259,7 +261,7 @@ export default defineComponent({
         }
     },
 
-    emits: ["click"],
+    emits: ["click", "link-button-click"],
 
     data() {
         return {
@@ -423,6 +425,14 @@ export default defineComponent({
 
                 this.closeNav();
             }
+        },
+
+        /**
+         * Handles the link button click
+         * @param link The link
+         */
+        onLinkButtonClick(link: any) {
+            this.$emit("link-button-click", link);
         },
 
         resetSwipe() {

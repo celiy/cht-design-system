@@ -27,6 +27,7 @@
                         class="relative w-full"
                     >
                         <Input
+                            v-bind="comboboxInputClass"
                             :id="id"
                             :type="comboboxMultiline ? 'textarea' : 'text'"
                             :label="header || label"
@@ -482,6 +483,14 @@ export default defineComponent({
          */
         error: {
             type: String,
+            required: false
+        },
+
+        /**
+         * Custom classes to apply to the combobox input. Useful for sizing, padding, etc.
+         */
+        comboboxInputClass: {
+            type: Object,
             required: false
         }
     },
