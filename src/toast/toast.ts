@@ -57,34 +57,34 @@ const progressTick = reactive({ n: 0 });
 let nextId = 1;
 let defaultTimeout = 4000;
 let allPaused = false;
-let progressInterval: ReturnType<typeof setInterval> | null = null;
+let progressFrame: number | null = null;
 
-function startProgressTicker() {
-    if (progressInterval !== null) {
+// Ticks once per display frame so the progress bar moves without visible steps.
+function tickProgress() {
+    if (timers.size === 0) {
+        progressFrame = null;
         return;
     }
 
-    progressInterval = setInterval(() => {
-        if (timers.size === 0) {
-            if (progressInterval !== null) {
-                clearInterval(progressInterval);
-                progressInterval = null;
-            }
+    progressTick.n += 1;
+    progressFrame = requestAnimationFrame(tickProgress);
+}
 
-            return;
-        }
+function startProgressTicker() {
+    if (progressFrame !== null) {
+        return;
+    }
 
-        progressTick.n += 1;
-    }, 50);
+    progressFrame = requestAnimationFrame(tickProgress);
 }
 
 function stopProgressTicker() {
-    if (progressInterval === null) {
+    if (progressFrame === null) {
         return;
     }
 
-    clearInterval(progressInterval);
-    progressInterval = null;
+    cancelAnimationFrame(progressFrame);
+    progressFrame = null;
 }
 
 function remainingMsFor(id: number) {

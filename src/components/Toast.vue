@@ -68,9 +68,9 @@
                                 class="h-0.5 w-full bg-border/40"
                             >
                                 <div
-                                    class="h-full origin-left"
+                                    class="h-full w-full origin-left"
                                     :class="progressBarClass(item.type)"
-                                    :style="{ width: `${toastProgress(item.id) * 100}%` }"
+                                    :style="{ transform: `scaleX(${toastProgress(item.id)})` }"
                                 />
                             </div>
                         </div>

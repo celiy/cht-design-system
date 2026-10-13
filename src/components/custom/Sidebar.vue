@@ -52,6 +52,7 @@
                         :items="resolvedNav"
 
                         @link-click="onLinkClick"
+                        @link-button-click="onLinkButtonClick"
                     />
                 </div>
 
@@ -260,7 +261,7 @@ export default defineComponent({
         }
     },
 
-    emits: ["click"],
+    emits: ["click", "link-button-click"],
 
     data() {
         return {
@@ -424,6 +425,14 @@ export default defineComponent({
 
                 this.closeNav();
             }
+        },
+
+        /**
+         * Handles the link button click
+         * @param link The link
+         */
+        onLinkButtonClick(link: any) {
+            this.$emit("link-button-click", link);
         },
 
         resetSwipe() {
