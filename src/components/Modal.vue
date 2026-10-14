@@ -4,7 +4,7 @@
             v-show="modalOpen"
 
             class="fixed top-0 left-0 h-full w-full transition-all"
-            :class="showModal ? 'opacity-100' : 'opacity-0'"
+            :class="showModal || isDrawer ? 'opacity-100' : 'opacity-0'"
             :style="{ zIndex: overlayZIndex }"
         >
             <Transition name="fade-modal">
@@ -13,6 +13,7 @@
 
                     class="modal-overlay absolute inset-0"
                     aria-hidden="true"
+                    :style="overlayStyle"
 
                     @click="onOverlayDismiss"
                 />
@@ -22,17 +23,25 @@
                 class="pointer-events-none absolute inset-0 flex transition-all"
                 :class="[
                     shellAlignClass,
-                    showModal ? 'scale-x-100 scale-y-100' : 'scale-x-80 scale-y-80'
+                    showModal || isDrawer ? 'scale-x-100 scale-y-100' : 'scale-x-80 scale-y-80'
                 ]"
             >
                 <Transition :name="panelTransitionName">
                     <!-- Modal panel: preview -->
                     <div
-                        v-if="variant === 'preview'"
+                        v-if="isPreview"
                         v-show="modalOpen"
                         ref="modalRef"
 
-                        class="pointer-events-auto relative max-h-[90vh] max-w-[90vw]"
+                        class="pointer-events-auto relative"
+                        :style="drawerDragStyle"
+                        :data-drawer-handle="isDrawer ? '' : undefined"
+
+                        @pointerdown="onDrawerPointerDown"
+                        @touchstart="onDrawerTouchStart"
+                        @touchmove="onDrawerTouchMove"
+                        @touchend="onDrawerTouchEnd"
+                        @touchcancel="onDrawerTouchCancel"
                     >
                         <slot name="body" />
                     </div>
@@ -48,30 +57,36 @@
                             backgroundClass,
                             panelSurfaceClass,
                             'flex min-h-0 flex-col',
-                            variant === 'modal' || variant === 'blank' ? 'max-h-[90vh]' : ''
+                            isPlainModal ? 'max-h-[90vh]' : ''
                         ]"
                         :style="drawerDragStyle"
 
                         @pointerdown="onDrawerPointerDown"
+                        @touchstart="onDrawerTouchStart"
+                        @touchmove="onDrawerTouchMove"
+                        @touchend="onDrawerTouchEnd"
+                        @touchcancel="onDrawerTouchCancel"
                     >
                         <!-- Visual dragger for bottom drawer -->
                         <div
-                            v-if="variant === 'drawer' && side === 'bottom'"
+                            v-if="isDrawer && side === 'bottom'"
 
-                            class="flex shrink-0 touch-manipulation justify-center pt-3 pb-1 select-none"
+                            class="flex shrink-0 cursor-grab touch-none justify-center pt-3 pb-1 select-none active:cursor-grabbing"
                             aria-hidden="true"
+                            data-drawer-handle
                         >
                             <span class="h-1.5 w-10 rounded-full bg-muted-foreground/40" />
                         </div>
 
                         <!-- Header with title and close button for Modal and Drawer -->
                         <div
-                            v-if="variant !== 'blank'"
+                            v-if="!isBlank"
 
                             class="shrink-0 rounded-t px-4 pt-4"
                             :class="{
-                                'cursor-grab active:cursor-grabbing': variant === 'drawer'
+                                'cursor-grab select-none active:cursor-grabbing': isDrawer
                             }"
+                            :data-drawer-handle="isDrawer ? '' : undefined"
                         >
                             <div class="flex items-center justify-between">
                                 <!-- Header -->
@@ -91,7 +106,7 @@
 
                         <!-- Header description for Modal and Drawer -->
                         <div
-                            v-if="$slots.description && variant !== 'blank'"
+                            v-if="$slots.description && !isBlank"
 
                             class="shrink-0 px-4 pb-4"
                         >
@@ -108,27 +123,15 @@
 
                             class="overflow-auto"
                             :class="{
-                                'mt-2': variant !== 'blank' && !$slots.description,
-                                'px-4 pb-4': variant === 'modal' || variant === 'drawer',
-                                'max-h-[40vh]':
-                                    (variant === 'modal' || variant === 'blank') &&
-                                    size === 'extra-small',
-                                'max-h-[50vh]':
-                                    (variant === 'modal' || variant === 'blank') &&
-                                    size === 'small',
-                                'max-h-[60vh]':
-                                    (variant === 'modal' || variant === 'blank') &&
-                                    size === 'medium',
-                                'max-h-[70vh]':
-                                    (variant === 'modal' || variant === 'blank') &&
-                                    size === 'large',
-                                'max-h-[80vh]':
-                                    (variant === 'modal' || variant === 'blank') &&
-                                    size === 'extra-large',
-                                'min-h-0 flex-1':
-                                    variant === 'drawer' ||
-                                    variant === 'modal' ||
-                                    variant === 'blank'
+                                'mt-2': !isBlank && !$slots.description,
+                                'px-4 pb-4': !isBlank,
+                                'overscroll-contain': isDrawer,
+                                'max-h-[40vh]': isPlainModal && size === 'extra-small',
+                                'max-h-[50vh]': isPlainModal && size === 'small',
+                                'max-h-[60vh]': isPlainModal && size === 'medium',
+                                'max-h-[70vh]': isPlainModal && size === 'large',
+                                'max-h-[80vh]': isPlainModal && size === 'extra-large',
+                                'min-h-0 flex-1': !isPreview
                             }"
                         >
                             <slot name="body" />
@@ -136,12 +139,9 @@
 
                         <!-- Footer for Modal, Blank and Drawer-->
                         <footer
-                            v-if="
-                                $slots.footer &&
-                                (variant === 'blank' || variant === 'modal' || variant === 'drawer')
-                            "
+                            v-if="$slots.footer"
 
-                            :class="[footerClass, { 'mt-auto': variant === 'drawer' }]"
+                            :class="[footerClass, { 'mt-auto': isDrawer }]"
                         >
                             <slot name="footer" />
                         </footer>
@@ -181,10 +181,28 @@ import {
     trackModalUrlOpenState
 } from "@shared/frontend/modalQuery";
 import type { RouteLocationNormalizedLoaded } from "vue-router";
+import {
+    DRAWER_ANIMATION_EASING,
+    DRAWER_ANIMATION_MS,
+    DRAWER_FLING_STALE_MS,
+    drawerClosedTransform,
+    drawerDragOffset,
+    drawerGestureBlockedByContent,
+    drawerOffsetTransform,
+    lockDrawerGesture,
+    shouldCloseDrawer
+} from "./internal/drawerSwipe.ts";
+import { shouldRebaseTouchOrigin } from "./custom/sidebarSwipe.ts";
 
 const DRAWER_MOVE_LISTENER_OPTS = { passive: false, capture: true };
+const DRAWER_INTERACTIVE_SELECTOR =
+    'button, a, input, textarea, select, label, [role="slider"], [contenteditable="true"]';
+const DRAWER_TRANSITION = `${DRAWER_ANIMATION_MS}ms ${DRAWER_ANIMATION_EASING}`;
 const DRAWER_UP_LISTENER_OPTS = { capture: true };
 const OUTSIDE_CLICK_LISTENER_OPTS = { capture: true };
+
+/** Old `variant` values, still accepted. Use the `type` prop instead. */
+type DeprecatedModalVariant = "blank" | "preview";
 
 export default defineComponent({
     name: "Modal",
@@ -217,8 +235,17 @@ export default defineComponent({
          * The variant of the modal
          */
         variant: {
-            type: String as PropType<"modal" | "blank" | "drawer" | "preview">,
+            type: String as PropType<"modal" | "drawer" | DeprecatedModalVariant>,
             default: "modal",
+            required: false
+        },
+
+        /**
+         * The content layout of the modal panel: `blank` drops the header and description,
+         * `preview` renders only the body
+         */
+        type: {
+            type: String as PropType<"blank" | "preview">,
             required: false
         },
 
@@ -312,13 +339,19 @@ export default defineComponent({
             modalLayerId: Symbol("modal"),
             layerIndex: 0,
 
-            drawerPointerDown: false,
-            drawerDragCommitted: false,
-            drawerDragStartX: 0,
-            drawerDragStartY: 0,
-            drawerDragX: 0,
-            drawerDragY: 0,
-            drawerCapturedPointerId: null as number | null,
+            drawerTracking: false,
+            drawerDragging: false,
+            drawerSettling: false,
+            drawerClosing: false,
+            drawerStartX: 0,
+            drawerStartY: 0,
+            drawerLastX: 0,
+            drawerLastY: 0,
+            drawerLastMoveAt: 0,
+            drawerOffset: 0,
+            drawerVelocity: 0,
+            drawerPanelSize: 0,
+            drawerSettleTimer: null as number | null,
 
             modalUrlId: 0,
 
@@ -335,6 +368,38 @@ export default defineComponent({
 
     computed: {
         /**
+         * Whether the modal is a drawer.
+         * @returns {boolean} True for the drawer variant.
+         */
+        isDrawer(): boolean {
+            return this.variant === "drawer";
+        },
+
+        /**
+         * Whether the panel is blank, from `type` or the deprecated variant.
+         * @returns {boolean} True when the header and description are hidden.
+         */
+        isBlank(): boolean {
+            return this.type === "blank" || this.variant === "blank";
+        },
+
+        /**
+         * Whether the panel is a preview, from `type` or the deprecated variant.
+         * @returns {boolean} True when only the body is rendered.
+         */
+        isPreview(): boolean {
+            return this.type === "preview" || this.variant === "preview";
+        },
+
+        /**
+         * Whether the panel is a centered modal, blank or not.
+         * @returns {boolean} True for the centered modal layout.
+         */
+        isPlainModal(): boolean {
+            return !this.isDrawer && !this.isPreview;
+        },
+
+        /**
          * Gets the overlay zindex
          * @returns {unknown} The overlay zindex
          */
@@ -347,11 +412,7 @@ export default defineComponent({
          * @returns {string} The shell align class.
          */
         shellAlignClass(): string {
-            if (
-                this.variant === "modal" ||
-                this.variant === "preview" ||
-                this.variant === "blank"
-            ) {
+            if (!this.isDrawer) {
                 return "items-center justify-center p-4";
             }
 
@@ -371,11 +432,7 @@ export default defineComponent({
          * @returns {string} The panel transition name.
          */
         panelTransitionName(): string {
-            if (
-                this.variant === "modal" ||
-                this.variant === "preview" ||
-                this.variant === "blank"
-            ) {
+            if (!this.isDrawer) {
                 return "fade-scale-modal";
             }
 
@@ -411,7 +468,7 @@ export default defineComponent({
                 return this.footerStyle;
             }
 
-            return "shrink-0 rounded-b border-t bg-muted/50 p-4";
+            return "shrink-0 rounded-b border-t bg-muted/50 p-2 md:p-3";
         },
 
         /**
@@ -421,35 +478,32 @@ export default defineComponent({
         panelSurfaceClass(): Array<string | Record<string, boolean>> {
             const sizeLayout: Record<string, boolean> = {
                 "lg:w-[25%] md:w-[40%] sm:w-[60%] w-[80%]":
-                    this.size === "extra-small" &&
-                    (this.variant === "modal" || this.variant === "blank"),
+                    this.size === "extra-small" && this.isPlainModal,
                 "lg:w-[35%] md:w-[50%] sm:w-[70%] w-[90%]":
-                    this.size === "small" && (this.variant === "modal" || this.variant === "blank"),
+                    this.size === "small" && this.isPlainModal,
                 "lg:w-[50%] md:w-[70%] sm:w-[80%] w-[94%]":
-                    this.size === "medium" &&
-                    (this.variant === "modal" || this.variant === "blank"),
+                    this.size === "medium" && this.isPlainModal,
                 "lg:w-[70%] md:w-[80%] sm:w-[86%] w-[98%]":
-                    this.size === "large" && (this.variant === "modal" || this.variant === "blank"),
+                    this.size === "large" && this.isPlainModal,
                 "lg:w-[80%] md:w-[85%] sm:w-[90%] w-[98%]":
-                    this.size === "extra-large" &&
-                    (this.variant === "modal" || this.variant === "blank"),
+                    this.size === "extra-large" && this.isPlainModal,
 
                 "lg:w-[30%] md:w-[50%] sm:w-[80%] w-[90%]":
-                    this.variant === "drawer" && this.side !== "bottom" && this.size === "small",
+                    this.isDrawer && this.side !== "bottom" && this.size === "small",
                 "lg:w-[30%] md:w-[55%] sm:w-[85%] w-[90%]":
-                    this.variant === "drawer" && this.side !== "bottom" && this.size === "medium",
+                    this.isDrawer && this.side !== "bottom" && this.size === "medium",
                 "lg:w-[30%] md:w-[60%] sm:w-[85%] w-[90%]":
-                    this.variant === "drawer" && this.side !== "bottom" && this.size === "large",
+                    this.isDrawer && this.side !== "bottom" && this.size === "large",
 
                 "h-full self-stretch max-h-full":
-                    this.variant === "drawer" && (this.side === "left" || this.side === "right"),
+                    this.isDrawer && (this.side === "left" || this.side === "right"),
 
                 "w-full self-stretch max-h-[42vh] sm:max-h-[50vh] md:max-h-[58vh]":
-                    this.variant === "drawer" && this.side === "bottom" && this.size === "small",
+                    this.isDrawer && this.side === "bottom" && this.size === "small",
                 "w-full self-stretch max-h-[58vh] sm:max-h-[68vh] md:max-h-[72vh]":
-                    this.variant === "drawer" && this.side === "bottom" && this.size === "medium",
+                    this.isDrawer && this.side === "bottom" && this.size === "medium",
                 "w-full self-stretch max-h-[78vh] sm:max-h-[85vh] md:max-h-[88vh]":
-                    this.variant === "drawer" && this.side === "bottom" && this.size === "large"
+                    this.isDrawer && this.side === "bottom" && this.size === "large"
             };
 
             if (this.borderStyle) {
@@ -457,10 +511,10 @@ export default defineComponent({
                     sizeLayout,
                     this.borderStyle,
                     {
-                        rounded: this.variant === "modal" || this.variant === "blank",
-                        "rounded-r": this.variant === "drawer" && this.side === "left",
-                        "rounded-l": this.variant === "drawer" && this.side === "right",
-                        "rounded-t": this.variant === "drawer" && this.side === "bottom"
+                        rounded: this.isPlainModal,
+                        "rounded-r": this.isDrawer && this.side === "left",
+                        "rounded-l": this.isDrawer && this.side === "right",
+                        "rounded-t": this.isDrawer && this.side === "bottom"
                     }
                 ];
             }
@@ -468,39 +522,76 @@ export default defineComponent({
             return [
                 sizeLayout,
                 {
-                    "rounded border border-border/60!":
-                        this.variant === "modal" || this.variant === "blank",
+                    "rounded border border-border/60!": this.isPlainModal,
 
                     "border-warning/50! border-2!": this.color === "warning",
                     "border-destructive/50! border-2!": this.color === "destructive",
                     "border-success/50! border-2!": this.color === "success",
                     "border-info/50! border-2!": this.color === "info",
 
-                    "rounded-r border-r border-border/60!":
-                        this.variant === "drawer" && this.side === "left",
-                    "rounded-l border-l border-border/60!":
-                        this.variant === "drawer" && this.side === "right",
-                    "rounded-t border-t border-border/60!":
-                        this.variant === "drawer" && this.side === "bottom"
+                    "rounded-r border-r border-border/60!": this.isDrawer && this.side === "left",
+                    "rounded-l border-l border-border/60!": this.isDrawer && this.side === "right",
+                    "rounded-t border-t border-border/60!": this.isDrawer && this.side === "bottom"
                 }
             ];
         },
 
         /**
-         * Calculates the drawer drag style.
+         * Inline transform of the drawer panel: follows the finger while dragging, slides back
+         * when released short of the threshold and slides out from wherever it is when closing.
          * @returns {Record<string, string>} The drawer drag style.
          */
         drawerDragStyle(): Record<string, string> {
-            if (this.variant !== "drawer" || !this.drawerDragCommitted) {
+            if (!this.isDrawer) {
                 return {};
             }
 
-            if (this.drawerDragX === 0 && this.drawerDragY === 0) {
-                return {};
+            if (this.drawerClosing) {
+                return {
+                    transform: drawerClosedTransform(this.side, this.drawerOffset),
+                    transition: `transform ${DRAWER_TRANSITION}`
+                };
             }
+
+            if (this.drawerDragging) {
+                return {
+                    transform: drawerOffsetTransform(this.side, this.drawerOffset),
+                    transition: "none"
+                };
+            }
+
+            if (this.drawerSettling) {
+                return {
+                    transform: drawerOffsetTransform(this.side, 0),
+                    transition: `transform ${DRAWER_TRANSITION}`
+                };
+            }
+
+            return {};
+        },
+
+        /**
+         * Drawer backdrop fades with the drag and when the drawer closes.
+         * @returns {Record<string, string> | undefined} The overlay style.
+         */
+        overlayStyle(): Record<string, string> | undefined {
+            if (!this.isDrawer) {
+                return undefined;
+            }
+
+            if (!this.showModal || this.drawerClosing) {
+                return { opacity: "0", transition: `opacity ${DRAWER_TRANSITION}` };
+            }
+
+            if (!this.drawerDragging) {
+                return { opacity: "1", transition: `opacity ${DRAWER_TRANSITION}` };
+            }
+
+            const progress =
+                this.drawerPanelSize > 0 ? this.drawerOffset / this.drawerPanelSize : 0;
 
             return {
-                transform: `translate(${this.drawerDragX}px, ${this.drawerDragY}px)`,
+                opacity: String(Math.max(0, 1 - Math.min(1, progress))),
                 transition: "none"
             };
         }
@@ -569,6 +660,12 @@ export default defineComponent({
      * @returns {void}
      */
     created() {
+        if (this.variant === "blank" || this.variant === "preview") {
+            console.warn(
+                `Modal: variant="${this.variant}" is deprecated. Use type="${this.variant}" instead.`
+            );
+        }
+
         if (this.urlSync) {
             this.modalUrlId = registerModalUrlInstance();
         }
@@ -625,6 +722,7 @@ export default defineComponent({
         window.removeEventListener("pointerup", this.trackPointerUp, true);
         window.removeEventListener("pointercancel", this.trackPointerUp, true);
         this.teardownDrawerPointerListeners();
+        this.clearDrawerSettleTimer();
         popModalLayer(this.modalLayerId);
     },
 
@@ -716,7 +814,17 @@ export default defineComponent({
         async close() {
             this.showModal = false;
 
-            await new Promise((resolve) => setTimeout(resolve, 250));
+            if (this.isDrawer) {
+                // Slide out from the current position (a drag offset included).
+                this.drawerClosing = true;
+                this.drawerDragging = false;
+                this.drawerTracking = false;
+                this.teardownDrawerPointerListeners();
+
+                await new Promise((resolve) => setTimeout(resolve, DRAWER_ANIMATION_MS));
+            } else {
+                await new Promise((resolve) => setTimeout(resolve, 250));
+            }
 
             this.modalOpen = false;
         },
@@ -789,11 +897,25 @@ export default defineComponent({
          * Resets the drawer drag.
          */
         resetDrawerDrag() {
-            this.drawerPointerDown = false;
-            this.drawerDragCommitted = false;
-            this.drawerDragX = 0;
-            this.drawerDragY = 0;
-            this.drawerCapturedPointerId = null;
+            this.drawerTracking = false;
+            this.drawerDragging = false;
+            this.drawerSettling = false;
+            this.drawerClosing = false;
+            this.drawerOffset = 0;
+            this.drawerVelocity = 0;
+            this.clearDrawerSettleTimer();
+        },
+
+        /**
+         * Clears the timer that ends the slide-back animation.
+         */
+        clearDrawerSettleTimer() {
+            if (this.drawerSettleTimer == null) {
+                return;
+            }
+
+            window.clearTimeout(this.drawerSettleTimer);
+            this.drawerSettleTimer = null;
         },
 
         /**
@@ -830,30 +952,235 @@ export default defineComponent({
         },
 
         /**
-         * Handles the drawer pointer down event.
+         * Starts tracking a possible drag. Nothing moves until the gesture leaves the slop
+         * along the drawer axis (see `lockDrawerGesture`).
+         * @param {number} x The pointer x
+         * @param {number} y The pointer y
+         * @param {EventTarget | null} target The event target
+         * @returns {boolean} True if the gesture is being tracked
+         */
+        startDrawerGesture(x: number, y: number, target: EventTarget | null): boolean {
+            if (!this.isDrawer || !this.modalOpen || this.drawerClosing) {
+                return false;
+            }
+
+            const panel = this.$refs.modalRef as HTMLElement | undefined;
+
+            if (!panel) {
+                return false;
+            }
+
+            if (target instanceof Element && target.closest(DRAWER_INTERACTIVE_SELECTOR)) {
+                return false;
+            }
+
+            if (drawerGestureBlockedByContent(target, panel, this.side)) {
+                return false;
+            }
+
+            this.clearDrawerSettleTimer();
+            this.drawerSettling = false;
+            this.drawerTracking = true;
+            this.drawerDragging = false;
+            this.drawerStartX = x;
+            this.drawerStartY = y;
+            this.drawerLastX = x;
+            this.drawerLastY = y;
+            this.drawerLastMoveAt = performance.now();
+            this.drawerOffset = 0;
+            this.drawerVelocity = 0;
+            this.drawerPanelSize = this.side === "bottom" ? panel.offsetHeight : panel.offsetWidth;
+
+            return true;
+        },
+
+        /**
+         * Follows the pointer once the gesture is locked as a drawer drag.
+         * @param {number} x The pointer x
+         * @param {number} y The pointer y
+         * @param {Event} event The move event (cancelled while dragging so nothing scrolls)
+         */
+        moveDrawerGesture(x: number, y: number, event: Event) {
+            if (!this.drawerTracking) {
+                return;
+            }
+
+            if (!this.drawerDragging) {
+                const lock = lockDrawerGesture(
+                    this.side,
+                    x - this.drawerStartX,
+                    y - this.drawerStartY
+                );
+
+                if (lock === null) {
+                    return;
+                }
+
+                if (lock === "ignore") {
+                    this.drawerTracking = false;
+
+                    return;
+                }
+
+                // Start from here so the panel does not jump by the slop distance.
+                this.drawerDragging = true;
+                this.drawerStartX = x;
+                this.drawerStartY = y;
+            }
+
+            const now = performance.now();
+            const previous = this.drawerOffset;
+            const offset = drawerDragOffset(
+                this.side,
+                x - this.drawerStartX,
+                y - this.drawerStartY
+            );
+            const elapsed = now - this.drawerLastMoveAt;
+
+            if (elapsed > 0) {
+                this.drawerVelocity = (offset - previous) / elapsed;
+            }
+
+            this.drawerOffset = offset;
+            this.drawerLastX = x;
+            this.drawerLastY = y;
+            this.drawerLastMoveAt = now;
+
+            if (event.cancelable) {
+                event.preventDefault();
+            }
+        },
+
+        /**
+         * Ends the gesture: closes past the threshold (or on a flick), otherwise slides back.
+         */
+        endDrawerGesture() {
+            if (!this.drawerTracking) {
+                return;
+            }
+
+            this.drawerTracking = false;
+
+            if (!this.drawerDragging) {
+                return;
+            }
+
+            const velocity =
+                performance.now() - this.drawerLastMoveAt > DRAWER_FLING_STALE_MS
+                    ? 0
+                    : this.drawerVelocity;
+
+            if (shouldCloseDrawer(this.drawerOffset, velocity, this.drawerCloseThreshold())) {
+                void this.close();
+
+                return;
+            }
+
+            this.settleDrawer();
+        },
+
+        /**
+         * Slides the panel back into place after a drag that did not close it.
+         */
+        settleDrawer() {
+            this.drawerDragging = false;
+            this.drawerOffset = 0;
+            this.drawerSettling = true;
+            this.clearDrawerSettleTimer();
+            this.drawerSettleTimer = window.setTimeout(() => {
+                this.drawerSettleTimer = null;
+                this.drawerSettling = false;
+            }, DRAWER_ANIMATION_MS);
+        },
+
+        /**
+         * Touch start on the drawer panel.
+         * @param {TouchEvent} event The touch event.
+         */
+        onDrawerTouchStart(event: TouchEvent) {
+            const touch = event.touches[0];
+
+            if (!touch || event.touches.length > 1) {
+                this.onDrawerTouchCancel();
+
+                return;
+            }
+
+            this.startDrawerGesture(touch.clientX, touch.clientY, event.target);
+        },
+
+        /**
+         * Touch move on the drawer panel.
+         * @param {TouchEvent} event The touch event.
+         */
+        onDrawerTouchMove(event: TouchEvent) {
+            const touch = event.touches[0];
+
+            if (!touch || !this.drawerTracking) {
+                return;
+            }
+
+            // Same teleport guard as the Sidebar: shift the origin instead of jumping.
+            if (
+                shouldRebaseTouchOrigin(
+                    this.drawerLastX,
+                    this.drawerLastY,
+                    touch.clientX,
+                    touch.clientY
+                )
+            ) {
+                this.drawerStartX += touch.clientX - this.drawerLastX;
+                this.drawerStartY += touch.clientY - this.drawerLastY;
+                this.drawerLastX = touch.clientX;
+                this.drawerLastY = touch.clientY;
+
+                return;
+            }
+
+            this.moveDrawerGesture(touch.clientX, touch.clientY, event);
+        },
+
+        /**
+         * Touch end on the drawer panel.
+         */
+        onDrawerTouchEnd() {
+            this.endDrawerGesture();
+        },
+
+        /**
+         * Touch cancel on the drawer panel: the drag is abandoned, the panel slides back.
+         */
+        onDrawerTouchCancel() {
+            if (!this.drawerTracking) {
+                return;
+            }
+
+            this.drawerTracking = false;
+
+            if (this.drawerDragging) {
+                this.settleDrawer();
+            }
+        },
+
+        /**
+         * Mouse drag on desktop, from the grab handle or the header only so text in the
+         * body stays selectable. Touch is handled by the touch events.
          * @param {PointerEvent} event The pointer event.
          */
         onDrawerPointerDown(event: PointerEvent) {
-            if (this.variant !== "drawer" || !this.modalOpen) {
+            if (event.pointerType !== "mouse" || event.button !== 0) {
                 return;
             }
 
-            if (event.pointerType === "mouse" && event.button !== 0) {
+            const target = event.target;
+
+            if (!(target instanceof Element) || !target.closest("[data-drawer-handle]")) {
                 return;
             }
 
-            const target = event.target as HTMLElement | null;
-
-            if (target?.closest('button, a, input, textarea, select, label, [role="slider"]')) {
+            if (!this.startDrawerGesture(event.clientX, event.clientY, target)) {
                 return;
             }
-
-            this.drawerPointerDown = true;
-            this.drawerDragCommitted = false;
-            this.drawerDragStartX = event.clientX;
-            this.drawerDragStartY = event.clientY;
-            this.drawerDragX = 0;
-            this.drawerDragY = 0;
 
             window.addEventListener(
                 "pointermove",
@@ -866,16 +1193,6 @@ export default defineComponent({
                 this.onDrawerPointerUp,
                 DRAWER_UP_LISTENER_OPTS
             );
-
-            this.drawerCapturedPointerId = event.pointerId;
-
-            const panel = this.$refs.modalRef as HTMLElement | undefined;
-
-            try {
-                panel?.setPointerCapture(event.pointerId);
-            } catch {
-                /* ignore */
-            }
         },
 
         /**
@@ -883,97 +1200,15 @@ export default defineComponent({
          * @param {PointerEvent} event The pointer event.
          */
         onDrawerPointerMove(event: PointerEvent) {
-            if (!this.drawerPointerDown || this.variant !== "drawer") {
-                return;
-            }
-
-            const dx = event.clientX - this.drawerDragStartX;
-            const dy = event.clientY - this.drawerDragStartY;
-
-            if (!this.drawerDragCommitted) {
-                const slop = 10;
-
-                if (this.side === "left") {
-                    if (dx > -slop || Math.abs(dx) < Math.abs(dy)) {
-                        return;
-                    }
-                } else if (this.side === "right") {
-                    if (dx < slop || Math.abs(dx) < Math.abs(dy)) {
-                        return;
-                    }
-                } else if (this.side === "bottom") {
-                    if (dy < slop || dy < Math.abs(dx) * 0.85) {
-                        return;
-                    }
-                }
-
-                this.drawerDragCommitted = true;
-            }
-
-            if (this.side === "left") {
-                this.drawerDragX = Math.min(0, dx);
-                this.drawerDragY = 0;
-            } else if (this.side === "right") {
-                this.drawerDragX = Math.max(0, dx);
-                this.drawerDragY = 0;
-            } else {
-                this.drawerDragX = 0;
-                this.drawerDragY = Math.max(0, dy);
-            }
-
-            if (event.cancelable) {
-                event.preventDefault();
-            }
+            this.moveDrawerGesture(event.clientX, event.clientY, event);
         },
 
         /**
          * Handles the drawer pointer up event.
          */
         onDrawerPointerUp() {
-            if (!this.drawerPointerDown) {
-                return;
-            }
-
-            this.drawerPointerDown = false;
-
-            const panel = this.$refs.modalRef as HTMLElement | undefined;
-            const capId = this.drawerCapturedPointerId;
-
-            if (panel != null && capId != null) {
-                try {
-                    panel.releasePointerCapture(capId);
-                } catch {
-                    /* ignore */
-                }
-            }
-
-            this.drawerCapturedPointerId = null;
             this.teardownDrawerPointerListeners();
-
-            if (!this.drawerDragCommitted) {
-                this.resetDrawerDrag();
-
-                return;
-            }
-
-            const t = this.drawerCloseThreshold();
-            let shouldClose = false;
-
-            if (this.side === "left") {
-                shouldClose = this.drawerDragX < -t;
-            } else if (this.side === "right") {
-                shouldClose = this.drawerDragX > t;
-            } else {
-                shouldClose = this.drawerDragY > t;
-            }
-
-            this.drawerDragCommitted = false;
-            this.drawerDragX = 0;
-            this.drawerDragY = 0;
-
-            if (shouldClose) {
-                this.close();
-            }
+            this.endDrawerGesture();
         },
 
         /**

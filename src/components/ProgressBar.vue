@@ -22,7 +22,9 @@
             <input
                 class="progress-range relative rounded transition-all"
                 :class="[
-                    direction === 'vertical' ? 'progress-range--vertical rotate-180' : 'h-2 w-full',
+                    direction === 'vertical'
+                        ? 'progress-range--vertical rotate-180'
+                        : 'h-2 w-full touch-pan-y',
                     {
                         'opacity-70': disabled,
                         'progress-range--readonly': readonly,

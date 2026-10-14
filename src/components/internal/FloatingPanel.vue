@@ -34,7 +34,7 @@
     <Modal
         v-if="useSheetModal"
 
-        variant="blank"
+        type="blank"
         size="small"
         :is-open="isOpen"
 

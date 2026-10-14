@@ -1,6 +1,6 @@
 <template>
     <Modal
-        variant="blank"
+        type="blank"
         size="extra-small"
         :is-open="isOpen"
         :color="variant"

@@ -321,7 +321,7 @@
 
         <!-- Image gallery modal -->
         <Modal
-            variant="preview"
+            type="preview"
             :is-open="galleryOpen"
 
             @update:value="galleryOpen = $event"

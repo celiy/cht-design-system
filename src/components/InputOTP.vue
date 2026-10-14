@@ -24,6 +24,8 @@
                     fit
                     :pattern="cellPattern(cellIndex(index))"
                     :max-size="1"
+                    :inputmode="onlyNumbers ? 'numeric' : undefined"
+                    autocomplete="one-time-code"
                     :value="cellValues[cellIndex(index)] ?? ''"
                     :visual-error="error !== ''"
                     :readonly="readonly"
@@ -186,6 +188,18 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Whether only digits are accepted, so phones open the numeric keyboard.
+         * @returns {boolean}
+         */
+        onlyNumbers(): boolean {
+            return (
+                this.inputsPattern.includes("number") &&
+                !this.inputsPattern.includes("text") &&
+                this.fields.every((field) => !field.pattern)
+            );
+        },
+
         /**
          * Returns a regex based on the inputsPattern prop.
          * If only "text", accepts letters. If only "number", accepts digits.
@@ -427,32 +441,63 @@ export default defineComponent({
          */
         onCellBeforeInput(cellIndex: number, event: Event) {
             const inputEvent = event as InputEvent;
+            const type = inputEvent.inputType;
+
+            // Soft keyboards report Backspace/Delete only here (`key` is "Unidentified").
+            if (type === "deleteContentBackward" || type === "deleteContentForward") {
+                inputEvent.preventDefault();
+                this.applyResult(applyOtpBackspace(this.cellValues, cellIndex, this.cellCount));
+
+                return;
+            }
+
+            // Composition text cannot be cancelled; the input event commits it instead.
+            if (inputEvent.isComposing || type === "insertCompositionText") {
+                return;
+            }
 
             if (
-                inputEvent.inputType !== "insertText" &&
-                inputEvent.inputType !== "insertFromPaste" &&
-                inputEvent.inputType !== "insertCompositionText"
+                type !== "insertText" &&
+                type !== "insertReplacementText" &&
+                type !== "insertFromPaste" &&
+                type !== "insertFromDrop"
             ) {
                 return;
             }
 
-            if (inputEvent.inputType === "insertFromPaste") {
+            const text = inputEvent.data ?? inputEvent.dataTransfer?.getData("text") ?? "";
+
+            // Keyboard clipboard chips and SMS autofill insert the whole code at once.
+            if (text.length > 1) {
+                inputEvent.preventDefault();
+                this.pasteText(cellIndex, text);
+
                 return;
             }
 
-            const char = inputEvent.data ?? "";
-
-            if (char.length !== 1) {
+            if (type === "insertFromPaste" || text.length !== 1) {
                 return;
             }
 
             inputEvent.preventDefault();
 
-            if (!matchesInputPattern(char, this.cellPattern(cellIndex))) {
+            if (!matchesInputPattern(text, this.cellPattern(cellIndex))) {
                 return;
             }
 
-            this.applyResult(applyOtpChar(this.cellValues, cellIndex, char, this.cellCount));
+            this.applyResult(applyOtpChar(this.cellValues, cellIndex, text, this.cellCount));
+        },
+
+        /**
+         * Pastes text starting at a cell.
+         * @param {number} cellIndex - The start cell.
+         * @param {string} text - The text.
+         * @returns {void}
+         */
+        pasteText(cellIndex: number, text: string) {
+            const patterns = this.inputFieldIndexes.map((_, i) => this.cellPattern(i));
+
+            this.applyResult(applyOtpPaste(this.cellValues, cellIndex, text, patterns));
         },
 
         /**
@@ -463,10 +508,7 @@ export default defineComponent({
          */
         onCellPaste(cellIndex: number, event: ClipboardEvent) {
             event.preventDefault();
-            const text = event.clipboardData?.getData("text") ?? "";
-            const patterns = this.inputFieldIndexes.map((_, i) => this.cellPattern(i));
-
-            this.applyResult(applyOtpPaste(this.cellValues, cellIndex, text, patterns));
+            this.pasteText(cellIndex, event.clipboardData?.getData("text") ?? "");
         },
 
         /**
