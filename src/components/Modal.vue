@@ -96,10 +96,11 @@
 
                                 <Button
                                     variant="transparent"
+                                    class="p-2"
 
                                     @click="onCloseButtonClick"
                                 >
-                                    <i class="fa-solid fa-x text-xs" />
+                                    <span class="fa-solid fa-x text-xs" />
                                 </Button>
                             </div>
                         </div>

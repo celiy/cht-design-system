@@ -8,7 +8,7 @@
         <template #headerRightSide>
             <slot name="headerRightSide">
                 <div
-                    v-if="variant === 'wave' && !usesGroups"
+                    v-if="showDateFilter"
 
                     class="flex w-full justify-end"
                 >
@@ -26,28 +26,38 @@
         <template #body>
             <BarChart
                 v-if="variant === 'bars'"
+                v-bind="$attrs"
 
                 :data="data"
-                :hide-label="hideLabel"
-                :color="color"
-                :color-end="colorEnd"
-                :negative-color="negativeColor"
-                :negative-color-end="negativeColorEnd"
-                :direction="direction"
-                :clickable="clickable"
-                :align="align"
-
-                @click:bar="$emit('click:bar', $event)"
-            />
+            >
+                <template
+                    v-if="$slots.label"
+                    #label="scope"
+                >
+                    <slot
+                        name="label"
+                        v-bind="scope"
+                    />
+                </template>
+            </BarChart>
 
             <WaveChart
                 v-else
+                v-bind="$attrs"
 
                 :data="data"
-                :filter="filter"
-                :color="color"
-                :color-end="colorEnd"
-            />
+                :filter="showDateFilter ? filter : 'all'"
+            >
+                <template
+                    v-if="$slots.label"
+                    #label="scope"
+                >
+                    <slot
+                        name="label"
+                        v-bind="scope"
+                    />
+                </template>
+            </WaveChart>
         </template>
     </Card>
 </template>
@@ -56,13 +66,14 @@
 import { defineComponent, type PropType } from "vue";
 import Card from "../Card.vue";
 import Select from "../Select.vue";
-import BarChart, {
-    type BarChartAlign,
-    type BarChartDirection
-} from "./charts/BarChart.vue";
+import BarChart from "./charts/BarChart.vue";
 import WaveChart, { type WaveFilter } from "./charts/WaveChart.vue";
-import { chartUsesGroups, type ChartSeries } from "./charts/groupChartItems";
+import { chartUsesGroups, type ChartData } from "./charts/chartModel.ts";
 
+/**
+ * Card with a header around `BarChart` or `WaveChart`. Every other prop, event and the
+ * `label` slot go straight to the chart.
+ */
 export default defineComponent({
     name: "TableCharts",
 
@@ -73,114 +84,43 @@ export default defineComponent({
         WaveChart
     },
 
+    inheritAttrs: false,
+
     props: {
         /**
-         * The variant of the tablecharts
+         * Which chart is drawn.
          */
         variant: {
             type: String as PropType<"bars" | "wave">,
             required: true
         },
 
-        /**
-         * The header of the tablecharts
-         */
         header: {
             type: String,
             required: true
         },
 
-        /**
-         * Whether the tablecharts is description
-         */
         description: {
             type: String,
             required: true
         },
 
         /**
-         * Whether the tablecharts is data
+         * One series or several (`ChartSeries | ChartSeries[]`).
          */
         data: {
-            type: Object as PropType<ChartSeries>,
+            type: [Object, Array] as PropType<ChartData>,
             required: true
         },
 
         /**
-         * Whether the tablecharts is hide label
-         */
-        hideLabel: {
-            type: Boolean,
-            default: false
-        },
-
-        /**
-         * Theme/Tailwind color token forwarded to BarChart / WaveChart
-         * (`chart-3`, `green-500`, `success`, …).
-         */
-        color: {
-            type: String as PropType<string>,
-            default: "chart-3"
-        },
-
-        /**
-         * Negative bar token (BarChart vertical only).
-         */
-        negativeColor: {
-            type: String as PropType<string>,
-            default: "chart-5"
-        },
-
-        /**
-         * The color end of the tablecharts
-         */
-        colorEnd: {
-            type: String,
-            default: ""
-        },
-
-        /**
-         * Whether the tablecharts is negative color end
-         */
-        negativeColorEnd: {
-            type: String,
-            default: ""
-        },
-
-        /**
-         * Whether the tablecharts is direction
-         */
-        direction: {
-            type: String as PropType<BarChartDirection>,
-            default: "vertical"
-        },
-
-        /**
-         * Whether the tablecharts is clickable
-         */
-        clickable: {
-            type: Boolean,
-            default: false
-        },
-
-        /**
-         * Vertical BarChart only. Packed bar group: `left` / `center` / `right`.
-         */
-        align: {
-            type: String as PropType<BarChartAlign>,
-            default: "center"
-        },
-
-        /**
-         * The card atributes of the tablecharts
+         * Props forwarded to the `Card`.
          */
         cardAtributes: {
             type: Object,
             required: false
         }
     },
-
-    emits: ["click:bar"],
 
     data() {
         return {
@@ -196,11 +136,19 @@ export default defineComponent({
 
     computed: {
         /**
-         * Checks if the data uses groups
-         * @returns {boolean} True if the data uses groups
+         * Whether the data is on a category axis (no date filter then).
+         * @returns {boolean} True for grouped data
          */
-        usesGroups() {
-            return chartUsesGroups(this.data.items);
+        usesGroups(): boolean {
+            return chartUsesGroups(this.data);
+        },
+
+        /**
+         * The period filter only makes sense for daily wave points.
+         * @returns {boolean} True when the filter is shown
+         */
+        showDateFilter(): boolean {
+            return this.variant === "wave" && !this.usesGroups && this.$attrs.bucket !== "month";
         }
     }
 });

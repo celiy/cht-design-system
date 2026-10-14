@@ -1,296 +1,242 @@
 <template>
-    <div class="relative my-2">
-        <!-- Vertical -->
-        <div
-            v-if="direction === 'vertical'"
+    <div
+        class="relative my-2"
+        style="--bar-radius: 0.75rem"
+    >
+        <div :class="{ 'overflow-x-auto': vertical }">
+            <Tooltip
+                class="relative block"
+                :class="{ 'w-max min-w-full': vertical }"
+                :delay="0"
 
-            class="overflow-x-auto"
-        >
-            <div class="relative w-max min-w-full">
-                <div class="pointer-events-none absolute inset-x-0 top-0 h-80">
-                    <div class="flex h-full w-full flex-col justify-between">
-                        <div
-                            v-for="i in backgroundLinesCount"
-                            :key="i"
-
-                            class="separator opacity-50"
-                        />
-                    </div>
-                </div>
-
-                <!-- Packed at max bar width; leftover space uses `align`. Overflow scrolls. -->
+                @pointerenter="onPlotPointerMove"
+                @pointermove="onPlotPointerMove"
+            >
+                <!-- Grid and zero line -->
                 <div
-                    class="relative flex w-full gap-1"
-                    :class="barsJustifyClass"
+                    class="pointer-events-none absolute"
+                    :style="gridStyle"
                 >
                     <div
-                        v-for="(item, index) in dateGroups"
-                        :key="item.dateShort + item.label"
-
-                        class="flex w-max min-w-8 flex-col items-center"
+                        class="flex h-full w-full justify-between"
+                        :class="vertical ? 'flex-col' : 'flex-row'"
                     >
-                        <Tooltip
-                            class="relative flex h-80 w-20 max-w-full flex-col"
-                            :class="{
-                                'group cursor-pointer': clickable
-                            }"
+                        <div
+                            v-for="line in backgroundLinesCount"
+                            :key="line"
 
-                            @click="onBarClick(item)"
+                            class="opacity-50"
+                            :class="vertical ? 'separator' : 'h-full w-px bg-border'"
+                        />
+                    </div>
+
+                    <div
+                        v-if="zeroRatio !== null"
+
+                        class="absolute bg-border"
+                        :style="zeroLineStyle"
+                    />
+                </div>
+
+                <div
+                    class="relative flex"
+                    :class="vertical ? ['w-full', justifyClass] : 'flex-col'"
+                    :style="{ gap: `${groupGap}px` }"
+                >
+                    <div
+                        v-for="(group, groupIndex) in groups"
+                        :key="group.key"
+
+                        :data-chart-group="groupIndex"
+                        class="flex min-w-0"
+                        :class="vertical ? 'flex-col items-center' : 'flex-row items-center gap-3'"
+                        :style="groupStyle"
+                    >
+                        <div
+                            v-if="!vertical && !hideAxisLabels"
+
+                            class="w-28 shrink-0 truncate text-right text-sm text-muted-foreground"
+                            :title="group.category.long"
                         >
-                            <div
-                                v-if="hasNegativeValues"
-
-                                class="flex min-h-0 w-full flex-1 flex-col"
-                            >
-                                <div class="flex min-h-0 flex-1 items-end justify-center pb-px">
-                                    <div
-                                        v-if="positiveAmount(item) > 0"
-
-                                        class="relative w-full max-w-[90%] overflow-visible rounded-t"
-                                        :class="{
-                                            'transition-[filter] group-hover:brightness-110':
-                                                clickable
-                                        }"
-                                        :style="barStyle(item, 'positive', index)"
-                                    >
-                                        <span
-                                            v-if="!hideLabel && isConjunto"
-
-                                            class="pointer-events-none absolute bottom-1 left-1/2 hidden max-w-[calc(100%-0.25rem)] -translate-x-1/2 overflow-hidden rounded border bg-accent px-1 py-0 text-xs text-ellipsis whitespace-nowrap text-foreground! md:block"
-                                        >
-                                            {{ formatAmount(positiveAmount(item)) }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div
-                                    class="h-px w-full shrink-0 bg-border"
-                                    aria-hidden="true"
-                                />
-
-                                <div class="flex min-h-0 flex-1 items-start justify-center pt-px">
-                                    <div
-                                        v-if="negativeAmount(item) > 0"
-
-                                        class="relative w-full max-w-[90%] overflow-visible rounded-b"
-                                        :class="{
-                                            'transition-[filter] group-hover:brightness-110':
-                                                clickable
-                                        }"
-                                        :style="barStyle(item, 'negative', index)"
-                                    >
-                                        <span
-                                            v-if="!hideLabel && isConjunto"
-
-                                            class="pointer-events-none absolute top-1 left-1/2 hidden max-w-[calc(100%-0.25rem)] -translate-x-1/2 overflow-hidden rounded border bg-accent px-1 py-0 text-xs text-ellipsis whitespace-nowrap text-foreground! md:block"
-                                        >
-                                            {{ formatAmount(negativeAmount(item)) }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div
-                                v-else
-
-                                class="flex min-h-0 w-full flex-1 items-end justify-center"
-                            >
-                                <div
-                                    v-if="item.value > 0"
-
-                                    class="w-full max-w-[90%] rounded-t"
-                                    :class="{
-                                        'transition-[filter] group-hover:brightness-110': clickable
-                                    }"
-                                    :style="barStyle(item, 'positive', index)"
-                                />
-                            </div>
-
-                            <div
-                                v-if="!hideLabel && !isConjunto"
-
-                                class="pointer-events-none absolute inset-0 hidden justify-center md:flex"
-                                :class="hasNegativeValues ? 'items-center' : 'items-end pb-2'"
-                            >
-                                <span
-                                    class="mx-2 h-fit max-w-full overflow-hidden rounded border bg-accent px-1 py-0 text-xs text-ellipsis whitespace-nowrap text-foreground!"
-                                >
-                                    <span v-if="data.displayAs === 'currency'">R$ </span
-                                    >{{ item.value }}
-                                </span>
-                            </div>
-
-                            <template #tooltip>
-                                <div class="flex flex-col gap-0.5">
-                                    <span class="text-muted-foreground">{{ item.dateLong }}</span>
-                                    <span v-if="hasBothPolarities(item)">
-                                        <template v-if="data.displayAs === 'currency'">+</template>
-                                        {{ formatAmount(positiveAmount(item)) }}
-                                        <span class="text-muted-foreground"> / </span>
-                                        <template v-if="data.displayAs === 'currency'">−</template>
-                                        {{ formatAmount(negativeAmount(item)) }}
-                                    </span>
-                                    <span v-else>
-                                        <template v-if="data.displayAs === 'currency'">R$ </template
-                                        >{{ item.value }}
-                                    </span>
-                                </div>
-                            </template>
-                        </Tooltip>
+                            {{ group.category.short }}
+                        </div>
 
                         <div
-                            v-if="!hideAxisLabels"
+                            class="relative flex"
+                            :class="[
+                                vertical ? 'h-80 w-full justify-center' : 'min-w-0 flex-1 flex-col',
+                                { 'cursor-pointer': clickable }
+                            ]"
+                            :style="{ gap: `${barGap}px` }"
+
+                            @click="onGroupClick(group)"
+                        >
+                            <div
+                                v-for="column in group.columns"
+                                :key="column.key"
+
+                                class="relative"
+                                :style="columnStyle"
+                            >
+                                <div
+                                    v-for="segment in column.segments"
+                                    :key="segment.key"
+
+                                    class="absolute box-border"
+                                    :class="[
+                                        vertical ? 'inset-x-0' : 'inset-y-0',
+                                        { 'transition-[filter] hover:brightness-110': clickable }
+                                    ]"
+                                    :style="segmentStyle(segment, groupIndex)"
+
+                                    @click="onSegmentClick(segment, $event)"
+                                />
+
+                                <div
+                                    v-for="label in column.labels"
+                                    :key="label.key"
+
+                                    class="pointer-events-none absolute whitespace-nowrap"
+                                    :class="labelClasses"
+                                    :style="labelStyle(label, groupIndex)"
+                                >
+                                    <slot
+                                        name="label"
+                                        v-bind="
+                                            labelScope(
+                                                label.value,
+                                                group.categoryIndex,
+                                                label.seriesIndex,
+                                                label.color
+                                            ) ?? {}
+                                        "
+                                    >
+                                        {{ formatLabel(label, group.categoryIndex) }}
+                                    </slot>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="vertical && !hideAxisLabels"
 
                             class="mt-2 text-center text-sm whitespace-nowrap text-muted-foreground"
                         >
-                            {{ item.dateShort }}
+                            {{ group.category.short }}
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <template #tooltip>
+                    <ChartTooltipContent
+                        v-if="hoveredIndex !== null"
+
+                        :title="model.categories[hoveredIndex]?.long ?? ''"
+                        :rows="tooltipRows(hoveredIndex)"
+                    />
+                </template>
+            </Tooltip>
         </div>
 
-        <!-- Horizontal (no negative values) -->
-        <div
-            v-else
+        <ChartLegend
+            v-if="legend"
 
-            class="relative flex gap-3"
-        >
-            <div
-                v-if="!hideAxisLabels"
-
-                class="flex w-28 shrink-0 flex-col gap-3"
-            >
-                <div
-                    v-for="item in dateGroups"
-                    :key="`label-${item.dateShort}-${item.label}`"
-
-                    class="flex h-8 items-center justify-end truncate text-sm text-muted-foreground"
-                    :title="item.dateLong"
-                >
-                    {{ item.dateShort }}
-                </div>
-            </div>
-
-            <div class="relative min-w-0 flex-1">
-                <div class="pointer-events-none absolute inset-0">
-                    <div class="flex h-full w-full justify-between">
-                        <div
-                            v-for="i in backgroundLinesCount"
-                            :key="i"
-
-                            class="h-full w-px bg-border opacity-50"
-                        />
-                    </div>
-                </div>
-
-                <div class="relative flex flex-col gap-3">
-                    <Tooltip
-                        v-for="(item, index) in dateGroups"
-                        :key="item.dateShort + item.label"
-
-                        class="relative h-8 w-full min-w-0"
-                        :class="{
-                            'group cursor-pointer': clickable
-                        }"
-
-                        @click="onBarClick(item)"
-                    >
-                        <div
-                            class="absolute inset-y-0 left-0 rounded-r"
-                            :class="{
-                                'transition-[filter] group-hover:brightness-110': clickable
-                            }"
-                            :style="{
-                                ...barStyle(item, 'positive', index),
-                                width: `${horizontalBarPercent(item.value)}%`
-                            }"
-                        />
-
-                        <div
-                            v-if="!hideLabel && displayValue(item.value) > 0"
-
-                            class="pointer-events-none absolute inset-0 flex items-center pl-2"
-                        >
-                            <span
-                                class="rounded border bg-accent px-1 py-0 text-xs text-foreground!"
-                            >
-                                <span v-if="data.displayAs === 'currency'">R$ </span
-                                >{{ displayValue(item.value) }}
-                            </span>
-                        </div>
-
-                        <template #tooltip>
-                            <span class="mr-2 text-muted-foreground">{{ item.dateLong }}</span>
-                            <template v-if="data.displayAs === 'currency'">R$ </template
-                            >{{ displayValue(item.value) }}
-                        </template>
-                    </Tooltip>
-                </div>
-            </div>
-        </div>
+            :items="legendItems"
+        />
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Tooltip from "../Tooltip.vue";
-import { chartPaintStyle } from "./chartColors";
+import chartBase from "./chartBase.ts";
+import { chartColorCssVar, chartMixCss } from "./chartColors.ts";
 import {
-    negativeAmount as polarNegative,
-    polarScale,
-    positiveAmount as polarPositive
-} from "./chartPolarity";
-import {
-    chartUsesGroups,
-    groupChartItems,
-    groupChartItemsByDate,
-    type ChartPoint,
-    type ChartSeries
-} from "./groupChartItems";
+    domainRatio,
+    spanDomain,
+    type ChartCategory,
+    type ChartDomain,
+    type ChartSpan
+} from "./chartModel.ts";
+import { CHART_GROW_MS, CHART_MORPH_MS, CHART_STAGGER_MS } from "./chartMotion.ts";
+import ChartLegend from "./internal/ChartLegend.vue";
+import ChartTooltipContent from "./internal/ChartTooltipContent.vue";
 
-export type BarChartData = ChartSeries;
 export type BarChartDirection = "vertical" | "horizontal";
 export type BarChartAlign = "left" | "center" | "right";
 
-/** Odd count so the middle divider marks the chart center. */
-const GRID_LINES = 5;
+/** Payload of `click:bar`. */
+export type BarChartClick = {
+    id?: string;
+    value: number;
+    category: ChartCategory;
+    series: { key: string; label: string };
+};
+
+type BarSegment = {
+    key: string;
+    seriesIndex: number;
+    categoryIndex: number;
+    span: ChartSpan;
+    color: string;
+    highlight: boolean;
+    /** Outermost segment of its polarity in the column: gets the rounded end. */
+    outer: boolean;
+};
+
+type BarLabel = {
+    key: string;
+    value: number;
+    /** Value-axis position of the bar end the label sits on. */
+    end: number;
+    negative: boolean;
+    /** `null` for the total of a stacked column. */
+    seriesIndex: number | null;
+    color: string;
+};
+
+type BarColumn = {
+    key: string;
+    segments: BarSegment[];
+    labels: BarLabel[];
+};
+
+type BarGroup = {
+    key: string;
+    categoryIndex: number;
+    category: ChartCategory;
+    columns: BarColumn[];
+};
+
+/** Width cap of a bar when `barSize` is not set (bars share the available width). */
+const AUTO_BAR_MAX_PX = 80;
+const AUTO_BAR_MIN_PX = 24;
+const HORIZONTAL_BAR_PX = 32;
+/** Extra room on the value axis so labels at the bar ends stay inside the chart. */
+const LABEL_HEADROOM = 0.12;
 
 export default defineComponent({
     name: "BarChart",
 
     components: {
+        ChartLegend,
+        ChartTooltipContent,
         Tooltip
     },
 
+    mixins: [chartBase],
+
     props: {
         /**
-         * The data of the barchart
+         * Vertical bars grow upward; horizontal bars grow to the right. Both accept negatives.
          */
-        data: {
-            type: Object as PropType<BarChartData>,
-            required: true
+        direction: {
+            type: String as PropType<BarChartDirection>,
+            default: "vertical"
         },
 
         /**
-         * Theme/Tailwind color token for positive bars (`chart-3`, `green-500`, …).
-         * Per-item `data.items[].color` overrides this.
-         */
-        color: {
-            type: String as PropType<string>,
-            default: "chart-3"
-        },
-
-        /**
-         * Theme token for negative bars (vertical only). Default `chart-5`.
-         */
-        negativeColor: {
-            type: String as PropType<string>,
-            default: "chart-5"
-        },
-
-        /**
-         * Optional second token: last bar of the series. Bars between mix
+         * Single series only. The last bar uses this token and the bars in between mix
          * `color` → `colorEnd` as solids.
          */
         colorEnd: {
@@ -299,7 +245,15 @@ export default defineComponent({
         },
 
         /**
-         * Optional second token for negative bars (`negativeColor` → this).
+         * Single series only. Token for negative bars.
+         */
+        negativeColor: {
+            type: String,
+            default: "chart-5"
+        },
+
+        /**
+         * Single series only. Mixes `negativeColor` → this along the negative bars.
          */
         negativeColorEnd: {
             type: String,
@@ -307,24 +261,40 @@ export default defineComponent({
         },
 
         /**
-         * If true, the value label will not be displayed on the bars.
+         * Bar thickness in px. Vertical: when unset, bars share the width (max 80px).
+         * Horizontal: defaults to 32px.
          */
-        hideLabel: {
-            type: Boolean,
-            default: false
+        barSize: {
+            type: Number,
+            required: false
         },
 
         /**
-         * Vertical bars grow upward; horizontal grow to the right.
-         * Horizontal does not support negative values.
+         * Space in px between the bars of one category (series side by side).
          */
-        direction: {
-            type: String as PropType<BarChartDirection>,
-            default: "vertical"
+        barGap: {
+            type: Number,
+            default: 4
         },
 
         /**
-         * Hides the axis label
+         * Space in px between categories.
+         */
+        groupGap: {
+            type: Number,
+            default: 12
+        },
+
+        /**
+         * Vertical with `barSize`: where the bars sit when the chart is wider than them.
+         */
+        align: {
+            type: String as PropType<BarChartAlign>,
+            default: "center"
+        },
+
+        /**
+         * Hides the category labels.
          */
         hideAxisLabels: {
             type: Boolean,
@@ -332,7 +302,7 @@ export default defineComponent({
         },
 
         /**
-         * Hover brightness + pointer; emits `click:bar` with the point (`id` if set).
+         * Hover brightness and pointer; emits `click:bar` with `BarChartClick`.
          */
         clickable: {
             type: Boolean,
@@ -340,78 +310,158 @@ export default defineComponent({
         },
 
         /**
-         * Vertical only. Where the packed bar group sits when the chart is wider than the bars.
+         * Number of grid lines.
          */
-        align: {
-            type: String as PropType<BarChartAlign>,
-            default: "center"
+        backgroundLinesCount: {
+            type: Number,
+            default: 5
         }
     },
 
     emits: ["click:bar"],
 
+    data() {
+        return {
+            hoveredIndex: null as number | null
+        };
+    },
+
     computed: {
         /**
-         * Checks if there are negative values
-         * @returns {boolean} True if there are negative values
+         * Whether bars are vertical.
+         * @returns {boolean} True for vertical bars
          */
-        hasNegativeValues() {
-            if (this.direction === "horizontal") {
-                return false;
+        vertical(): boolean {
+            return this.direction === "vertical";
+        },
+
+        /**
+         * Value range, with headroom for labels.
+         * @returns {ChartDomain} The domain
+         */
+        domain(): ChartDomain {
+            const domain = spanDomain(this.spans);
+
+            if (!this.showLabels) {
+                return domain;
             }
 
-            return this.dateGroups.some(
-                (group) => group.value < 0 || (group.valueNegative ?? 0) > 0
-            );
+            const pad = (domain.max - domain.min) * LABEL_HEADROOM;
+
+            return {
+                min: domain.min < 0 ? domain.min - pad : domain.min,
+                max: domain.max > 0 ? domain.max + pad : domain.max
+            };
         },
 
         /**
-         * Checks if the conjunto is active
-         * @returns {boolean} True if the conjunto is active
+         * Position of zero (percent) when the chart has negatives.
+         * @returns {number | null} The zero position
          */
-        isConjunto() {
-            return this.dateGroups.some((group) => (group.valueNegative ?? 0) > 0);
-        },
-
-        /**
-         * Gets the background lines count
-         * @returns {number} The background lines count
-         */
-        backgroundLinesCount() {
-            return GRID_LINES;
-        },
-
-        /**
-         * Gets the global scale
-         * @returns {number} The global scale
-         */
-        globalScale() {
-            const values = this.dateGroups.map((g) =>
-                this.direction === "horizontal"
-                    ? Math.max(0, g.value)
-                    : polarScale(g.value, g.valueNegative)
-            );
-
-            return values.length ? Math.max(...values, 0) : 0;
-        },
-
-        /**
-         * Gets the date groups
-         * @returns {ChartPoint[]} The date groups
-         */
-        dateGroups() {
-            if (chartUsesGroups(this.data.items)) {
-                return groupChartItems(this.data.items, this.data.label);
+        zeroRatio(): number | null {
+            if (this.domain.min >= 0) {
+                return null;
             }
 
-            return groupChartItemsByDate(this.data.items, this.data.label);
+            return domainRatio(0, this.domain) * 100;
         },
 
         /**
-         * Gets the bars justify class
-         * @returns {string} The bars justify class
+         * Bars grouped by category; one column per series, or one stacked column.
+         * @returns {BarGroup[]} The groups
          */
-        barsJustifyClass() {
+        groups(): BarGroup[] {
+            const seriesIndexes = this.model.series.map((_, index) => index);
+            const columnsOf = this.stack === "none" ? seriesIndexes.map((index) => [index]) : [seriesIndexes];
+
+            return this.model.categories.map((category, categoryIndex) => ({
+                key: category.key,
+                categoryIndex,
+                category,
+                columns: columnsOf.map((indexes) => this.buildColumn(indexes, categoryIndex))
+            }));
+        },
+
+        /**
+         * Category-axis size of each column.
+         * @returns {Record<string, string>} The column style
+         */
+        columnStyle(): Record<string, string> {
+            if (!this.vertical) {
+                return { height: `${this.barSize ?? HORIZONTAL_BAR_PX}px`, width: "100%" };
+            }
+
+            if (this.barSize != null) {
+                return { width: `${this.barSize}px`, flex: "none", height: "100%" };
+            }
+
+            return {
+                flex: "1 1 0",
+                minWidth: "8px",
+                maxWidth: `${AUTO_BAR_MAX_PX}px`,
+                height: "100%"
+            };
+        },
+
+        /**
+         * Category-axis size of each group.
+         * @returns {Record<string, string>} The group style
+         */
+        groupStyle(): Record<string, string> {
+            if (!this.vertical || this.barSize != null) {
+                return {};
+            }
+
+            // Fixed size at the max bar width, so categories sit next to each other and
+            // `align` decides where the packed group goes; shrinks when the chart is narrow.
+            const columns = this.stack === "none" ? this.model.series.length : 1;
+            const width = columns * AUTO_BAR_MAX_PX + (columns - 1) * this.barGap;
+            const minWidth = columns * AUTO_BAR_MIN_PX + (columns - 1) * this.barGap;
+
+            return {
+                flex: "0 1 auto",
+                width: `${width}px`,
+                minWidth: `${minWidth}px`,
+                maxWidth: "100%"
+            };
+        },
+
+        /**
+         * Grid placement over the plot area only.
+         * @returns {Record<string, string>} The grid style
+         */
+        gridStyle(): Record<string, string> {
+            if (this.vertical) {
+                return { left: "0", right: "0", top: "0", height: "20rem" };
+            }
+
+            return {
+                top: "0",
+                bottom: "0",
+                right: "0",
+                left: this.hideAxisLabels ? "0" : "calc(7rem + 0.75rem)"
+            };
+        },
+
+        /**
+         * Zero line position.
+         * @returns {Record<string, string>} The zero line style
+         */
+        zeroLineStyle(): Record<string, string> {
+            const position = `${this.zeroRatio ?? 0}%`;
+
+            if (this.vertical) {
+                return { left: "0", right: "0", height: "1px", bottom: position };
+            }
+
+            return { top: "0", bottom: "0", width: "1px", left: position };
+        },
+
+        /**
+         * Justify class for packed bars.
+         * @returns {string} The class
+         */
+        justifyClass(): string {
             if (this.align === "left") {
                 return "justify-start";
             }
@@ -421,167 +471,390 @@ export default defineComponent({
             }
 
             return "justify-center";
+        },
+
+        /**
+         * Delay between consecutive groups in the entrance animation.
+         * @returns {number} The delay in ms
+         */
+        staggerMs(): number {
+            return Math.min(CHART_STAGGER_MS, 700 / Math.max(1, this.model.categories.length));
         }
     },
 
     methods: {
         /**
-         * Displays the value
-         * @param {number} value The value
-         * @returns {number} The displayed value
-         */
-        displayValue(value: number) {
-            if (this.direction === "horizontal") {
-                return Math.max(0, value);
-            }
-
-            return value;
-        },
-
-        /**
-         * Gets the positive amount
-         * @param {ChartPoint} item The item
-         * @returns {number} The positive amount
-         */
-        positiveAmount(item: ChartPoint) {
-            return polarPositive(item.value);
-        },
-
-        /**
-         * Gets the negative amount
-         * @param {ChartPoint} item The item
-         * @returns {number} The negative amount
-         */
-        negativeAmount(item: ChartPoint) {
-            return polarNegative(item.value, item.valueNegative);
-        },
-
-        /**
-         * Checks if the item has both polarities
-         * @param {ChartPoint} item The item
-         * @returns {boolean} True if the item has both polarities
-         */
-        hasBothPolarities(item: ChartPoint) {
-            return this.positiveAmount(item) > 0 && this.negativeAmount(item) > 0;
-        },
-
-        /**
-         * Formats the amount
-         * @param {number} value The value
-         * @returns {string} The formatted amount
-         */
-        formatAmount(value: number) {
-            if (this.data.displayAs === "currency") {
-                return `R$ ${value}`;
-            }
-
-            return String(value);
-        },
-
-        /**
-         * Resolves the color
-         * @param {ChartPoint} item The item
-         * @param {string} polarity The polarity
-         * @returns {string} The resolved color
-         */
-        resolveColor(item: ChartPoint, polarity: "positive" | "negative") {
-            if (polarity === "negative") {
-                return this.negativeColor;
-            }
-
-            return item.color || this.data.color || this.color;
-        },
-
-        /**
-         * Gets the bar style
-         * @param {ChartPoint} item The item
-         * @param {string} polarity The polarity
-         * @param {number} index The index
-         * @returns {string} The bar style
-         */
-        barStyle(item: ChartPoint, polarity: "positive" | "negative", index: number) {
-            const colorEnd =
-                polarity === "negative"
-                    ? this.negativeColorEnd || undefined
-                    : item.color
-                      ? undefined
-                      : this.colorEnd || undefined;
-            const paint = chartPaintStyle(
-                this.resolveColor(item, polarity),
-                colorEnd,
-                index,
-                this.dateGroups.length
-            );
-
-            if (polarity === "positive" && this.direction === "vertical") {
-                return {
-                    ...paint,
-                    height: `${this.positiveBarPercent(this.positiveAmount(item))}%`
-                };
-            }
-
-            if (polarity === "negative") {
-                return {
-                    ...paint,
-                    height: `${this.negativeBarPercentAmount(this.negativeAmount(item))}%`
-                };
-            }
-
-            return paint;
-        },
-
-        /**
-         * Gets the positive bar percent
-         * @param {number} value The value
-         * @returns {number} The positive bar percent
-         */
-        positiveBarPercent(value: number) {
-            if (value <= 0 || this.globalScale <= 0) {
-                return 0;
-            }
-
-            return (value / this.globalScale) * 100;
-        },
-
-        /**
-         * Gets the negative bar percent amount
-         * @param {number} value The value
-         * @returns {number} The negative bar percent amount
-         */
-        negativeBarPercentAmount(value: number) {
-            if (value <= 0 || this.globalScale <= 0) {
-                return 0;
-            }
-
-            return (value / this.globalScale) * 100;
-        },
-
-        /**
-         * Gets the horizontal bar percent
-         * @param {number} value The value
-         * @returns {number} The horizontal bar percent
-         */
-        horizontalBarPercent(value: number) {
-            const v = Math.max(0, value);
-
-            if (v <= 0 || this.globalScale <= 0) {
-                return 0;
-            }
-
-            return (v / this.globalScale) * 100;
-        },
-
-        /**
-         * Handles the bar click
-         * @param {ChartPoint} item The item
+         * Picks the category under (or nearest to) the pointer along the category axis.
+         * One tooltip serves the whole chart, so moving between bars or across the gap
+         * only swaps its content instead of hiding and showing separate tooltips.
+         * @param {PointerEvent} event The pointer event
          * @returns {void}
          */
-        onBarClick(item: ChartPoint) {
+        onPlotPointerMove(event: PointerEvent) {
+            const root = this.$el as HTMLElement;
+            const elements = root.querySelectorAll<HTMLElement>("[data-chart-group]");
+            const pointer = this.vertical ? event.clientX : event.clientY;
+            let best: { index: number; distance: number } | null = null;
+
+            elements.forEach((element) => {
+                const rect = element.getBoundingClientRect();
+                const from = this.vertical ? rect.left : rect.top;
+                const to = this.vertical ? rect.right : rect.bottom;
+                const distance =
+                    pointer < from ? from - pointer : pointer > to ? pointer - to : 0;
+                const index = Number(element.dataset.chartGroup);
+
+                if (!best || distance < best.distance) {
+                    best = { index, distance };
+                }
+            });
+
+            const found = best as { index: number; distance: number } | null;
+
+            this.hoveredIndex =
+                found === null ? null : (this.groups[found.index]?.categoryIndex ?? null);
+        },
+
+        /**
+         * Bar color: item color, otherwise the series color. A single series can paint
+         * negatives with `negativeColor` and mix along the bars with `colorEnd`.
+         * @param {number} seriesIndex The series index
+         * @param {number} categoryIndex The category index
+         * @returns {string} The CSS color
+         */
+        cellColor(seriesIndex: number, categoryIndex: number): string {
+            const series = this.model.series[seriesIndex];
+            const cell = series?.cells[categoryIndex];
+            const total = this.model.categories.length;
+
+            if (cell?.color) {
+                return chartColorCssVar(cell.color);
+            }
+
+            if (!this.isMultiSeries && (cell?.value ?? 0) < 0) {
+                return chartMixCss(
+                    this.negativeColor,
+                    this.negativeColorEnd || undefined,
+                    categoryIndex,
+                    total
+                );
+            }
+
+            return chartMixCss(
+                series?.color ?? this.color,
+                this.isMultiSeries ? undefined : this.colorEnd || undefined,
+                categoryIndex,
+                total
+            );
+        },
+
+        /**
+         * Builds one column (one series, or every series stacked) of a category.
+         * @param {number[]} seriesIndexes Series drawn in the column
+         * @param {number} categoryIndex The category index
+         * @returns {BarColumn} The column
+         */
+        buildColumn(seriesIndexes: number[], categoryIndex: number): BarColumn {
+            const segments: BarSegment[] = [];
+
+            for (const seriesIndex of seriesIndexes) {
+                const series = this.model.series[seriesIndex];
+                const cell = series?.cells[categoryIndex];
+                const span = this.spans[seriesIndex]?.[categoryIndex];
+
+                if (!series || !cell?.present || !span || span.start === span.end) {
+                    continue;
+                }
+
+                segments.push({
+                    key: series.key,
+                    seriesIndex,
+                    categoryIndex,
+                    span,
+                    color: this.cellColor(seriesIndex, categoryIndex),
+                    highlight: cell.highlight,
+                    outer: false
+                });
+            }
+
+            const positives = segments.filter((segment) => segment.span.end > segment.span.start);
+            const negatives = segments.filter((segment) => segment.span.end < segment.span.start);
+            const topPositive = positives.reduce<BarSegment | null>(
+                (best, segment) => (!best || segment.span.end > best.span.end ? segment : best),
+                null
+            );
+            const bottomNegative = negatives.reduce<BarSegment | null>(
+                (best, segment) => (!best || segment.span.end < best.span.end ? segment : best),
+                null
+            );
+
+            if (topPositive) {
+                topPositive.outer = true;
+            }
+
+            if (bottomNegative) {
+                bottomNegative.outer = true;
+            }
+
+            return {
+                key: seriesIndexes.join("-"),
+                segments,
+                labels: this.showLabels
+                    ? this.buildLabels(segments, positives, negatives, topPositive, bottomNegative)
+                    : []
+            };
+        },
+
+        /**
+         * Labels of a column: one per bar, or the totals of a stacked column.
+         * @returns {BarLabel[]} The labels
+         */
+        buildLabels(
+            segments: BarSegment[],
+            positives: BarSegment[],
+            negatives: BarSegment[],
+            topPositive: BarSegment | null,
+            bottomNegative: BarSegment | null
+        ): BarLabel[] {
+            if (this.stack === "none") {
+                return segments.map((segment) => ({
+                    key: segment.key,
+                    value: this.cellValue(segment),
+                    end: segment.span.end,
+                    negative: segment.span.end < segment.span.start,
+                    seriesIndex: segment.seriesIndex,
+                    color: segment.color
+                }));
+            }
+
+            const totals: BarLabel[] = [];
+            const sum = (list: BarSegment[]) =>
+                list.reduce((total, segment) => total + this.cellValue(segment), 0);
+
+            if (topPositive) {
+                totals.push({
+                    key: "total-positive",
+                    value: sum(positives),
+                    end: topPositive.span.end,
+                    negative: false,
+                    seriesIndex: null,
+                    color: topPositive.color
+                });
+            }
+
+            if (bottomNegative) {
+                totals.push({
+                    key: "total-negative",
+                    value: sum(negatives),
+                    end: bottomNegative.span.end,
+                    negative: true,
+                    seriesIndex: null,
+                    color: bottomNegative.color
+                });
+            }
+
+            return totals;
+        },
+
+        /**
+         * Raw value of a segment (not the stacked/expanded span).
+         * @param {BarSegment} segment The segment
+         * @returns {number} The value
+         */
+        cellValue(segment: BarSegment): number {
+            return this.model.series[segment.seriesIndex]?.cells[segment.categoryIndex]?.value ?? 0;
+        },
+
+        /**
+         * Percent position of a value on the value axis.
+         * @param {number} value The value
+         * @returns {number} The percent
+         */
+        percent(value: number): number {
+            return domainRatio(value, this.domain) * 100;
+        },
+
+        /**
+         * Transition list: grow on entrance (staggered), move on data changes.
+         * @param {number} groupIndex The group index
+         * @param {string[]} moving Properties that change with the data
+         * @returns {string} The CSS transition
+         */
+        motionTransition(groupIndex: number, moving: string[]): string {
+            if (!this.motion) {
+                return "none";
+            }
+
+            const delay = Math.round(groupIndex * this.staggerMs);
+            const grow = `transform ${CHART_GROW_MS}ms cubic-bezier(0.2, 0.8, 0.2, 1) ${delay}ms`;
+            const move = moving.map((property) => `${property} ${CHART_MORPH_MS}ms ease`);
+
+            return [grow, ...move].join(", ");
+        },
+
+        /**
+         * Position, size, color and motion of a segment.
+         * @param {BarSegment} segment The segment
+         * @param {number} groupIndex The group index
+         * @returns {Record<string, string>} The style
+         */
+        segmentStyle(segment: BarSegment, groupIndex: number): Record<string, string> {
+            const low = Math.min(segment.span.start, segment.span.end);
+            const high = Math.max(segment.span.start, segment.span.end);
+            const start = this.percent(low);
+            const size = this.percent(high) - start;
+            const negative = segment.span.end < segment.span.start;
+            const rounded = segment.outer ? "var(--bar-radius)" : "0";
+            const style: Record<string, string> = {
+                backgroundColor: segment.highlight
+                    ? `color-mix(in oklab, ${segment.color} 75%, transparent)`
+                    : segment.color
+            };
+
+            if (segment.highlight) {
+                style.border = `2px dashed ${segment.color}`;
+            }
+
+            if (this.vertical) {
+                Object.assign(style, {
+                    bottom: `${start}%`,
+                    height: `${size}%`,
+                    borderRadius: negative
+                        ? `0 0 ${rounded} ${rounded}`
+                        : `${rounded} ${rounded} 0 0`,
+                    transformOrigin: negative ? "top" : "bottom",
+                    transform: this.appeared ? "none" : "scaleY(0)",
+                    transition: this.motionTransition(groupIndex, ["bottom", "height"])
+                });
+
+                return style;
+            }
+
+            return Object.assign(style, {
+                left: `${start}%`,
+                width: `${size}%`,
+                borderRadius: negative
+                    ? `${rounded} 0 0 ${rounded}`
+                    : `0 ${rounded} ${rounded} 0`,
+                transformOrigin: negative ? "right" : "left",
+                transform: this.appeared ? "none" : "scaleX(0)",
+                transition: this.motionTransition(groupIndex, ["left", "width"])
+            });
+        },
+
+        /**
+         * Label position at the bar end, shown after the bar has grown.
+         * @param {BarLabel} label The label
+         * @param {number} groupIndex The group index
+         * @returns {Record<string, string>} The style
+         */
+        labelStyle(label: BarLabel, groupIndex: number): Record<string, string> {
+            const position = this.percent(label.end);
+            const delay = this.motion ? Math.round(groupIndex * this.staggerMs) + CHART_GROW_MS : 0;
+            const style: Record<string, string> = {
+                "--chart-color": label.color,
+                opacity: this.appeared ? "1" : "0",
+                transition: this.motion
+                    ? `opacity 250ms ease ${delay}ms, bottom ${CHART_MORPH_MS}ms ease, top ${CHART_MORPH_MS}ms ease, left ${CHART_MORPH_MS}ms ease, right ${CHART_MORPH_MS}ms ease`
+                    : "none"
+            };
+
+            if (this.vertical) {
+                style.left = "50%";
+                style.transform = "translateX(-50%)";
+
+                if (label.negative) {
+                    style.top = `calc(${100 - position}% + 4px)`;
+                } else {
+                    style.bottom = `calc(${position}% + 4px)`;
+                }
+
+                return style;
+            }
+
+            style.top = "50%";
+            style.transform = "translateY(-50%)";
+
+            if (label.negative) {
+                style.right = `calc(${100 - position}% + 6px)`;
+            } else {
+                style.left = `calc(${position}% + 6px)`;
+            }
+
+            return style;
+        },
+
+        /**
+         * Default label text.
+         * @param {BarLabel} label The label
+         * @param {number} categoryIndex The category index
+         * @returns {string} The formatted value
+         */
+        formatLabel(label: BarLabel, categoryIndex: number): string {
+            return (
+                this.labelScope(label.value, categoryIndex, label.seriesIndex, label.color)
+                    ?.formatted ?? ""
+            );
+        },
+
+        /**
+         * Click payload of a cell.
+         * @param {number} seriesIndex The series index
+         * @param {number} categoryIndex The category index
+         * @returns {BarChartClick | null} The payload
+         */
+        clickPayload(seriesIndex: number, categoryIndex: number): BarChartClick | null {
+            const series = this.model.series[seriesIndex];
+            const cell = series?.cells[categoryIndex];
+            const category = this.model.categories[categoryIndex];
+
+            if (!series || !cell?.present || !category) {
+                return null;
+            }
+
+            return {
+                id: cell.id,
+                value: cell.value,
+                category,
+                series: { key: series.key, label: series.label }
+            };
+        },
+
+        /**
+         * Click on a bar: that series' cell.
+         * @param {BarSegment} segment The segment
+         * @param {MouseEvent} event The click
+         * @returns {void}
+         */
+        onSegmentClick(segment: BarSegment, event: MouseEvent) {
             if (!this.clickable) {
                 return;
             }
 
-            this.$emit("click:bar", item);
+            event.stopPropagation();
+
+            const payload = this.clickPayload(segment.seriesIndex, segment.categoryIndex);
+
+            if (payload) {
+                this.$emit("click:bar", payload);
+            }
+        },
+
+        /**
+         * Click on the empty area of a category: only meaningful with a single series.
+         * @param {BarGroup} group The group
+         * @returns {void}
+         */
+        onGroupClick(group: BarGroup) {
+            if (!this.clickable || this.isMultiSeries) {
+                return;
+            }
+
+            const payload = this.clickPayload(0, group.categoryIndex);
+
+            if (payload) {
+                this.$emit("click:bar", payload);
+            }
         }
     }
 });

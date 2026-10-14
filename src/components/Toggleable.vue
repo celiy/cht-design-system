@@ -26,7 +26,7 @@
             ]"
         >
             <div
-                class="inline-flex w-fit flex-wrap items-center"
+                class="inline-flex w-fit flex-wrap items-center shadow-sm"
                 :class="[borderClass, backgroundClass, radiusClass]"
             >
                 <Toggle
@@ -36,7 +36,6 @@
                     :label="option.label"
                     :model-value="isSelected(option.value)"
                     :variant="variant"
-                    :radius-style="radiusClass"
                     :size="size"
                     :disabled="disabled || Boolean(option.disabled)"
                     :hover-effect="false"
@@ -127,7 +126,7 @@ export default defineComponent({
          */
         size: {
             type: String as PropType<"small" | "medium" | "large">,
-            default: "small",
+            default: "medium",
             required: false
         },
 
@@ -189,14 +188,7 @@ export default defineComponent({
                 return this.backgroundStyle;
             }
 
-            return [
-                "bg-input/30 gap-1",
-                {
-                    "p-1.5": this.size === "small",
-                    "p-1": this.size === "medium",
-                    "p-0.5": this.size === "large"
-                }
-            ];
+            return ["bg-input/30 gap-2"];
         },
 
         /**
@@ -208,7 +200,7 @@ export default defineComponent({
                 return this.radiusStyle;
             }
 
-            return "rounded-full";
+            return "rounded";
         }
     },
 

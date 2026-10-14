@@ -1,183 +1,285 @@
 <template>
     <div class="relative my-2">
-        <div class="relative min-h-80">
-            <div class="absolute inset-0 pointer-events-none">
-                <div class="flex flex-col justify-between w-full h-full">
+        <div class="relative">
+            <div class="pointer-events-none absolute inset-x-0 top-0 h-80">
+                <div class="flex h-full w-full flex-col justify-between">
                     <div
-                        v-for="i in backgroundLinesCount"
-                        :key="i"
+                        v-for="line in backgroundLinesCount"
+                        :key="line"
+
                         class="separator opacity-50"
                     />
                 </div>
             </div>
 
-            <div
-                ref="waveContainer"
-                class="relative h-80 transition-all"
+            <Tooltip
+                class="relative block h-80"
+
+                @pointerenter="onPointerMove"
             >
-                <svg
-                    class="absolute inset-0 w-full h-full"
-                    viewBox="0 0 100 100"
-                    preserveAspectRatio="none"
-                >
-                    <defs>
-                        <linearGradient
-                            :id="fillGradientId"
-                            x1="0"
-                            y1="0"
-                            x2="1"
-                            y2="0"
-                        >
-                            <stop
-                                offset="0%"
-                                :stop-color="strokeColor"
-                                stop-opacity="0.5"
-                            />
-                            <stop
-                                offset="100%"
-                                :stop-color="endColor"
-                                stop-opacity="0.5"
-                            />
-                        </linearGradient>
-
-                        <linearGradient
-                            :id="strokeGradientId"
-                            x1="0"
-                            y1="0"
-                            x2="1"
-                            y2="0"
-                        >
-                            <stop
-                                offset="0%"
-                                :stop-color="strokeColor"
-                            />
-                            <stop
-                                offset="100%"
-                                :stop-color="endColor"
-                            />
-                        </linearGradient>
-                    </defs>
-
-                    <path
-                        v-if="waveAreaPath"
-                        :d="waveAreaPath"
-                        :fill="fillPaint"
-                        :fill-opacity="colorEnd ? undefined : 0.5"
-                        stroke="none"
-                    />
-
-                    <path
-                        v-if="wavePath"
-                        :d="wavePath"
-                        fill="none"
-                        :stroke="strokePaint"
-                        stroke-width="1.5"
-                        vector-effect="non-scaling-stroke"
-                        stroke-linejoin="round"
-                        stroke-linecap="round"
-                    />
-                </svg>
-
-                <Tooltip
-                    v-for="point in wavePoints"
-                    :key="`wave-point-${point.index}`"
-
-                    class="absolute top-0 bottom-0 w-6 -translate-x-1/2"
-                    :style="{ left: `${point.x}%` }"
-
-                    @pointerenter="hoveredPoint = point.index"
-                    @pointerleave="hoveredPoint = null"
-                >
-                    <div
-                        class="pointer-events-none absolute left-1/2 h-full border border-dashed transition-colors"
-                        :class="hoverLineClass"
-                        :style="{
-                            opacity: hoveredPoint === point.index ? 1 : 0
-                        }"
-                    />
-
-                    <template #tooltip>
-                        <span class="mr-2 text-muted-foreground">{{ point.dateLong }}</span>
-                        {{ formatValue(point.value) }}
-                    </template>
-                </Tooltip>
-            </div>
-        </div>
-
-        <div class="relative">
-            <div class="relative h-6 mt-2 text-sm text-muted-foreground">
                 <div
-                    v-for="(point, visualIndex) in wavePoints"
-                    :key="`axis-wave-${point.index}`"
-                    class="absolute top-0 whitespace-nowrap"
-                    :class="[
-                        visualIndex === 0
-                            ? 'translate-x-0'
-                            : visualIndex === wavePoints.length - 1
-                                ? '-translate-x-full'
-                                : '-translate-x-1/2'
-                    ]"
-                    :style="{ left: `${point.x}%` }"
+                    ref="plot"
+
+                    class="absolute inset-0"
+
+                    @pointermove="onPointerMove"
+                    @pointerleave="hoveredPos = null"
                 >
-                    {{ point.dateShort }}
+                    <svg
+                        class="absolute inset-0 h-full w-full overflow-visible"
+                        viewBox="0 0 100 100"
+                        preserveAspectRatio="none"
+                        aria-hidden="true"
+                    >
+                        <defs>
+                            <linearGradient
+                                v-for="layer in layers"
+                                :id="layer.gradientId"
+                                :key="layer.gradientId"
+
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                            >
+                                <stop
+                                    offset="0%"
+                                    :stop-color="layer.color"
+                                    stop-opacity="0.55"
+                                />
+                                <stop
+                                    offset="100%"
+                                    :stop-color="layer.color"
+                                    stop-opacity="0.02"
+                                />
+                            </linearGradient>
+
+                            <clipPath :id="clipId">
+                                <rect
+                                    :key="revealKey"
+
+                                    class="wave-reveal"
+                                    :class="revealClass"
+                                    x="-1"
+                                    y="-50"
+                                    width="102"
+                                    height="200"
+                                />
+                            </clipPath>
+                        </defs>
+
+                        <g
+                            v-if="waveStyle === 'solid'"
+                            :key="`areas-${revealKey}`"
+
+                            class="wave-fade"
+                            :class="revealClass"
+                        >
+                            <path
+                                v-for="layer in layers"
+                                :key="`area-${layer.key}`"
+
+                                :d="layer.area"
+                                :fill="gradientFill ? `url(#${layer.gradientId})` : layer.color"
+                                :fill-opacity="gradientFill ? 1 : 0.45"
+                                stroke="none"
+                            />
+                        </g>
+
+                        <g :clip-path="`url(#${clipId})`">
+                            <path
+                                v-for="layer in layers"
+                                :key="`line-${layer.key}`"
+
+                                :d="layer.line"
+                                fill="none"
+                                :stroke="layer.color"
+                                stroke-width="2"
+                                vector-effect="non-scaling-stroke"
+                                stroke-linejoin="round"
+                                stroke-linecap="round"
+                            />
+                        </g>
+                    </svg>
+
+                    <div
+                        v-if="hoveredPos !== null"
+
+                        class="pointer-events-none absolute inset-y-0 border-l border-dashed border-muted-foreground/40"
+                        :style="{ left: `${xs[hoveredPos] ?? 0}%` }"
+                    />
+
+                    <div
+                        :key="`marks-${revealKey}`"
+
+                        class="wave-fade wave-fade--late pointer-events-none absolute inset-0"
+                        :class="revealClass"
+                    >
+                        <template
+                            v-for="layer in layers"
+                            :key="`marks-${layer.key}`"
+                        >
+                            <template
+                                v-for="(point, pos) in layer.top"
+                                :key="`mark-${layer.key}-${pos}`"
+                            >
+                                <span
+                                    v-if="layer.present[pos] && (dots || hoveredPos === pos)"
+
+                                    class="absolute rounded-full ring-2 ring-background transition-[width,height]"
+                                    :class="hoveredPos === pos ? 'size-2.5' : 'size-2'"
+                                    :style="markStyle(point, layer.pointColors[pos] ?? layer.color)"
+                                />
+
+                                <span
+                                    v-if="showLabels && layer.present[pos]"
+
+                                    class="absolute whitespace-nowrap"
+                                    :class="labelClasses"
+                                    :style="labelStyle(point, layer.pointColors[pos] ?? layer.color)"
+                                >
+                                    <slot
+                                        name="label"
+                                        v-bind="pointLabelScope(layer.seriesIndex, pos) ?? {}"
+                                    >
+                                        {{ pointLabelScope(layer.seriesIndex, pos)?.formatted }}
+                                    </slot>
+                                </span>
+                            </template>
+                        </template>
+                    </div>
                 </div>
+
+                <template #tooltip>
+                    <ChartTooltipContent
+                        v-if="hoveredCategory !== null"
+
+                        :title="model.categories[hoveredCategory]?.long ?? ''"
+                        :rows="tooltipRows(hoveredCategory)"
+                    />
+                </template>
+            </Tooltip>
+        </div>
+
+        <div
+            v-if="!hideAxisLabels"
+
+            class="relative mt-2 h-6 text-sm text-muted-foreground"
+        >
+            <div
+                v-for="pos in axisPositions"
+                :key="`axis-${visibleIndexes[pos]}`"
+
+                class="absolute top-0 whitespace-nowrap"
+                :class="axisLabelClass(pos)"
+                :style="{ left: `${xs[pos] ?? 0}%` }"
+            >
+                {{ model.categories[visibleIndexes[pos] ?? -1]?.short }}
             </div>
         </div>
+
+        <ChartLegend
+            v-if="legend"
+
+            :items="legendItems"
+        />
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Tooltip from "../Tooltip.vue";
-import { chartColorBorderClass, chartColorCssVar } from "./chartColors";
-import { chartUsesGroups, groupChartItems, type ChartSeries } from "./groupChartItems";
+import chartBase, { type ChartLabelScope } from "./chartBase.ts";
+import { chartColorCssVar } from "./chartColors.ts";
+import {
+    categoriesInRange,
+    domainRatio,
+    evenlySpacedIndexes,
+    spanDomain,
+    type ChartBucket,
+    type ChartDomain,
+    type ChartRange
+} from "./chartModel.ts";
+import { CHART_MORPH_MS, tweenNumbers } from "./chartMotion.ts";
+import { areaPath, linePath, type ChartCurve, type PlotPoint } from "./chartPaths.ts";
+import ChartLegend from "./internal/ChartLegend.vue";
+import ChartTooltipContent from "./internal/ChartTooltipContent.vue";
 
-export type WaveChartData = ChartSeries;
+export type WaveFilter = ChartRange;
+export type WaveStyle = "solid" | "line";
 
-export type WaveFilter = "3m" | "1m" | "2s" | "7d";
+type WaveLayer = {
+    key: string;
+    seriesIndex: number;
+    color: string;
+    gradientId: string;
+    top: PlotPoint[];
+    present: boolean[];
+    pointColors: string[];
+    line: string;
+    area: string;
+};
+
+/** Minimum horizontal room per point before points are thinned out. */
+const POINT_MIN_PX = 28;
+/** Axis labels are wider than points, so fewer of them are shown. */
+const AXIS_LABEL_MIN_PX = 64;
 
 export default defineComponent({
     name: "WaveChart",
 
     components: {
+        ChartLegend,
+        ChartTooltipContent,
         Tooltip
     },
 
+    mixins: [chartBase],
+
     props: {
         /**
-         * The data of the wavechart
+         * Curve between points: `smooth`, `linear` or `step`.
          */
-        data: {
-            type: Object as PropType<WaveChartData>,
-            required: true
+        type: {
+            type: String as PropType<ChartCurve>,
+            default: "smooth"
         },
 
         /**
-         * Theme/Tailwind color token for the stroke and the 50% fill under the line.
+         * `solid` fills under the line (flat on simplicia, gradient on hodiernus);
+         * `line` draws the line only.
          */
-        color: {
-            type: String as PropType<string>,
-            default: "chart-3"
+        waveStyle: {
+            type: String as PropType<WaveStyle>,
+            default: "solid"
         },
 
         /**
-         * Optional last-point token. Fill and stroke go from `color` (left) to this (right).
-         */
-        colorEnd: {
-            type: String,
-            default: ""
-        },
-
-        /**
-         * The filter of the wavechart
+         * Dated data only: keeps the last `3m`, `1m`, `2s` or `7d` (`all` keeps everything).
          */
         filter: {
             type: String as PropType<WaveFilter>,
-            default: "3m"
+            default: "all"
         },
 
         /**
-         * The background lines count of the wavechart
+         * Always shows a dot on each point (hover shows them anyway).
+         */
+        dots: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * Hides the category labels under the chart.
+         */
+        hideAxisLabels: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * Number of grid lines.
          */
         backgroundLinesCount: {
             type: Number,
@@ -185,7 +287,7 @@ export default defineComponent({
         },
 
         /**
-         * The vertical padding of the wavechart
+         * Empty space above the highest value, in percent of the chart height.
          */
         verticalPadding: {
             type: Number,
@@ -195,444 +297,388 @@ export default defineComponent({
 
     data() {
         return {
-            waveContainerWidth: 0,
-            waveResizeObserver: null as ResizeObserver | null,
-            hoveredPoint: null as number | null,
-            paintNonce: `w${Math.random().toString(36).slice(2, 9)}`
+            plotWidth: 0,
+            resizeObserver: null as ResizeObserver | null,
+            hoveredPos: null as number | null,
+            renderYs: null as number[] | null,
+            stopTween: null as (() => void) | null,
+            revealKey: 0,
+            nonce: `wave-${Math.random().toString(36).slice(2, 9)}`
         };
     },
 
     computed: {
         /**
-         * Gets the wave raw items
-         * @returns {ChartPoint[]} The wave raw items
+         * Wave points are days unless `bucket` says otherwise.
+         * @returns {ChartBucket} The bucket
          */
-        waveRawItems() {
-            if (chartUsesGroups(this.data.items)) {
-                return groupChartItems(this.data.items, this.data.label);
-            }
-
-            return [...this.data.items]
-                .filter((item) => item.date != null)
-                .map((item) => {
-                    const date = new Date(item.date as Date);
-
-                    return {
-                        date,
-                        dateLong: this.formatWaveLongDate(date),
-                        dateShort: this.formatWaveShortDate(date),
-                        value: item.value,
-                        label: this.data.label,
-                    };
-                })
-                .sort((a, b) => a.date.getTime() - b.date.getTime());
+        defaultBucket(): ChartBucket {
+            return "day";
         },
 
         /**
-         * Gets the filtered wave raw items
-         * @returns {ChartPoint[]} The filtered wave raw items
+         * Categories drawn: inside the filter range, thinned to fit the width.
+         * @returns {number[]} Category indexes
          */
-        filteredWaveRawItems() {
-            if (!this.waveRawItems.length) {
-                return [];
-            }
+        visibleIndexes(): number[] {
+            const inRange = categoriesInRange(this.model.categories, this.filter);
+            const max = Math.max(2, Math.floor((this.plotWidth || 360) / POINT_MIN_PX));
 
-            if (chartUsesGroups(this.data.items)) {
-                return this.waveRawItems;
-            }
+            return evenlySpacedIndexes(inRange.length, max).flatMap((pos) => {
+                const index = inRange[pos];
 
-            const lastItem = this.waveRawItems[this.waveRawItems.length - 1];
-            if (!lastItem || !("date" in lastItem) || !lastItem.date) {
-                return [];
-            }
-
-            const startDate = this.getWaveFilterStartDate(lastItem.date);
-
-            return this.waveRawItems.filter((item) => {
-                if (!("date" in item) || !item.date) {
-                    return false;
-                }
-
-                return item.date.getTime() >= startDate.getTime();
+                return index === undefined ? [] : [index];
             });
         },
 
         /**
-         * Gets the max wave points
-         * @returns {number} The max wave points
+         * Visible points that get an axis label, spread so the labels do not overlap.
+         * @returns {number[]} Positions in `visibleIndexes`
          */
-        maxWavePoints() {
-            const fallbackWidth = 360;
-            const width = this.waveContainerWidth || fallbackWidth;
+        axisPositions(): number[] {
+            const max = Math.max(2, Math.floor((this.plotWidth || 360) / AXIS_LABEL_MIN_PX));
 
-            return Math.max(2, Math.floor(width / 48));
+            return evenlySpacedIndexes(this.visibleIndexes.length, max);
         },
 
         /**
-         * Gets the wave items
-         * @returns {ChartPoint[]} The wave items
+         * Horizontal position (percent) of each visible point.
+         * @returns {number[]} The positions
          */
-        waveItems() {
-            const total = this.filteredWaveRawItems.length;
-            if (total <= this.maxWavePoints) {
-                return this.filteredWaveRawItems.map((item, index) => ({
-                    ...item,
-                    index,
-                }));
-            }
+        xs(): number[] {
+            const count = this.visibleIndexes.length;
 
-            const selectedIndexes = new Set<number>([0, total - 1]);
-            const step = (total - 1) / (this.maxWavePoints - 1);
+            return this.visibleIndexes.map((_, pos) => (count <= 1 ? 50 : (pos / (count - 1)) * 100));
+        },
 
-            for (let index = 1; index < this.maxWavePoints - 1; index += 1) {
-                selectedIndexes.add(Math.round(index * step));
-            }
+        /**
+         * Value range of the visible points.
+         * @returns {ChartDomain} The domain
+         */
+        domain(): ChartDomain {
+            return spanDomain(this.spans, this.visibleIndexes);
+        },
 
-            return [...selectedIndexes]
-                .sort((a, b) => a - b)
-                .flatMap((sourceIndex) => {
-                    const item = this.filteredWaveRawItems[sourceIndex];
-                    if (!item) {
-                        return [];
-                    }
+        /**
+         * Target plot y of every point, as `[top, bottom]` pairs by series then point.
+         * Tweened into `renderYs` when only the values change.
+         * @returns {number[]} The y values
+         */
+        targetYs(): number[] {
+            return this.spans.flatMap((column) =>
+                this.visibleIndexes.flatMap((categoryIndex) => {
+                    const span = column[categoryIndex] ?? { start: 0, end: 0 };
 
-                    return [{
-                        ...item,
-                        index: sourceIndex,
-                    }];
+                    return [this.toY(span.end), this.toY(span.start)];
+                })
+            );
+        },
+
+        /**
+         * Changes when the data itself changes shape (series or categories), which redraws
+         * the chart instead of morphing it.
+         * @returns {string} The key
+         */
+        dataShapeKey(): string {
+            const series = this.model.series.map((item) => item.key).join("|");
+            const categories = this.model.categories.map((item) => item.key).join("|");
+
+            return `${series}::${categories}::${this.filter}`;
+        },
+
+        /**
+         * Paths and points of each series.
+         * @returns {WaveLayer[]} The layers
+         */
+        layers(): WaveLayer[] {
+            const ys = this.renderYs && this.renderYs.length === this.targetYs.length
+                ? this.renderYs
+                : this.targetYs;
+            const count = this.visibleIndexes.length;
+
+            return this.model.series.map((series, seriesIndex) => {
+                const top: PlotPoint[] = [];
+                const bottom: PlotPoint[] = [];
+                const offset = seriesIndex * count * 2;
+
+                this.xs.forEach((x, pos) => {
+                    top.push({ x, y: ys[offset + pos * 2] ?? 100 });
+                    bottom.push({ x, y: ys[offset + pos * 2 + 1] ?? 100 });
                 });
+
+                return {
+                    key: series.key,
+                    seriesIndex,
+                    color: chartColorCssVar(series.color),
+                    gradientId: `${this.nonce}-fill-${seriesIndex}`,
+                    top,
+                    present: this.visibleIndexes.map(
+                        (categoryIndex) => series.cells[categoryIndex]?.present ?? false
+                    ),
+                    pointColors: this.visibleIndexes.map((categoryIndex) =>
+                        this.cellColor(seriesIndex, categoryIndex)
+                    ),
+                    line: linePath(top, this.type),
+                    area: areaPath(top, bottom, this.type)
+                };
+            });
         },
 
         /**
-         * Gets the wave min value
-         * @returns {number} The wave min value
+         * Category under the pointer.
+         * @returns {number | null} The category index
          */
-        waveMinValue() {
-            if (!this.waveItems.length) {
-                return 0;
+        hoveredCategory(): number | null {
+            if (this.hoveredPos === null) {
+                return null;
             }
 
-            return Math.min(...this.waveItems.map((item) => item.value));
+            return this.visibleIndexes[this.hoveredPos] ?? null;
         },
 
         /**
-         * Gets the wave max value
-         * @returns {number} The wave max value
+         * Hodiernus paints the area with a vertical gradient; simplicia keeps it flat.
+         * @returns {boolean} True for the gradient fill
          */
-        waveMaxValue() {
-            if (!this.waveItems.length) {
-                return 0;
+        gradientFill(): boolean {
+            return this.$project?.style?.customTheme === "hodiernus";
+        },
+
+        /**
+         * Entrance classes shared by the line clip, the area and the marks.
+         * @returns {Record<string, boolean>} The classes
+         */
+        revealClass(): Record<string, boolean> {
+            return {
+                "is-drawn": this.appeared && this.motion,
+                "is-static": !this.motion
+            };
+        },
+
+        /**
+         * Unique clip path id.
+         * @returns {string} The id
+         */
+        clipId(): string {
+            return `${this.nonce}-clip`;
+        }
+    },
+
+    watch: {
+        /**
+         * Morphs to new values; redraws when the data changes shape.
+         * @param {number[]} next The new targets
+         * @param {number[]} previous The previous targets
+         * @returns {void}
+         */
+        targetYs(next: number[], previous: number[]) {
+            this.stopTween?.();
+            this.stopTween = null;
+
+            if (!this.motion || !this.appeared || next.length !== previous.length) {
+                this.renderYs = null;
+
+                return;
             }
 
-            return Math.max(...this.waveItems.map((item) => item.value));
+            this.stopTween = tweenNumbers(this.renderYs ?? previous, next, CHART_MORPH_MS, (values) => {
+                this.renderYs = values;
+            });
         },
 
         /**
-         * Gets the wave points
-         * @returns {ChartPoint[]} The wave points
+         * Replays the entrance animation for new data.
+         * @returns {void}
          */
-        wavePoints() {
-            const total = this.waveItems.length;
-
-            return this.waveItems.map((item, index) => ({
-                ...item,
-                x: total <= 1 ? 50 : (index / (total - 1)) * 100,
-                y: this.toWaveY(item.value),
-            }));
-        },
-
-        /**
-         * Gets the wave path
-         * @returns {string} The wave path
-         */
-        wavePath() {
-            return this.buildWavePath(this.wavePoints);
-        },
-
-        /**
-         * Closed path from the wave line down to the bottom of the viewBox (`y = 100`).
-         */
-        waveAreaPath() {
-            const line = this.wavePath;
-            const first = this.wavePoints[0];
-            const last = this.wavePoints[this.wavePoints.length - 1];
-
-            if (!line || !first || !last) {
-                return "";
+        dataShapeKey() {
+            if (this.appeared && this.motion) {
+                this.revealKey += 1;
             }
-
-            return `${line} L ${last.x} 100 L ${first.x} 100 Z`;
-        },
-
-        /**
-         * Gets the stroke color
-         * @returns {string} The stroke color
-         */
-        strokeColor() {
-            return chartColorCssVar(this.color);
-        },
-
-        /**
-         * Gets the end color
-         * @returns {string} The end color
-         */
-        endColor() {
-            return chartColorCssVar(this.colorEnd || this.color);
-        },
-
-        /**
-         * Gets the fill gradient id
-         * @returns {string} The fill gradient id
-         */
-        fillGradientId() {
-            return `${this.paintNonce}-fill`;
-        },
-
-        /**
-         * Gets the stroke gradient id
-         * @returns {string} The stroke gradient id
-         */
-        strokeGradientId() {
-            return `${this.paintNonce}-stroke`;
-        },
-
-        /**
-         * Gets the fill paint
-         * @returns {string} The fill paint
-         */
-        fillPaint() {
-            if (!this.colorEnd) {
-                return this.strokeColor;
-            }
-
-            return `url(#${this.fillGradientId})`;
-        },
-
-        /**
-         * Gets the stroke paint
-         * @returns {string} The stroke paint
-         */
-        strokePaint() {
-            if (!this.colorEnd) {
-                return this.strokeColor;
-            }
-
-            return `url(#${this.strokeGradientId})`;
-        },
-
-        /**
-         * Gets the hover line class
-         * @returns {string} The hover line class
-         */
-        hoverLineClass() {
-            return chartColorBorderClass(this.color);
         }
     },
 
     /**
-     * Mounts the component
+     * Tracks the plot width (points are thinned to fit).
      * @returns {void}
      */
     mounted() {
-        this.setupWaveObserver();
+        const plot = this.$refs.plot as HTMLElement | undefined;
+
+        if (!plot) {
+            return;
+        }
+
+        this.plotWidth = plot.clientWidth;
+        this.resizeObserver = new ResizeObserver(() => {
+            this.plotWidth = plot.clientWidth;
+        });
+        this.resizeObserver.observe(plot);
     },
 
     /**
-     * Unmounts the component
+     * Stops observers and tweens.
      * @returns {void}
      */
     beforeUnmount() {
-        this.teardownWaveObserver();
+        this.resizeObserver?.disconnect();
+        this.stopTween?.();
     },
 
     methods: {
         /**
-         * Formats the value
+         * Plot y (0 top, 100 bottom) of a value.
          * @param {number} value The value
-         * @returns {string} The formatted value
+         * @returns {number} The y
          */
-        formatValue(value: number) {
-            if (this.data.displayAs === "currency") {
-                return `R$ ${value}`;
-            }
+        toY(value: number): number {
+            const pad = Math.min(Math.max(this.verticalPadding, 0), 90);
 
-            return String(value);
+            return pad + (1 - domainRatio(value, this.domain)) * (100 - pad);
         },
 
         /**
-         * Formats the wave short date
-         * @param {Date} date The date
-         * @returns {string} The formatted wave short date
-         */
-        formatWaveShortDate(date: Date) {
-            return date.toLocaleDateString("pt-BR", {
-                day: "2-digit",
-                month: "2-digit",
-            });
-        },
-
-        /**
-         * Formats the wave long date
-         * @param {Date} date The date
-         * @returns {string} The formatted wave long date
-         */
-        formatWaveLongDate(date: Date) {
-            return date.toLocaleDateString("pt-BR", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-            });
-        },
-
-        /**
-         * Gets the wave filter start date
-         * @param {Date} lastDate The last date
-         * @returns {Date} The wave filter start date
-         */
-        getWaveFilterStartDate(lastDate: Date) {
-            const startDate = new Date(lastDate);
-
-            if (this.filter === "1m") {
-                startDate.setMonth(startDate.getMonth() - 1);
-                return startDate;
-            }
-
-            if (this.filter === "2s") {
-                startDate.setDate(startDate.getDate() - 14);
-                return startDate;
-            }
-
-            if (this.filter === "7d") {
-                startDate.setDate(startDate.getDate() - 7);
-                return startDate;
-            }
-
-            startDate.setMonth(startDate.getMonth() - 3);
-            return startDate;
-        },
-
-        /**
-         * Converts the value to the wave y
-         * @param {number} value The value
-         * @returns {number} The wave y
-         */
-        toWaveY(value: number) {
-            if (this.waveMaxValue === this.waveMinValue) {
-                return 50;
-            }
-
-            const normalized = (value - this.waveMinValue) / (this.waveMaxValue - this.waveMinValue);
-            const usableRange = 100 - this.verticalPadding * 2;
-
-            return this.verticalPadding + (1 - normalized) * usableRange;
-        },
-
-        /**
-         * Builds the wave path
-         * @param {Array<{ x: number; y: number }>} points The points
-         * @returns {string} The wave path
-         */
-        buildWavePath(points: Array<{ x: number; y: number }>) {
-            const first = points[0];
-            if (!first) {
-                return "";
-            }
-
-            if (points.length === 1) {
-                return `M ${first.x} ${first.y}`;
-            }
-
-            const segmentCount = points.length - 1;
-            const slopes: number[] = new Array(segmentCount).fill(0);
-            const tangents: number[] = new Array(points.length).fill(0);
-
-            for (let index = 0; index < segmentCount; index += 1) {
-                const current = points[index];
-                const next = points[index + 1];
-
-                if (!current || !next) {
-                    continue;
-                }
-
-                const dx = next.x - current.x;
-                slopes[index] = dx === 0 ? 0 : (next.y - current.y) / dx;
-            }
-
-            tangents[0] = slopes[0] ?? 0;
-            tangents[points.length - 1] = slopes[segmentCount - 1] ?? 0;
-
-            for (let index = 1; index < points.length - 1; index += 1) {
-                const previousSlope = slopes[index - 1] ?? 0;
-                const nextSlope = slopes[index] ?? 0;
-
-                if (previousSlope === 0 || nextSlope === 0 || Math.sign(previousSlope) !== Math.sign(nextSlope)) {
-                    tangents[index] = 0;
-                    continue;
-                }
-
-                tangents[index] = (2 * previousSlope * nextSlope) / (previousSlope + nextSlope);
-            }
-
-            let d = `M ${first.x} ${first.y}`;
-
-            for (let index = 0; index < segmentCount; index += 1) {
-                const current = points[index];
-                const next = points[index + 1];
-                if (!current || !next) {
-                    continue;
-                }
-
-                const dx = next.x - current.x;
-                const cp1x = current.x + dx / 3;
-                const cp1y = current.y + ((tangents[index] ?? 0) * dx) / 3;
-                const cp2x = next.x - dx / 3;
-                const cp2y = next.y - ((tangents[index + 1] ?? 0) * dx) / 3;
-
-                d += ` C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${next.x} ${next.y}`;
-            }
-
-            return d;
-        },
-
-        /**
-         * Refreshes the wave metrics
+         * Picks the nearest point to the pointer.
+         * @param {PointerEvent} event The pointer event
          * @returns {void}
          */
-        refreshWaveMetrics() {
-            const element = this.$refs.waveContainer as HTMLElement | undefined;
-            this.waveContainerWidth = element?.clientWidth ?? 0;
-        },
+        onPointerMove(event: PointerEvent) {
+            const plot = this.$refs.plot as HTMLElement | undefined;
+            const count = this.visibleIndexes.length;
 
-        /**
-         * Tears down the wave observer
-         * @returns {void}
-         */
-        teardownWaveObserver() {
-            if (this.waveResizeObserver) {
-                this.waveResizeObserver.disconnect();
-                this.waveResizeObserver = null;
-            }
-        },
-
-        /**
-         * Sets up the wave observer
-         * @returns {void}
-         */
-        setupWaveObserver() {
-            this.teardownWaveObserver();
-
-            this.refreshWaveMetrics();
-
-            const element = this.$refs.waveContainer as HTMLElement | undefined;
-            if (!element) {
+            if (!plot || count === 0) {
                 return;
             }
 
-            this.waveResizeObserver = new ResizeObserver(() => {
-                this.refreshWaveMetrics();
-            });
-            this.waveResizeObserver.observe(element);
+            const rect = plot.getBoundingClientRect();
+            const ratio = rect.width > 0 ? (event.clientX - rect.left) / rect.width : 0;
+
+            this.hoveredPos =
+                count === 1 ? 0 : Math.min(count - 1, Math.max(0, Math.round(ratio * (count - 1))));
+        },
+
+        /**
+         * Dot position and color.
+         * @param {PlotPoint} point The point
+         * @param {string} color The CSS color
+         * @returns {Record<string, string>} The style
+         */
+        markStyle(point: PlotPoint, color: string): Record<string, string> {
+            return {
+                left: `${point.x}%`,
+                top: `${point.y}%`,
+                transform: "translate(-50%, -50%)",
+                backgroundColor: color
+            };
+        },
+
+        /**
+         * Label position above the point.
+         * @param {PlotPoint} point The point
+         * @param {string} color The CSS color
+         * @returns {Record<string, string>} The style
+         */
+        labelStyle(point: PlotPoint, color: string): Record<string, string> {
+            return {
+                "--chart-color": color,
+                left: `${point.x}%`,
+                top: `${point.y}%`,
+                transform: "translate(-50%, calc(-100% - 6px))"
+            };
+        },
+
+        /**
+         * `label` slot scope of a point.
+         * @param {number} seriesIndex The series index
+         * @param {number} pos The visible point position
+         * @returns {ChartLabelScope | null} The scope
+         */
+        pointLabelScope(seriesIndex: number, pos: number): ChartLabelScope | null {
+            const categoryIndex = this.visibleIndexes[pos];
+
+            if (categoryIndex === undefined) {
+                return null;
+            }
+
+            const value = this.model.series[seriesIndex]?.cells[categoryIndex]?.value ?? 0;
+
+            return this.labelScope(
+                value,
+                categoryIndex,
+                seriesIndex,
+                this.cellColor(seriesIndex, categoryIndex)
+            );
+        },
+
+        /**
+         * Keeps the first and last axis labels inside the chart.
+         * @param {number} pos The visible point position
+         * @returns {string} The translate class
+         */
+        axisLabelClass(pos: number): string {
+            if (pos === 0 && this.visibleIndexes.length > 1) {
+                return "translate-x-0";
+            }
+
+            if (pos === this.visibleIndexes.length - 1 && this.visibleIndexes.length > 1) {
+                return "-translate-x-full";
+            }
+
+            return "-translate-x-1/2";
         }
     }
 });
 </script>
+
+<style scoped>
+/* Draws the lines left to right by growing their clip. */
+.wave-reveal {
+    transform-box: fill-box;
+    transform-origin: left center;
+    transform: scaleX(0);
+}
+
+.wave-reveal.is-drawn {
+    animation: wave-draw 900ms ease-in-out both;
+}
+
+.wave-reveal.is-static {
+    transform: none;
+}
+
+/* Area and marks fade in once the line is drawn. */
+.wave-fade {
+    opacity: 0;
+}
+
+.wave-fade.is-drawn {
+    animation: wave-fade 450ms ease-out 650ms both;
+}
+
+.wave-fade--late.is-drawn {
+    animation-delay: 850ms;
+}
+
+.wave-fade.is-static {
+    opacity: 1;
+}
+
+@keyframes wave-draw {
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes wave-fade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+</style>
