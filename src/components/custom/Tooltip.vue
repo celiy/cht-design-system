@@ -7,8 +7,7 @@
         @pointerleave="onPointerLeave"
         @mouseleave="hideUnlessCaptured"
         @pointerdown="onPointerDown"
-        @pointerup="onPointerUp"
-        @pointercancel="onPointerUp"
+        @pointercancel="hide"
         @click="$emit('click', $event)"
     >
         <slot />
@@ -87,7 +86,7 @@ export default defineComponent({
             showTimer: null as number | null,
             rafId: null as number | null,
             paintRafId: null as number | null,
-            capturedPointerId: null as number | null,
+            touchShown: false,
             showGen: 0,
             watchingDocument: false
         };
@@ -133,6 +132,10 @@ export default defineComponent({
          * @returns {void}
          */
         onPointerEnter(event: PointerEvent) {
+            if (event.pointerType === "mouse") {
+                this.touchShown = false;
+            }
+
             this.$emit("pointerenter", event);
             this.beginShow(event);
         },
@@ -164,11 +167,12 @@ export default defineComponent({
         },
 
         /**
-         * Hides the tooltip unless captured
+         * Hides the tooltip, except when it was opened by touch: there it stays after the
+         * finger lifts and only scroll or a touch outside closes it
          * @returns {void}
          */
         hideUnlessCaptured() {
-            if (this.capturedPointerId != null) {
+            if (this.touchShown) {
                 return;
             }
 
@@ -185,31 +189,8 @@ export default defineComponent({
                 return;
             }
 
-            const trigger = event.currentTarget as HTMLElement | null;
-
-            trigger?.setPointerCapture(event.pointerId);
-            this.capturedPointerId = event.pointerId;
+            this.touchShown = true;
             this.beginShow(event);
-        },
-
-        /**
-         * Handles the pointer up event
-         * @param {PointerEvent} event The event
-         * @returns {void}
-         */
-        onPointerUp(event: PointerEvent) {
-            if (this.capturedPointerId == null) {
-                return;
-            }
-
-            const trigger = event.currentTarget as HTMLElement | null;
-
-            if (trigger?.hasPointerCapture(event.pointerId)) {
-                trigger.releasePointerCapture(event.pointerId);
-            }
-
-            this.capturedPointerId = null;
-            this.hide();
         },
 
         /**
@@ -278,6 +259,7 @@ export default defineComponent({
          * @returns {void}
          */
         hide() {
+            this.touchShown = false;
             this.showGen += 1;
             this.clearShowTimer();
             this.clearRaf();
@@ -368,6 +350,12 @@ export default defineComponent({
                 this.rafId = null;
 
                 if (!this.visible) {
+                    return;
+                }
+
+                if (this.touchShown) {
+                    this.hide();
+
                     return;
                 }
 
@@ -516,18 +504,6 @@ export default defineComponent({
          */
         teardown() {
             this.hide();
-
-            if (this.capturedPointerId == null) {
-                return;
-            }
-
-            const trigger = this.$refs.triggerRef as HTMLElement | undefined;
-
-            if (trigger?.hasPointerCapture(this.capturedPointerId)) {
-                trigger.releasePointerCapture(this.capturedPointerId);
-            }
-
-            this.capturedPointerId = null;
         }
     }
 });

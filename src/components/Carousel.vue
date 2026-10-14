@@ -1,7 +1,7 @@
 <template>
     <div class="w-full">
         <div
-            class="relative w-full overflow-hidden"
+            class="relative w-full touch-pan-y overflow-hidden"
 
             @touchstart="onTouchStart"
             @touchmove="onTouchMove"
@@ -146,6 +146,8 @@
 import { defineComponent, type PropType } from "vue";
 import Button from "./Button.vue";
 
+const AXIS_LOCK_PX = 8;
+
 export default defineComponent({
     name: "Carousel",
 
@@ -194,6 +196,8 @@ export default defineComponent({
             pos: this.startIndex as number,
             hoverSelector: false,
             touchStartX: 0,
+            touchStartY: 0,
+            swipeAxis: null as "x" | "y" | null,
             swipeOffset: 0,
             isSwiping: false,
             itemCount: 0
@@ -318,7 +322,9 @@ export default defineComponent({
             }
 
             this.touchStartX = touch.clientX;
-            this.isSwiping = true;
+            this.touchStartY = touch.clientY;
+            this.swipeAxis = null;
+            this.isSwiping = false;
             this.swipeOffset = 0;
         },
 
@@ -334,7 +340,22 @@ export default defineComponent({
                 return;
             }
 
-            this.swipeOffset = touch.clientX - this.touchStartX;
+            const dx = touch.clientX - this.touchStartX;
+            const dy = touch.clientY - this.touchStartY;
+
+            // Decide once per gesture: only a mostly horizontal drag moves the carousel.
+            if (this.swipeAxis === null) {
+                if (Math.max(Math.abs(dx), Math.abs(dy)) < AXIS_LOCK_PX) {
+                    return;
+                }
+
+                this.swipeAxis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+                this.isSwiping = this.swipeAxis === "x";
+            }
+
+            if (this.swipeAxis === "x") {
+                this.swipeOffset = dx;
+            }
         },
 
         /**
@@ -343,6 +364,7 @@ export default defineComponent({
          */
         onTouchEnd() {
             this.isSwiping = false;
+            this.swipeAxis = null;
             const threshold = 50;
 
             if (this.swipeOffset < -threshold && this.pos < this.itemCount - 1) {

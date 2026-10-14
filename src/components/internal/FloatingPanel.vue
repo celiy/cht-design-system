@@ -113,6 +113,15 @@ export default defineComponent({
         },
 
         /**
+         * Which edge of the anchor the panel lines up with. The panel is then moved
+         * sideways (never resized) to stay inside the screen.
+         */
+        align: {
+            type: String as PropType<"left" | "center" | "right">,
+            default: "center"
+        },
+
+        /**
          * Maximum panel height in pixels.
          */
         maxHeightPx: {
@@ -671,12 +680,16 @@ export default defineComponent({
                 window.innerWidth - viewportPadding * 2,
                 this.lockToAnchor
             );
+            // Use the painted width: a locked width can be overridden by panel classes
+            // (e.g. `w-fit!`), and clamping against a stale width lets the panel overflow.
             const measured = panel?.offsetWidth ?? 0;
-            const panelWidth = lockWidth
-                ? width
-                : Math.min(Math.max(measured || width, minWidth), maxWidth);
+            const panelWidth = measured
+                ? measured
+                : lockWidth
+                  ? width
+                  : Math.min(Math.max(width, minWidth), maxWidth);
             const clampedLeft = clampPanelLeft(
-                preferredPanelLeft(rect.left, anchorWidth, panelWidth),
+                preferredPanelLeft(rect.left, anchorWidth, panelWidth, this.align),
                 panelWidth,
                 window.innerWidth,
                 viewportPadding

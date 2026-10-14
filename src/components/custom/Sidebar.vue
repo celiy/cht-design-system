@@ -84,6 +84,7 @@
                 <Button
                     background-style="background-transparent"
                     hover-style="hover:bg-accent!"
+                    class="p-2"
 
                     @click="toggleOpenClose"
                 >
@@ -351,7 +352,7 @@ export default defineComponent({
          * @returns {boolean} True if the device is mobile or tablet, false otherwise
          */
         isMobileOrTablet() {
-            return this.$project.device.isMobile || this.$project.device.isTablet;
+            return this.$project.device.isMobile;
         }
     },
 

@@ -1,18 +1,7 @@
 <template>
     <button
-        class="w-fit cursor-pointer font-semibold shadow-sm transition-all select-none disabled:cursor-not-allowed disabled:opacity-80"
-        :class="[
-            hoverClass,
-            backgroundClass,
-            borderClass,
-            shapeClass,
-            {
-                'p-1 px-2.5 text-xs': size === 'small' && shape !== 'rounded',
-                'p-1.5 px-3 text-sm': size === 'medium' && shape !== 'rounded',
-                'p-2 px-3.5 text-base': size === 'large' && shape !== 'rounded'
-            },
-            buttonClass
-        ]"
+        class="w-fit cursor-pointer font-semibold shadow-sm transition-all select-none disabled:cursor-not-allowed disabled:opacity-60"
+        :class="[hoverClass, backgroundClass, borderClass, shapeClass, buttonClass]"
         :disabled="disabled"
         :form="form"
         :type="type"
@@ -276,20 +265,22 @@ export default defineComponent({
                 return "hover:brightness-80";
             }
 
+            if (!this.hoverEffect) {
+                return "";
+            }
+
+            if (this.$project.device.isMobile) {
+                return "";
+            }
+
             return {
                 "hover-ring":
-                    this.hoverEffect &&
-                    this.hovered &&
-                    (this.variant === "default" || this.variant === "secondary"),
-                "hover-ring-primary":
-                    this.hoverEffect && this.hovered && this.variant === "primary",
-                "hover-ring-destructive":
-                    this.hoverEffect && this.hovered && this.variant === "destructive",
-                "hover-ring-success":
-                    this.hoverEffect && this.hovered && this.variant === "success",
-                "hover-ring-info": this.hoverEffect && this.hovered && this.variant === "info",
-                "hover-ring-warning":
-                    this.hoverEffect && this.hovered && this.variant === "warning",
+                    this.hovered && (this.variant === "default" || this.variant === "secondary"),
+                "hover-ring-primary": this.hovered && this.variant === "primary",
+                "hover-ring-destructive": this.hovered && this.variant === "destructive",
+                "hover-ring-success": this.hovered && this.variant === "success",
+                "hover-ring-info": this.hovered && this.variant === "info",
+                "hover-ring-warning": this.hovered && this.variant === "warning",
 
                 "hover:shadow-md": !this.disabled,
                 "hover:bg-destructive/40":
@@ -297,9 +288,7 @@ export default defineComponent({
                 "hover:bg-input/50": this.variant === "default",
                 "hover:bg-accent": this.variant === "transparent",
                 "bg-accent! hover-ring":
-                    this.hoverEffect &&
-                    this.hovered &&
-                    (this.variant === "outline" || this.variant === "bordered")
+                    this.hovered && (this.variant === "outline" || this.variant === "bordered")
             };
         },
 
@@ -366,6 +355,9 @@ export default defineComponent({
             }
 
             return {
+                "p-1 px-2.5 text-xs": this.size === "small" && this.shape !== "rounded",
+                "p-1.5 px-2.5 text-sm": this.size === "medium" && this.shape !== "rounded",
+                "p-2 px-3.5 text-base": this.size === "large" && this.shape !== "rounded",
                 rounded: this.shape === "square",
                 "flex aspect-square items-center justify-center justify-items-center rounded-full p-0":
                     this.shape === "rounded"

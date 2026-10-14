@@ -10,7 +10,7 @@
         >
             <!-- Header -->
             <div
-                class="cursor-pointer select-none transition-all"
+                class="cursor-pointer transition-all select-none"
                 :class="{
                     'rounded-none': variant === 'bordered',
                     'translate-y-[0.1rem]': isPressed
@@ -25,13 +25,11 @@
                 @touchleave="handlePressEnd"
                 @click="toggleOpenClose"
             >
-                <span
-                    class="flex items-center justify-between text-foreground p-3 transition-all"
-                >
+                <span class="flex items-center justify-between p-3 text-foreground transition-all">
                     <!-- Header text -->
-                    <span 
-                        class="text-base" 
-                        :class="{ 'underline' : inside }"
+                    <span
+                        class="text-base"
+                        :class="{ underline: inside && !$project.device.isMobile }"
                     >
                         {{ header }}
                     </span>
@@ -40,12 +38,12 @@
                         <!-- Pin button -->
                         <i
                             v-if="pinnable"
-                            v-tooltip="'Fixar para não fechar'"
 
+                            v-tooltip="'Fixar para não fechar'"
                             class="fa-solid fa-thumbtack inline-flex items-center justify-center text-xs"
                             :class="{
                                 'text-foreground': isPinned,
-                                'text-muted-foreground': !isPinned,
+                                'text-muted-foreground': !isPinned
                             }"
 
                             @click.stop="pin"
@@ -54,7 +52,7 @@
                         <!-- Chevron down icon -->
                         <i
                             class="fa-solid fa-chevron-down ml-2 text-sm text-muted-foreground transition-transform duration-300 ease-out"
-                            :class="{ 'rotate-180' : isOpen }"
+                            :class="{ 'rotate-180': isOpen }"
                         />
                     </div>
                 </span>
@@ -237,7 +235,10 @@ export default defineComponent({
             const root = this.$refs.rootRef as HTMLElement | undefined;
             const contentPanel = this.$refs.contentPanelRef as HTMLElement | undefined;
             const target = event.target as Node;
-            const targetEl = event.target instanceof Element ? event.target : (event.target as Node).parentElement;
+            const targetEl =
+                event.target instanceof Element
+                    ? event.target
+                    : (event.target as Node).parentElement;
 
             // Teleported Dropdown panels are not inside rootRef
             if (targetEl?.closest?.("[data-dropdown-floating-panel]")) {

@@ -20,7 +20,7 @@
                 type="radio"
                 class="custom-radio relative h-4 w-4 shrink-0 cursor-pointer rounded-full border border-input bg-input/30 transition-all"
                 :class="{
-                    'hover-ring': hovered && !disabled,
+                    'hover-ring': hovered && !disabled && !$project.device.isMobile,
                     'translate-y-0.75': label || description
                 }"
                 :name="name"

@@ -63,6 +63,7 @@
             :min-width-px="minWidthPx"
             :max-width-px="maxWidthPx"
             :lock-to-anchor="lockToAnchor"
+            :align="align"
             :mobile-modal="mobileModal"
             :force-modal="forceModal"
             :panel-class="panelClass"
@@ -78,7 +79,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, type PropType } from "vue";
 import Button from "./Button.vue";
 import FloatingPanel from "./internal/FloatingPanel.vue";
 
@@ -91,6 +92,15 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * Which edge of the trigger the panel lines up with (`left`, `center` or `right`).
+         * The panel shifts sideways to stay on screen instead of being resized.
+         */
+        align: {
+            type: String as PropType<"left" | "center" | "right">,
+            default: "center"
+        },
+
         /**
          * Whether the popover is header
          */

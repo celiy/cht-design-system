@@ -4,25 +4,14 @@
         v-bind="$attrs"
         :class="{
             'text-destructive!': isDestructive,
-            'bg-destructive/20!':
-                (showCheckmark || showCheckboxSwitch) &&
-                selected &&
-                isDestructive &&
-                !hasChildren &&
-                !separator,
-            'bg-destructive/30!': highlighted && !$project.device.isMobile && isDestructive,
-            'hover:bg-destructive/30!': isSelectable && isDestructive && !disabled,
+            'bg-destructive/20!': showSelectedBackground && isDestructive,
+            'bg-destructive/30!': highlighted && !isMobile && isDestructive,
+            'hover:bg-destructive/30!': isSelectable && isDestructive && !disabled && !isMobile,
 
             'text-popover-foreground': !isDestructive,
-            'bg-accent/50':
-                (showCheckmark || showCheckboxSwitch) &&
-                selected &&
-                !highlighted &&
-                !isDestructive &&
-                !hasChildren &&
-                !separator,
-            'bg-accent!': highlighted && !$project.device.isMobile && !isDestructive,
-            'hover:bg-accent': isSelectable && !isDestructive && !disabled,
+            'bg-accent/50': showSelectedBackground && !isDestructive && (isMobile || !highlighted),
+            'bg-accent!': highlighted && !isMobile && !isDestructive,
+            'hover:bg-accent': isSelectable && !isDestructive && !disabled && !isMobile,
 
             'mx-1 cursor-pointer px-2.5 py-1.5': isSelectable && !disabled,
             'mx-1 cursor-not-allowed px-2.5 py-1.5 opacity-80': isSelectable && disabled,
@@ -295,6 +284,27 @@ export default defineComponent({
     emits: ["click", "mouseenter"],
 
     computed: {
+        /**
+         * Whether the device is mobile (no hover or arrow keys, so only selection is highlighted)
+         * @returns {boolean} True if is mobile
+         */
+        isMobile(): boolean {
+            return Boolean(this.$project?.device?.isMobile);
+        },
+
+        /**
+         * Whether the selected state paints the option background.
+         * On mobile any selected option is painted; on desktop only checkmark/switch options.
+         * @returns {boolean} True if the selected background shows
+         */
+        showSelectedBackground(): boolean {
+            if (!this.selected || this.hasChildren || this.separator) {
+                return false;
+            }
+
+            return this.isMobile || this.showCheckmark || this.showCheckboxSwitch;
+        },
+
         /**
          * Gets the indicator style
          * @returns {unknown} The indicator style

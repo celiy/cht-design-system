@@ -35,6 +35,14 @@ assert(preferredPanelLeft(8, 80, 80) === 8, "same width → start");
 assert(preferredPanelLeft(8, 80, 160) === 8, "wider panel → start");
 assert(preferredPanelLeft(8, 300, 100) === 208, "narrower panel → end");
 
+assert(preferredPanelLeft(100, 40, 200, "left") === 100, "align left → anchor left");
+assert(preferredPanelLeft(100, 40, 200, "right") === -60, "align right → anchor right edge");
+assert(preferredPanelLeft(100, 40, 200, "center") === 20, "align center → anchor center");
+assert(
+    clampPanelLeft(preferredPanelLeft(264, 40, 200, "left"), 200, 375, 8) === 167,
+    "left-aligned panel that overflows is shifted in, not resized"
+);
+
 const unlocked = panelWidthConstraints(44, undefined, 200, 400, false);
 assert(unlocked.lockWidth === false, "popover: content can grow");
 assert(unlocked.minWidth === 0 && unlocked.maxWidth === 200, "popover: no anchor floor, cap applies");

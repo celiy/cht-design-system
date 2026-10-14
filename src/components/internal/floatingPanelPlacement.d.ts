@@ -23,12 +23,14 @@ export function clampPanelLeft(
  * @param {number} anchorLeft The anchor left
  * @param {number} anchorWidth The anchor width
  * @param {number} panelWidth The panel width
+ * @param {"left" | "center" | "right"} [align] Which edge of the trigger the panel lines up with
  * @returns {number} The preferred left
  */
 export function preferredPanelLeft(
     anchorLeft: number,
     anchorWidth: number,
-    panelWidth: number
+    panelWidth: number,
+    align?: "left" | "center" | "right"
 ): number;
 
 /**
