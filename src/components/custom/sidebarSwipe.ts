@@ -49,3 +49,47 @@ export function closedSidebarPeekPx(xDrag: boolean, xOffset: number): number {
 
     return xOffset - TOUCH_OPEN_X_THRESHOLD;
 }
+
+/**
+ * Whether the element handles horizontal gestures itself: it scrolls sideways for real
+ * (`overflow-x` auto/scroll with overflowing content; the page root scrolls unless
+ * `overflow-x: hidden`) or declares `touch-action: pan-y`/`none` (carousels, sliders).
+ * The sidebar must not claim a swipe that starts inside one.
+ */
+export function ownsHorizontalGesture(element: Element): boolean {
+    const style = getComputedStyle(element);
+    const touchAction = style.touchAction;
+    const claimsX =
+        touchAction === "none" || (touchAction.includes("pan-y") && !touchAction.includes("pan-x"));
+
+    if (claimsX) {
+        return true;
+    }
+
+    const overflows = element.scrollWidth > element.clientWidth + 1;
+    const isRoot = element === document.documentElement;
+    const scrollsX = isRoot
+        ? style.overflowX !== "hidden"
+        : style.overflowX === "auto" || style.overflowX === "scroll";
+
+    return scrollsX && overflows;
+}
+
+/**
+ * Walks from the touch target up to the page root looking for an element that owns the
+ * horizontal gesture. The sidebar's own content container is included: on pages whose
+ * content overflows sideways it is the element that scrolls.
+ */
+export function touchStartsInHorizontalGesture(target: EventTarget | null): boolean {
+    let node = target instanceof Element ? target : null;
+
+    while (node) {
+        if (ownsHorizontalGesture(node)) {
+            return true;
+        }
+
+        node = node.parentElement;
+    }
+
+    return false;
+}

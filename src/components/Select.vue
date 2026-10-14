@@ -128,10 +128,11 @@
             :anchor="triggerEl"
             :max-height-px="maxHeightPx"
             :panel-class="panelClass"
-            :mobile-modal="mobileModal"
+            :mobile-modal="shouldOpenModal"
             :force-modal="forceModal"
-            :prefer-above="Boolean(separateSelected)"
+            :prefer-above="(combobox && $project.device.isMobile) || Boolean(separateSelected)"
             :open="internalOpen"
+            :align="align"
 
             @update:open="onPanelOpenUpdate"
         >
@@ -252,6 +253,15 @@ export default defineComponent({
         id: {
             type: String,
             required: false
+        },
+
+        /**
+         * Which edge of the trigger the panel lines up with (`left`, `center` or `right`).
+         * The panel shifts sideways to stay on screen instead of being resized.
+         */
+        align: {
+            type: String as PropType<"left" | "center" | "right">,
+            default: "center"
         },
 
         /**
@@ -524,6 +534,22 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Checks if should open modal
+         * @returns {boolean} True if should open modal
+         */
+        shouldOpenModal() {
+            if (this.forceModal) {
+                return true;
+            }
+
+            if (this.$project.device.isMobile && this.combobox) {
+                return false;
+            }
+
+            return this.$project.device.isMobile;
+        },
+
         /**
          * Checks if panel open
          * @returns {boolean} True if is panel open

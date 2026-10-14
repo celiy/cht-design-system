@@ -102,6 +102,7 @@
                             :type="htmlInputType"
                             :name="id"
                             :autocomplete="inputAutocomplete"
+                            :inputmode="inputmode"
                             :placeholder="placeholder"
                             :disabled="disabled"
                             :readonly="isReadonlyMode"
@@ -412,6 +413,16 @@ export default defineComponent({
          */
         autocomplete: {
             type: String,
+            required: false
+        },
+
+        /**
+         * Virtual keyboard hint (`numeric`, `tel`, `email`, ...)
+         */
+        inputmode: {
+            type: String as PropType<
+                "none" | "text" | "decimal" | "numeric" | "tel" | "search" | "email" | "url"
+            >,
             required: false
         },
 

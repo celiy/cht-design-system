@@ -13,15 +13,22 @@ export function clampPanelLeft(preferredLeft, panelWidth, viewportWidth, padding
 }
 
 /**
- * Prefer the trigger's left edge, or its right edge when the panel is narrower
- * (e.g. maxWidthPx smaller than the anchor).
+ * Horizontal position of the panel relative to the trigger.
+ * `left` keeps the trigger's left edge (or its right edge when the panel is narrower,
+ * e.g. maxWidthPx smaller than the anchor); `center` and `right` align to the trigger
+ * center and right edge. The result is meant to go through `clampPanelLeft`.
  *
  * @param {number} anchorLeft
  * @param {number} anchorWidth
  * @param {number} panelWidth
+ * @param {"left" | "center" | "right"} [align="left"]
  */
-export function preferredPanelLeft(anchorLeft, anchorWidth, panelWidth) {
-    if (panelWidth < anchorWidth) {
+export function preferredPanelLeft(anchorLeft, anchorWidth, panelWidth, align = "left") {
+    if (align === "center") {
+        return anchorLeft + (anchorWidth - panelWidth) / 2;
+    }
+
+    if (align === "right" || panelWidth < anchorWidth) {
         return anchorLeft + anchorWidth - panelWidth;
     }
 

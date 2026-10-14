@@ -4,7 +4,58 @@
         :style="optionsScrollStyle"
     >
         <div
-            v-if="search"
+            v-if="drillPath.length > 0"
+
+            class="flex shrink-0 items-center gap-1 border-b px-2 py-1.5 text-sm"
+        >
+            <button
+                type="button"
+                class="flex shrink-0 cursor-pointer items-center rounded p-1.5 hover:bg-accent"
+                aria-label="Voltar"
+
+                @click="drillBack"
+            >
+                <i class="fa-solid fa-chevron-left text-xs" />
+            </button>
+
+            <nav
+                class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto whitespace-nowrap"
+                aria-label="Camadas do menu"
+            >
+                <template
+                    v-for="(crumb, crumbIndex) of drillCrumbs"
+                    :key="`crumb-${crumbIndex}`"
+                >
+                    <i
+                        v-if="crumbIndex > 0"
+
+                        class="fa-solid fa-chevron-right shrink-0 text-[0.6rem] text-muted-foreground"
+                    />
+
+                    <span
+                        v-if="crumbIndex === drillCrumbs.length - 1"
+
+                        class="truncate font-semibold"
+                    >
+                        {{ crumb }}
+                    </span>
+
+                    <button
+                        v-else
+
+                        type="button"
+                        class="shrink-0 cursor-pointer rounded px-1 py-0.5 text-muted-foreground hover:bg-accent"
+
+                        @click="drillTo(crumbIndex)"
+                    >
+                        {{ crumb }}
+                    </button>
+                </template>
+            </nav>
+        </div>
+
+        <div
+            v-if="search && drillPath.length === 0"
 
             class="shrink-0"
         >
@@ -263,6 +314,7 @@ export default defineComponent({
             highlightedIndex: -1,
             optionRefs: [] as (HTMLElement | null)[],
             nestedItem: null as OptionItem | null,
+            drillPath: [] as OptionItem[],
             nestedPanelStyle: {} as Record<string, string>,
             nestedCloseTimer: null as number | null,
             searchExternalTimer: null as number | null,
@@ -284,13 +336,30 @@ export default defineComponent({
         },
 
         /**
+         * On mobile, submenus replace the list one layer at a time instead of opening a side panel
+         * @returns {boolean} True if submenus drill down
+         */
+        isDrillDown(): boolean {
+            return Boolean(this.$project?.device?.isMobile);
+        },
+
+        /**
+         * Labels of the layers, root first, for the drill-down header
+         * @returns {string[]} The crumbs
+         */
+        drillCrumbs(): string[] {
+            return ["Início", ...this.drillPath.map((item) => item.label ?? "")];
+        },
+
+        /**
          * Gets the visible options
          * @returns {OptionItem[]} The visible options
          */
         visibleOptions(): OptionItem[] {
-            const source = this.options ?? [];
+            const drilled = this.drillPath[this.drillPath.length - 1];
+            const source = drilled?.options ?? this.options ?? [];
 
-            if (!this.search || this.search.external) {
+            if (drilled || !this.search || this.search.external) {
                 return [...source];
             }
 
@@ -466,7 +535,52 @@ export default defineComponent({
                 return false;
             }
 
-            return Boolean(this.isOptionSelected?.(item.value, item));
+            const parent = this.drillPath[this.drillPath.length - 1];
+
+            return Boolean(this.isOptionSelected?.(item.value, item, parent));
+        },
+
+        /**
+         * Enters a submenu (mobile drill-down)
+         * @param {OptionItem} item The item with children
+         * @returns {void}
+         */
+        drillInto(item: OptionItem) {
+            this.drillPath = [...this.drillPath, item];
+            this.scrollOptionsToTop();
+        },
+
+        /**
+         * Goes back one layer
+         * @returns {void}
+         */
+        drillBack() {
+            this.drillPath = this.drillPath.slice(0, -1);
+            this.scrollOptionsToTop();
+        },
+
+        /**
+         * Jumps to a layer; index 0 is the root
+         * @param {number} crumbIndex The crumb index
+         * @returns {void}
+         */
+        drillTo(crumbIndex: number) {
+            this.drillPath = this.drillPath.slice(0, crumbIndex);
+            this.scrollOptionsToTop();
+        },
+
+        /**
+         * Scrolls the list back to the top after a layer change
+         * @returns {void}
+         */
+        scrollOptionsToTop() {
+            this.$nextTick(() => {
+                const scroller = this.$refs.optionsScrollRef as HTMLElement | undefined;
+
+                if (scroller) {
+                    scroller.scrollTop = 0;
+                }
+            });
         },
 
         /**
@@ -505,6 +619,10 @@ export default defineComponent({
             }
 
             this.highlightedIndex = idx;
+
+            if (this.isDrillDown) {
+                return;
+            }
 
             if (this.hasChildren(item) && item.openOn !== "click") {
                 this.openNested(item, idx);
@@ -742,6 +860,13 @@ export default defineComponent({
                 return;
             }
 
+            if (this.drillPath.length > 0 && event.key === "Escape") {
+                this.consumeKey(event);
+                this.drillBack();
+
+                return;
+            }
+
             if (this.nestedItem) {
                 if (event.key === "Escape") {
                     this.consumeKey(event);
@@ -770,7 +895,12 @@ export default defineComponent({
 
                 if (item && this.hasChildren(item)) {
                     this.consumeKey(event);
-                    this.openNested(item, this.highlightedIndex);
+
+                    if (this.isDrillDown) {
+                        this.drillInto(item);
+                    } else {
+                        this.openNested(item, this.highlightedIndex);
+                    }
                 }
 
                 return;
@@ -812,6 +942,12 @@ export default defineComponent({
                 return;
             }
 
+            if (this.hasChildren(item) && this.isDrillDown) {
+                this.drillInto(item);
+
+                return;
+            }
+
             if (this.hasChildren(item)) {
                 if (this.nestedItem === item) {
                     this.closeNested();
@@ -829,7 +965,7 @@ export default defineComponent({
                 return;
             }
 
-            this.$emit("select", item.value, item);
+            this.$emit("select", item.value, item, this.drillPath[this.drillPath.length - 1]);
             this.localSearchQuery = "";
             this.$emit("update:searchQuery", "");
             this.scheduleExternalSearch("");

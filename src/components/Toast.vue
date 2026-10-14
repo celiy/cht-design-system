@@ -92,7 +92,7 @@ export type ToastPosition =
 const MAX_VISIBLE = 4;
 const STACK_OFFSET_PX = 10;
 const STACK_GAP_PX = 8;
-const SWIPE_DISMISS_PX = 72;
+const SWIPE_DISMISS_PX = 40;
 const FALLBACK_TOAST_HEIGHT = 40;
 
 export default defineComponent({
@@ -131,6 +131,7 @@ export default defineComponent({
             swipeStartX: 0,
             swipeStartY: 0,
             swipeLocked: false,
+            swipeDismissed: null as { id: number; dx: number } | null,
             itemHeights: {} as Record<number, number>,
             resizeObservers: new Map() as Map<number, ResizeObserver>,
             panelEls: new Map() as Map<number, HTMLElement>
@@ -463,6 +464,16 @@ export default defineComponent({
                 style.opacity = String(Math.max(0.2, 1 - Math.abs(this.swipeDx) / 140));
             }
 
+            if (this.swipeDismissed?.id === id) {
+                // Stay where the finger let go, then leave in the swiped direction.
+                const dx = this.swipeDismissed.dx;
+                const exitX = Math.sign(dx) * Math.max(Math.abs(dx), 72);
+
+                style["--toast-x"] = `${dx}px`;
+                style["--toast-leave-x"] = `${exitX}px`;
+                style.opacity = String(Math.max(0.2, 1 - Math.abs(dx) / 140));
+            }
+
             return style;
         },
 
@@ -571,14 +582,19 @@ export default defineComponent({
                 return;
             }
 
-            const shouldDismiss = this.swipeLocked && Math.abs(this.swipeDx) >= SWIPE_DISMISS_PX;
+            const dx = this.swipeDx;
+            const shouldDismiss = this.swipeLocked && Math.abs(dx) >= SWIPE_DISMISS_PX;
 
             this.swipeId = null;
             this.swipeDx = 0;
             this.swipeLocked = false;
 
             if (shouldDismiss) {
-                this.dismissItem(id);
+                // Render the release position first: a removed item is no longer patched.
+                this.swipeDismissed = { id, dx };
+                void this.$nextTick(() => {
+                    this.dismissItem(id);
+                });
             }
         },
 

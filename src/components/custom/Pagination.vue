@@ -2,126 +2,138 @@
     <div
         v-if="amount > 1"
 
-        class="flex w-full justify-center gap-1 md:gap-2"
+        class="flex w-full flex-wrap justify-center gap-1 md:gap-2"
     >
-        <Button
-            v-tooltip="'Ir para primeira página'"
-            variant="transparent"
-            :class="[{ transparent: selectedPage > 1 }, { invisible: selectedPage === 1 }]"
+        <div class="flex justify-center gap-1 md:gap-2">
+            <Button
+                v-tooltip="$project.device.isMobile ? '' : 'Ir para primeira página'"
+                variant="transparent"
+                :class="[{ transparent: selectedPage > 1 }, { invisible: selectedPage === 1 }]"
 
-            @click="goFirst"
-        >
-            <span class="fa-solid fa-angle-double-left" />
-        </Button>
-
-        <Button
-            v-tooltip="'Voltar uma página'"
-            variant="transparent"
-            :class="[{ transparent: selectedPage > 1 }, { invisible: selectedPage === 1 }]"
-
-            @click="goPrev"
-        >
-            <span class="flex items-center gap-1">
-                <span class="fa-solid fa-arrow-left" />
-            </span>
-        </Button>
-
-        <Popover
-            v-if="pagesHiddenBeforeOptions.length > 0"
-
-            class="w-fit!"
-            header="..."
-            panel-class="w-fit! p-1"
-            close-on-content-click
-        >
-            <div
-                class="inline-grid w-fit gap-1"
-                :style="getHiddenPagesGridStyle(pagesHiddenBeforeOptions.length)"
+                @click="goFirst"
             >
-                <Button
-                    v-for="page of pagesHiddenBeforeOptions"
-                    :key="page.value"
+                <span class="fa-solid fa-angle-double-left" />
+            </Button>
 
-                    :variant="
-                        Number.parseInt(page.value, 10) !== selectedPage ? 'transparent' : 'default'
-                    "
+            <Button
+                v-tooltip="$project.device.isMobile ? '' : 'Voltar uma página'"
+                variant="transparent"
+                :class="[{ transparent: selectedPage > 1 }, { invisible: selectedPage === 1 }]"
 
-                    @click="selectPage(Number.parseInt(page.value, 10))"
-                >
-                    {{ page.label }}
-                </Button>
-            </div>
-        </Popover>
-
-        <div class="flex gap-1">
-            <div
-                v-for="page of pagesToShow"
-                :key="page"
+                @click="goPrev"
             >
-                <Button
-                    :variant="page != selectedPage ? 'transparent' : 'default'"
-
-                    @click="selectPage(page)"
-                >
-                    {{ page }}
-                </Button>
-            </div>
+                <span class="flex items-center gap-1">
+                    <span class="fa-solid fa-arrow-left" />
+                </span>
+            </Button>
         </div>
 
-        <Popover
-            v-if="pagesHiddenAfterOptions.length > 0"
+        <div class="flex flex-wrap justify-center gap-1 md:gap-2">
+            <Popover
+                v-if="pagesHiddenBeforeOptions.length > 0"
 
-            class="w-fit!"
-            header="..."
-            panel-class="w-fit! p-1"
-            close-on-content-click
-        >
-            <div
-                class="inline-grid w-fit gap-1"
-                :style="getHiddenPagesGridStyle(pagesHiddenAfterOptions.length)"
+                class="w-fit!"
+                header="..."
+                panel-class="w-fit! p-1"
+                close-on-content-click
+                :min-width-px="10"
             >
-                <Button
-                    v-for="page of pagesHiddenAfterOptions"
-                    :key="page.value"
-
-                    :variant="
-                        Number.parseInt(page.value, 10) !== selectedPage ? 'transparent' : 'default'
-                    "
-
-                    @click="selectPage(Number.parseInt(page.value, 10))"
+                <div
+                    class="inline-grid w-fit gap-1"
+                    :style="getHiddenPagesGridStyle(pagesHiddenBeforeOptions.length)"
                 >
-                    {{ Number.parseInt(page.value, 10) }}
-                </Button>
+                    <Button
+                        v-for="page of pagesHiddenBeforeOptions"
+                        :key="page.value"
+
+                        :variant="
+                            Number.parseInt(page.value, 10) !== selectedPage
+                                ? 'transparent'
+                                : 'default'
+                        "
+
+                        @click="selectPage(Number.parseInt(page.value, 10))"
+                    >
+                        {{ page.label }}
+                    </Button>
+                </div>
+            </Popover>
+
+            <div class="flex flex-wrap justify-center gap-1">
+                <div
+                    v-for="page of pagesToShow"
+                    :key="page"
+                >
+                    <Button
+                        :variant="page != selectedPage ? 'transparent' : 'default'"
+
+                        @click="selectPage(page)"
+                    >
+                        {{ page }}
+                    </Button>
+                </div>
             </div>
-        </Popover>
 
-        <Button
-            v-tooltip="'Avançar uma página'"
-            variant="transparent"
-            :class="[
-                { transparent: selectedPage < amount },
-                { invisible: selectedPage === amount }
-            ]"
+            <Popover
+                v-if="pagesHiddenAfterOptions.length > 0"
 
-            @click="goNext"
-        >
-            <span class="flex items-center gap-1">
-                <span class="fa-solid fa-arrow-right" />
-            </span>
-        </Button>
+                class="w-fit!"
+                header="..."
+                panel-class="w-fit! p-1"
+                close-on-content-click
+                :min-width-px="10"
+            >
+                <div
+                    class="inline-grid w-fit gap-1"
+                    :style="getHiddenPagesGridStyle(pagesHiddenAfterOptions.length)"
+                >
+                    <Button
+                        v-for="page of pagesHiddenAfterOptions"
+                        :key="page.value"
 
-        <Button
-            v-tooltip="'Ir para a última página'"
-            variant="transparent"
-            :class="[
-                { transparent: selectedPage < amount },
-                { invisible: selectedPage === amount }
-            ]"
+                        :variant="
+                            Number.parseInt(page.value, 10) !== selectedPage
+                                ? 'transparent'
+                                : 'default'
+                        "
 
-            @click="goLast"
-        >
-            <span class="fa-solid fa-angle-double-right" />
-        </Button>
+                        @click="selectPage(Number.parseInt(page.value, 10))"
+                    >
+                        {{ Number.parseInt(page.value, 10) }}
+                    </Button>
+                </div>
+            </Popover>
+        </div>
+
+        <div class="flex justify-center gap-1 md:gap-2">
+            <Button
+                v-tooltip="$project.device.isMobile ? '' : 'Avançar uma página'"
+                variant="transparent"
+                :class="[
+                    { transparent: selectedPage < amount },
+                    { invisible: selectedPage === amount }
+                ]"
+
+                @click="goNext"
+            >
+                <span class="flex items-center gap-1">
+                    <span class="fa-solid fa-arrow-right" />
+                </span>
+            </Button>
+
+            <Button
+                v-tooltip="$project.device.isMobile ? '' : 'Ir para a última página'"
+                variant="transparent"
+                :class="[
+                    { transparent: selectedPage < amount },
+                    { invisible: selectedPage === amount }
+                ]"
+
+                @click="goLast"
+            >
+                <span class="fa-solid fa-angle-double-right" />
+            </Button>
+        </div>
     </div>
 </template>
 

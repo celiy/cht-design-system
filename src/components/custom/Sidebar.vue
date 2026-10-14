@@ -8,6 +8,7 @@
                 :class="isMobileOrTablet ? '' : 'hidden'"
                 aria-hidden="true"
 
+                @touchend="closeNav"
                 @click="closeNav"
             />
         </Transition>
@@ -45,7 +46,7 @@
                 <div
                     v-if="resolvedNav"
 
-                    class="mb-8 min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-1 pb-2 pl-2"
+                    class="mb-8 min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pr-1 pb-2 pl-2"
                     :class="{ 'sidebar-links-scroll-hidden': !showScrollBar }"
                 >
                     <SideBarLinks
@@ -71,7 +72,7 @@
         <div
             ref="mainContentScrollRef"
 
-            class="box-border flex h-full min-h-0 w-full flex-1 flex-col overflow-y-auto"
+            class="box-border flex h-full min-h-0 w-full flex-1 flex-col overflow-y-auto overscroll-contain"
             :class="{ 'transition-[margin-left] duration-300 ease-out': !isResizing }"
             :style="mainContentStyle"
         >
@@ -84,6 +85,7 @@
                 <Button
                     background-style="background-transparent"
                     hover-style="hover:bg-accent!"
+                    class="p-2"
 
                     @click="toggleOpenClose"
                 >
@@ -111,6 +113,7 @@
                 >
                     <Button
                         variant="transparent"
+                        class="p-2"
 
                         @click="toggleOpenClose"
                     >
@@ -156,7 +159,8 @@ import {
     openSidebarDragPx,
     shouldCloseSidebarOnSwipeEnd,
     shouldOpenSidebarOnSwipeEnd,
-    shouldRebaseTouchOrigin
+    shouldRebaseTouchOrigin,
+    touchStartsInHorizontalGesture
 } from "./sidebarSwipe";
 
 export default defineComponent({
@@ -351,7 +355,7 @@ export default defineComponent({
          * @returns {boolean} True if the device is mobile or tablet, false otherwise
          */
         isMobileOrTablet() {
-            return this.$project.device.isMobile || this.$project.device.isTablet;
+            return this.$project.device.isMobile;
         }
     },
 
@@ -504,6 +508,10 @@ export default defineComponent({
                 return;
             }
 
+            if (touchStartsInHorizontalGesture(e.target)) {
+                return;
+            }
+
             this.beginSwipe(e);
         },
 
@@ -534,6 +542,11 @@ export default defineComponent({
 
         onContentTouchStart(e: TouchEvent) {
             if (!this.isMobileOrTablet || this.open) {
+                return;
+            }
+
+            // Carousels, sliders and horizontally scrolling areas keep their own swipe.
+            if (touchStartsInHorizontalGesture(e.target)) {
                 return;
             }
 

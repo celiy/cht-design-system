@@ -15,7 +15,8 @@
                 'bg-primary': checked,
                 'bg-input/70': !checked && !disabled,
                 'bg-input': disabled,
-                'hover-ring': (isFocused || hovered) && !disabled && clickable,
+                'hover-ring':
+                    (isFocused || hovered) && !disabled && clickable && !$project.device.isMobile,
 
                 'h-3.5 w-7': size === 'small',
                 'h-4.5 w-8': size === 'medium'

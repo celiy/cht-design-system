@@ -61,6 +61,7 @@
             :mobile-modal="mobileModal"
             :force-modal="forceModal"
             :open="panelBindOpen"
+            :align="align"
 
             @update:open="onPanelOpenUpdate"
         >
@@ -99,6 +100,15 @@ export default defineComponent({
     },
 
     props: {
+        /**
+         * Which edge of the trigger the panel lines up with (`left`, `center` or `right`).
+         * The panel shifts sideways to stay on screen instead of being resized.
+         */
+        align: {
+            type: String as PropType<"left" | "center" | "right">,
+            default: "center"
+        },
+
         /**
          * The header of the dropdown
          */

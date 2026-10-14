@@ -28,7 +28,7 @@
         />
 
         <Modal
-            variant="preview"
+            type="preview"
             :is-open="modalOpen"
 
             @update:value="modalOpen = $event"

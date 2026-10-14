@@ -1,10 +1,11 @@
 <template>
     <Modal
-        variant="blank"
+        type="blank"
         size="extra-small"
         :is-open="isOpen"
         :color="variant"
         :keep-open="true"
+        footer-style="p-2 md:p-3 bg-muted/50 border-t"
 
         @update:value="onModalOpenUpdate"
     >
