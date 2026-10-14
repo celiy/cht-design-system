@@ -26,9 +26,11 @@
         <template #body>
             <BarChart
                 v-if="variant === 'bars'"
-                v-bind="$attrs"
 
+                v-bind="chartProps"
                 :data="data"
+
+                @click:bar="$emit('click:bar', $event)"
             >
                 <template
                     v-if="$slots.label"
@@ -43,8 +45,8 @@
 
             <WaveChart
                 v-else
-                v-bind="$attrs"
 
+                v-bind="chartProps"
                 :data="data"
                 :filter="showDateFilter ? filter : 'all'"
             >
@@ -88,6 +90,32 @@ export default defineComponent({
 
     props: {
         /**
+         * Chart props, forwarded as they are. Unset ones keep the chart's own default.
+         */
+        color: { type: String, required: false },
+        stack: { type: String, required: false },
+        legend: { type: Boolean, default: false },
+        showLabels: { type: Boolean, default: false },
+        labelClass: { type: String, required: false },
+        animated: { type: Boolean, default: true },
+        bucket: { type: String, required: false },
+        hideAxisLabels: { type: Boolean, default: false },
+        backgroundLinesCount: { type: Number, required: false },
+        clickable: { type: Boolean, default: false },
+        direction: { type: String, required: false },
+        colorEnd: { type: String, required: false },
+        negativeColor: { type: String, required: false },
+        negativeColorEnd: { type: String, required: false },
+        barSize: { type: Number, required: false },
+        barGap: { type: Number, required: false },
+        groupGap: { type: Number, required: false },
+        align: { type: String, required: false },
+        type: { type: String, required: false },
+        waveStyle: { type: String, required: false },
+        dots: { type: Boolean, default: false },
+        verticalPadding: { type: Number, required: false },
+
+        /**
          * Which chart is drawn.
          */
         variant: {
@@ -122,6 +150,8 @@ export default defineComponent({
         }
     },
 
+    emits: ["click:bar"],
+
     data() {
         return {
             dateFilters: [
@@ -135,6 +165,18 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Chart props forwarded to the active chart (everything except the card's own).
+         * @returns {Record<string, unknown>} The chart props
+         */
+        chartProps(): Record<string, unknown> {
+            const own = ["variant", "header", "description", "cardAtributes", "data", "filter"];
+
+            return Object.fromEntries(
+                Object.entries(this.$props).filter(([key]) => !own.includes(key))
+            );
+        },
+
         /**
          * Whether the data is on a category axis (no date filter then).
          * @returns {boolean} True for grouped data

@@ -10,7 +10,6 @@
                 :delay="0"
 
                 @pointerenter="onPlotPointerMove"
-                @pointermove="onPlotPointerMove"
             >
                 <!-- Grid and zero line -->
                 <div
@@ -42,6 +41,8 @@
                     class="relative flex"
                     :class="vertical ? ['w-full', justifyClass] : 'flex-col'"
                     :style="{ gap: `${groupGap}px` }"
+
+                    @pointermove="onPlotPointerMove"
                 >
                     <div
                         v-for="(group, groupIndex) in groups"
