@@ -140,6 +140,15 @@ export default defineComponent({
         },
 
         /**
+         * Whether clicking the selected option clears the selection
+         */
+        allowEmpty: {
+            type: Boolean,
+            default: false,
+            required: false
+        },
+
+        /**
          * The border style of the toggleable
          */
         borderStyle: {
@@ -171,12 +180,8 @@ export default defineComponent({
          * Gets the border class
          * @returns {unknown} The border class
          */
-        borderClass(): string {
-            if (this.borderStyle) {
-                return this.borderStyle;
-            }
-
-            return "border";
+        borderClass(): string | undefined {
+            return this.borderStyle;
         },
 
         /**
@@ -188,7 +193,7 @@ export default defineComponent({
                 return this.backgroundStyle;
             }
 
-            return ["bg-input/30 gap-2"];
+            return ["bg-input/30"];
         },
 
         /**
@@ -230,7 +235,7 @@ export default defineComponent({
                 return;
             }
 
-            if (this.modelValue === value) {
+            if (this.allowEmpty && this.modelValue === value) {
                 this.$emit("update:modelValue", null);
             }
         }
