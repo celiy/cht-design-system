@@ -1,14 +1,7 @@
 <template>
     <div
         class="flex w-full items-center justify-between rounded text-sm font-medium transition-all"
-        :class="[
-            {
-                'bg-primary/10 text-primary/80 hover:bg-primary/20 hover:text-primary hover:brightness-150':
-                    variant === 'primary',
-                'bg-transparent text-sidebar-foreground/80 hover:bg-accent hover:text-sidebar-foreground':
-                    variant === 'transparent'
-            }
-        ]"
+        :class="[chipClass]"
     >
         <slot name="left-side" />
 
@@ -27,9 +20,7 @@
                     :class="labelIcon"
                 />
 
-                <span class="min-w-0 truncate">
-                    {{ label }}
-                </span>
+                <span class="min-w-0 truncate">{{ label }}</span>
             </span>
         </div>
 
@@ -58,6 +49,32 @@ export default defineComponent({
             type: String as PropType<"primary" | "transparent">,
             default: "transparent",
             required: false
+        },
+
+        textColor: {
+            type: String,
+            required: false
+        }
+    },
+
+    computed: {
+        chipTextColor(): object {
+            if (this.textColor) {
+                return [`${this.textColor}`];
+            } else {
+                return {
+                    "text-primary/80 hover:text-primary": this.variant === "primary",
+                    "text-foreground/80 hover:text-foreground": this.variant === "transparent"
+                };
+            }
+        },
+
+        chipClass(): object {
+            return {
+                "bg-primary/10 hover:bg-primary/20 ": this.variant === "primary",
+                "bg-transparent hover:bg-accent ": this.variant === "transparent",
+                ...this.chipTextColor
+            };
         }
     }
 });
