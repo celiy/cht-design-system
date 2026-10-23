@@ -18,8 +18,7 @@
         <RouterLink
             v-if="link.type === 'link'"
 
-            class="flex w-full cursor-pointer items-center justify-between rounded text-sm! font-medium! text-inherit! no-underline! transition-all hover:bg-accent! hover:brightness-100!"
-            :class="[isActive(link.link) ? 'bg-primary/10' : 'bg-transparent']"
+            class="w-full cursor-pointer no-underline! hover:brightness-100!"
             :to="link.link"
             active-class=""
             exact-active-class=""
@@ -33,55 +32,31 @@
             @touchstart="onDown()"
             @touchend="onUp()"
         >
-            <div class="px-4 py-2">
-                <span
-                    class="flex min-w-0 items-center gap-2 transition-all"
-                    :class="isActive(link.link) ? 'text-primary!' : 'text-sidebar-foreground/90!'"
+            <Chip
+                :label="link.label"
+                :label-icon="link.leftIcon"
+                :variant="isActive(link.link) ? 'primary' : 'transparent'"
+            >
+                <template
+                    v-if="
+                        !$project.device.isMobile &&
+                        !$project.device.isTablet &&
+                        !isActive(link.link)
+                    "
+                    #right-side
                 >
                     <i
-                        v-if="link.leftIcon"
-
-                        class="fa-solid shrink-0 text-xs"
-                        :class="link.leftIcon"
+                        class="fa-solid fa-chevron-right mr-4 inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
+                        :class="[
+                            isActive(link.link) ? 'text-primary!' : 'text-sidebar-foreground/90!',
+                            hoveredLink === link.link && !isActive(link.link)
+                                ? 'translate-y-0 opacity-100'
+                                : 'translate-y-3 opacity-0',
+                            isDown ? 'translate-x-1' : 'translate-x-0'
+                        ]"
                     />
-
-                    <span class="min-w-0 truncate">
-                        {{ link.label }}
-                    </span>
-                </span>
-            </div>
-
-            <i
-                v-if="
-                    !$project.device.isMobile &&
-                    !$project.device.isTablet &&
-                    !(
-                        link.rightButton &&
-                        (link.rightButton.appearWhen !== 'linkIsOpen' || isActive(link.link))
-                    )
-                "
-
-                class="fa-solid fa-chevron-right mr-4 inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
-                :class="[
-                    isActive(link.link) ? 'text-primary!' : 'text-sidebar-foreground/90!',
-                    hoveredLink === link.link && !isActive(link.link)
-                        ? 'translate-y-0 opacity-100'
-                        : 'translate-y-3 opacity-0',
-                    isDown ? 'translate-x-1' : 'translate-x-0'
-                ]"
-            />
-
-            <Button
-                v-if="
-                    link.rightButton &&
-                    (link.rightButton.appearWhen !== 'linkIsOpen' || isActive(link.link))
-                "
-
-                v-tooltip="link.tooltip"
-                v-bind="link.rightButton"
-
-                @click.prevent.stop="$emit('link-button-click', link.rightButton.emits)"
-            />
+                </template>
+            </Chip>
         </RouterLink>
 
         <!-- Group -->
@@ -163,13 +138,10 @@
                             <RouterLink
                                 :key="sublink.link"
 
-                                class="flex w-full cursor-pointer items-center justify-between rounded text-sm font-medium no-underline! transition-all hover:bg-accent! hover:brightness-100!"
-                                :class="[
-                                    isActive(sublink.link)
-                                        ? 'bg-primary/10 text-primary! hover:bg-primary/20'
-                                        : 'bg-transparent text-sidebar-foreground/90!'
-                                ]"
+                                class="w-full cursor-pointer no-underline! hover:brightness-100!"
                                 :to="sublink.link"
+                                active-class=""
+                                exact-active-class=""
 
                                 @click="onLinkClick(sublink)"
                                 @mouseenter="hoverLink(sublink)"
@@ -180,58 +152,34 @@
                                 @touchstart="onDown()"
                                 @touchend="onUp()"
                             >
-                                <div class="px-4 py-2">
-                                    <span class="flex min-w-0 items-center gap-2">
+                                <Chip
+                                    :label="sublink.label"
+                                    :label-icon="sublink.leftIcon"
+                                    :variant="isActive(sublink.link) ? 'primary' : 'transparent'"
+                                >
+                                    <template
+                                        v-if="
+                                            !$project.device.isMobile &&
+                                            !$project.device.isTablet &&
+                                            !isActive(sublink.link)
+                                        "
+                                        #right-side
+                                    >
                                         <i
-                                            v-if="sublink.leftIcon"
-
-                                            class="fa-solid shrink-0 text-xs"
-                                            :class="sublink.leftIcon"
+                                            class="fa-solid fa-chevron-right mr-4 inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
+                                            :class="[
+                                                isActive(sublink.link)
+                                                    ? 'text-primary!'
+                                                    : 'text-sidebar-foreground/90!',
+                                                hoveredLink === sublink.link &&
+                                                !isActive(sublink.link)
+                                                    ? 'translate-y-0 opacity-100'
+                                                    : 'translate-y-3 opacity-0',
+                                                isDown ? 'translate-x-1' : 'translate-x-0'
+                                            ]"
                                         />
-
-                                        <span class="min-w-0 truncate">
-                                            {{ sublink.label }}
-                                        </span>
-                                    </span>
-                                </div>
-
-                                <i
-                                    v-if="
-                                        !$project.device.isMobile &&
-                                        !$project.device.isTablet &&
-                                        !(
-                                            sublink.rightButton &&
-                                            (sublink.rightButton.appearWhen !== 'linkIsOpen' ||
-                                                isActive(sublink.link))
-                                        )
-                                    "
-
-                                    class="fa-solid fa-chevron-right mr-4 inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
-                                    :class="[
-                                        isActive(sublink.link)
-                                            ? 'text-primary!'
-                                            : 'text-sidebar-foreground/90!',
-                                        hoveredLink === sublink.link && !isActive(sublink.link)
-                                            ? 'translate-y-0 opacity-100'
-                                            : 'translate-y-3 opacity-0',
-                                        isDown ? 'translate-x-1' : 'translate-x-0'
-                                    ]"
-                                />
-
-                                <Button
-                                    v-if="
-                                        sublink.rightButton &&
-                                        (sublink.rightButton.appearWhen !== 'linkIsOpen' ||
-                                            isActive(sublink.link))
-                                    "
-
-                                    v-tooltip="sublink.tooltip"
-                                    v-bind="sublink.rightButton"
-
-                                    @click.prevent.stop="
-                                        $emit('link-button-click', sublink.rightButton.emits)
-                                    "
-                                />
+                                    </template>
+                                </Chip>
                             </RouterLink>
                         </div>
                     </div>
@@ -244,12 +192,14 @@
 <script lang="ts">
 import Button from "../Button.vue";
 import { defineComponent, type PropType } from "vue";
+import Chip from "../Chip.vue";
 
 export default defineComponent({
     name: "SideBarLinks",
 
     components: {
-        Button
+        Button,
+        Chip
     },
 
     props: {
