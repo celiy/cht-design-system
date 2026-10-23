@@ -3,8 +3,10 @@
         class="flex w-full items-center justify-between rounded text-sm font-medium transition-all"
         :class="[
             {
-                'bg-primary/10 hover:brightness-150': variant === 'primary',
-                'bg-transparent hover:bg-accent': variant === 'transparent'
+                'bg-primary/10 text-primary/80 hover:bg-primary/20 hover:text-primary hover:brightness-150':
+                    variant === 'primary',
+                'bg-transparent text-sidebar-foreground/80 hover:bg-accent hover:text-sidebar-foreground':
+                    variant === 'transparent'
             }
         ]"
     >
@@ -17,10 +19,6 @@
                 v-if="label || labelIcon"
 
                 class="flex min-w-0 items-center gap-2 transition-all select-none"
-                :class="{
-                    'text-primary': variant === 'primary',
-                    'text-sidebar-foreground/90': variant === 'transparent'
-                }"
             >
                 <i
                     v-if="labelIcon"
