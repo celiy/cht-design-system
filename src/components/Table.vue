@@ -1,5 +1,5 @@
 <template>
-    <div class="relative h-fit w-full rounded border border-border shadow-md">
+    <div class="relative h-fit w-full shadow-md">
         <div
             v-if="loading && data"
 
@@ -13,7 +13,7 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto p-2">
+        <div class="overflow-x-auto rounded border">
             <div
                 v-if="selectCols"
 
@@ -21,7 +21,7 @@
             >
                 <h4 class="ml-2">{{ title }}</h4>
 
-                <div class="flex w-full justify-end">
+                <div class="flex w-full justify-end pt-2 pr-2">
                     <Select
                         v-if="!loading"
 
@@ -38,83 +38,106 @@
                 </div>
             </div>
 
+            <slot name="before" />
+
             <table class="w-full text-foreground">
                 <!-- Header -->
-                <thead class="rounded-t">
-                    <tr class="w-full bg-accent/30 transition-all hover:bg-accent/60">
+                <!-- Background on thead: per-row backgrounds break under rowspan cells -->
+                <thead class="rounded-t bg-accent/40 transition-all hover:bg-accent/60">
+                    <tr
+                        v-for="(headerRow, headerRowIndex) in headerRows"
+                        :key="'header-row-' + headerRowIndex"
+
+                        class="w-full"
+                    >
                         <!-- Left-side checkbox -->
                         <th
-                            v-if="selectable"
+                            v-if="selectable && headerRowIndex === 0"
 
-                            class="w-1 p-2 text-left text-sm font-semibold"
+                            class="w-1 p-2 text-left align-middle text-sm font-semibold"
+                            :rowspan="headerRows.length"
                         >
                             <Checkbox
-                                id="selectable"
+                                v-if="selectionMode === 'checkbox'"
+
+                                :id="selectionId + '-all'"
                                 :checked="isAllSelected"
-                                name="selectable"
-                                :disabled="loading"
+                                :name="selectionId + '-all'"
+                                :disabled="loading || selectableRowIndexes.length === 0"
 
                                 @click="selectAll()"
                             />
                         </th>
 
                         <th
-                            v-for="head in displayHeaders"
-                            :key="head.label"
+                            v-for="(headerCell, headerCellIndex) in headerRow"
+                            :key="'header-' + headerRowIndex + '-' + headerCellIndex"
 
                             class="p-2 text-sm font-semibold"
-                            :class="alignClass(head)"
+                            :class="[
+                                alignClass(headerCell.header),
+                                verticalAlignClass(headerCell.header),
+                                headerBorderClass(headerCell)
+                            ]"
+                            :colspan="headerCell.colSpan"
+                            :rowspan="headerCell.rowSpan"
                         >
-                            <span
-                                class="inline-flex max-w-full items-center gap-0.5"
-                                :class="{
-                                    'cursor-pointer select-none hover:dark:brightness-120 hover:light:brightness-90':
-                                        head.canSort
-                                }"
-
-                                @mouseenter="hoverField = head.field ?? ''"
-                                @mouseleave="hoverField = ''"
-                                @click="sortField(head.field ?? '')"
+                            <slot
+                                :name="'header-' + headerKey(headerCell.header)"
+                                :header="headerCell.header"
                             >
-                                <!-- Mirrors the sort arrow so centered labels stay centered -->
                                 <span
-                                    v-if="head.canSort && head.position === 'center'"
+                                    v-if="headerCell.isGroup"
 
-                                    class="fa-solid fa-arrow-down text-xs opacity-0"
-                                    aria-hidden="true"
-                                />
-
-                                {{ head.label }}
+                                    class="inline-flex max-w-full items-center"
+                                >
+                                    {{ headerCell.header.label }}
+                                </span>
 
                                 <span
-                                    v-if="head.canSort"
+                                    v-else
 
-                                    class="fa-solid fa-arrow-down text-xs transition-all"
+                                    class="inline-flex max-w-full items-center gap-0.5"
                                     :class="{
-                                        'rotate-180':
-                                            sortedField.field === head.field &&
-                                            sortedField.direction === 'asc',
-                                        'opacity-100':
-                                            hoverField === head.field &&
-                                            sortedField.field === head.field,
-                                        'opacity-60':
-                                            hoverField === head.field &&
-                                            sortedField.field !== head.field,
-                                        'opacity-40':
-                                            hoverField !== head.field &&
-                                            sortedField.field === head.field,
-                                        'opacity-0': hoverField !== head.field
+                                        'cursor-pointer select-none hover:dark:brightness-120 hover:light:brightness-90':
+                                            headerCell.header.canSort
                                     }"
-                                />
-                            </span>
+
+                                    @mouseenter="hoverField = headerCell.header.field ?? ''"
+                                    @mouseleave="hoverField = ''"
+                                    @click="sortField(headerCell.header.field ?? '')"
+                                >
+                                    <!-- Mirrors the sort arrow so centered labels stay centered -->
+                                    <span
+                                        v-if="
+                                            headerCell.header.canSort &&
+                                            headerCell.header.position === 'center'
+                                        "
+
+                                        class="fa-solid fa-arrow-down text-xs opacity-0"
+                                        aria-hidden="true"
+                                    />
+
+                                    {{ headerCell.header.label }}
+
+                                    <span
+                                        v-if="headerCell.header.canSort"
+
+                                        class="fa-solid fa-arrow-down text-xs transition-all"
+                                        :class="sortArrowClass(headerCell.header)"
+                                    />
+                                </span>
+                            </slot>
                         </th>
 
                         <!-- Actions Header -->
                         <th
-                            v-if="hasActions"
+                            v-if="hasActions && headerRowIndex === 0"
 
                             scope="col"
-                            class="p-2 text-right text-sm font-semibold"
+                            class="p-2 text-right align-middle text-sm font-semibold"
+                            :class="{ 'border-l/50': isGroupedHead }"
+                            :rowspan="headerRows.length"
                         >
                             <span>Ações</span>
                         </th>
@@ -190,21 +213,36 @@
                             v-for="(item, index) in data"
                             :key="'row-' + index"
 
-                            class="border-t border-border/50 text-sm transition-all hover:bg-accent/60"
+                            class="border-t/50 text-sm transition-all hover:bg-accent/40"
                             :class="{
-                                'bg-accent/30': index % 2 !== 0
+                                'bg-accent/20': index % 2 !== 0
                             }"
                         >
-                            <!-- Checkbox -->
+                            <!-- Selection -->
                             <td
                                 v-if="selectable"
 
                                 class="p-2"
                             >
+                                <Radio
+                                    v-if="selectionMode === 'radio'"
+
+                                    :id="selectionId + '-row-' + index"
+                                    :name="selectionId"
+                                    :value="index"
+                                    :model-value="selectedRows[0]"
+                                    :disabled="isRowDisabled(index)"
+
+                                    @update:model-value="selectRow(index)"
+                                />
+
                                 <Checkbox
-                                    :id="'row-' + index"
+                                    v-else
+
+                                    :id="selectionId + '-row-' + index"
                                     :checked="selectedRows.includes(index)"
-                                    :name="'row-' + index"
+                                    :name="selectionId + '-row-' + index"
+                                    :disabled="isRowDisabled(index)"
 
                                     @click="selectRow(index)"
                                 />
@@ -212,59 +250,76 @@
 
                             <!-- Data-->
                             <td
-                                v-for="cell in getRowDisplayCells(item)"
-                                :key="cell.head.label"
+                                v-for="cell in bodyCells[index]"
+                                :key="headerKey(cell.head)"
 
                                 class="p-2"
-                                :class="alignClass(cell.head)"
+                                :class="[
+                                    alignClass(cell),
+                                    verticalAlignClass(cell),
+                                    {
+                                        'border-l/50':
+                                            isGroupedHead && (cell.startCol > 0 || selectable)
+                                    }
+                                ]"
+                                :colspan="cell.colSpan > 1 ? cell.colSpan : undefined"
+                                :rowspan="cell.rowSpan > 1 ? cell.rowSpan : undefined"
                             >
-                                <div class="inline-flex max-w-full items-center">
-                                    <div v-if="isTextCellValue(cell.value)">
-                                        {{ formatTextCell(cell.value, cell.head) }}
-                                    </div>
+                                <slot
+                                    :name="'cell-' + headerKey(cell.head)"
+                                    :row="item"
+                                    :value="cell.value"
+                                    :header="cell.head"
+                                    :index="index"
+                                >
+                                    <div class="inline-flex max-w-full items-center">
+                                        <div v-if="isTextCellValue(cell.value)">
+                                            {{ formatTextCell(cell.value, cell.head) }}
+                                        </div>
 
-                                    <div
-                                        v-else-if="isToggleCellValue(cell.value)"
+                                        <div
+                                            v-else-if="isToggleCellValue(cell.value)"
 
-                                        class="flex min-w-0 items-center gap-1"
-                                    >
-                                        <span class="min-w-0 truncate">
-                                            {{
-                                                toggleCellText(
-                                                    cell.value,
-                                                    toggleKey(index, cell.head)
-                                                )
-                                            }}
-                                        </span>
+                                            class="flex min-w-0 items-center gap-1"
+                                        >
+                                            <span class="min-w-0 truncate">
+                                                {{
+                                                    toggleCellText(
+                                                        cell.value,
+                                                        toggleKey(index, cell.head)
+                                                    )
+                                                }}
+                                            </span>
 
-                                        <Button
-                                            v-bind="toggleButtonProps(cell.value)"
-                                            type="button"
-                                            :left-icon="
-                                                isToggleRevealed(toggleKey(index, cell.head))
-                                                    ? 'fa-eye-slash'
-                                                    : 'fa-eye'
-                                            "
-                                            :aria-label="
-                                                isToggleRevealed(toggleKey(index, cell.head))
-                                                    ? 'Ocultar valor'
-                                                    : 'Mostrar valor'
-                                            "
+                                            <Button
+                                                v-bind="toggleButtonProps(cell.value)"
+                                                type="button"
+                                                :left-icon="
+                                                    isToggleRevealed(toggleKey(index, cell.head))
+                                                        ? 'fa-eye-slash'
+                                                        : 'fa-eye'
+                                                "
+                                                :aria-label="
+                                                    isToggleRevealed(toggleKey(index, cell.head))
+                                                        ? 'Ocultar valor'
+                                                        : 'Mostrar valor'
+                                                "
 
-                                            @click.stop="toggleCellReveal(index, cell.head)"
+                                                @click.stop="toggleCellReveal(index, cell.head)"
+                                            />
+                                        </div>
+
+                                        <Badge
+                                            v-else-if="isBadgeCellValue(cell.value)"
+
+                                            v-tooltip="badgeTooltip(cell.value)"
+                                            v-bind="tableBadgeProps(cell.head, cell.value)"
+                                            :color="badgeColor(cell.value)"
+                                            :variant="badgeVariant(cell.value)"
+                                            :label="badgeLabel(cell.value)"
                                         />
                                     </div>
-
-                                    <Badge
-                                        v-else-if="isBadgeCellValue(cell.value)"
-
-                                        v-tooltip="badgeTooltip(cell.value)"
-                                        v-bind="tableBadgeProps(cell.head, cell.value)"
-                                        :color="badgeColor(cell.value)"
-                                        :variant="badgeVariant(cell.value)"
-                                        :label="badgeLabel(cell.value)"
-                                    />
-                                </div>
+                                </slot>
                             </td>
 
                             <!-- Actions -->
@@ -272,6 +327,7 @@
                                 v-if="hasActions"
 
                                 class="px-2 text-right align-middle"
+                                :class="{ 'border-l/50': isGroupedHead }"
                             >
                                 <div class="flex w-full justify-end">
                                     <Dropdown
@@ -298,10 +354,12 @@
                 </tbody>
             </table>
 
+            <slot name="after" />
+
             <div
                 v-if="selectedRows.length > 0"
 
-                class="mt-2 flex w-full justify-between border-t pt-2"
+                class="mt-2 flex w-full justify-between border-t py-2"
             >
                 <span class="place-self-center pl-2 text-sm text-muted-foreground">
                     Itens selecionados: {{ selectedRows.length }}
@@ -310,7 +368,7 @@
                 <Dropdown
                     v-if="hasSelectableActions"
 
-                    class="w-fit!"
+                    class="mr-2 w-fit!"
                     header="Ações"
                     :options="selectableActions"
 
@@ -328,6 +386,7 @@ import Dropdown from "./Dropdown.vue";
 import Badge from "./Badge.vue";
 import Button from "./Button.vue";
 import Checkbox from "./Checkbox.vue";
+import Radio from "./Radio.vue";
 import Skeleton from "./Skeleton.vue";
 import ProgressBar from "./ProgressBar.vue";
 import type { OptionItem } from "./internal/OptionsList.vue";
@@ -359,17 +418,61 @@ export function isTableToggleCell(value: unknown): value is TableToggleCell {
     return "value" in value && "altValue" in value;
 }
 
+type TableAlign = "start" | "center" | "end";
+
 export type TableHeader = Record<string, unknown> & {
     label: string;
     field?: string;
-    position?: "start" | "center" | "end";
+    position?: TableAlign;
+    /** Vertical alignment of the header and of this column's cells. */
+    verticalPosition?: TableAlign;
     /** Display mask for text cells (falls back to inference from `field`). */
     format?: TableCellMaskFormat;
     /** Applied to every badge cell in this column (e.g. `variantStyle: "bordered"`). */
     badgeProps?: TableHeaderBadgeProps;
     /** Whether the column can be sorted. */
     canSort?: boolean;
+    /** Makes this a group header spanning its children; only leaf headers are columns. */
+    children?: TableHeader[];
 };
+
+/**
+ * Wraps a cell value to span columns/rows or align it on its own. Covered cells are skipped,
+ * so the rows below or the columns to the right just leave those fields out of the layout.
+ */
+export type TableSpanCell = {
+    cell: unknown;
+    colSpan?: number;
+    rowSpan?: number;
+    position?: TableAlign;
+    verticalPosition?: TableAlign;
+};
+
+export function isTableSpanCell(value: unknown): value is TableSpanCell {
+    return typeof value === "object" && value !== null && "cell" in value;
+}
+
+type HeaderCell = {
+    header: TableHeader;
+    colSpan: number;
+    rowSpan: number;
+    isGroup: boolean;
+    /** Index of the first data column it covers. */
+    startCol: number;
+};
+
+type BodyCell = {
+    head: TableHeader;
+    value: unknown;
+    colSpan: number;
+    rowSpan: number;
+    position?: TableAlign;
+    verticalPosition?: TableAlign;
+    /** Index of the first data column it covers. */
+    startCol: number;
+};
+
+let tableUid = 0;
 
 type ResolvedBadgeValue = {
     label?: string;
@@ -391,6 +494,7 @@ export default defineComponent({
         Badge,
         Button,
         Checkbox,
+        Radio,
         Skeleton,
         ProgressBar
     },
@@ -439,6 +543,23 @@ export default defineComponent({
         },
 
         /**
+         * `checkbox` selects many rows (with select-all); `radio` selects one.
+         */
+        selectionMode: {
+            type: String as PropType<"checkbox" | "radio">,
+            default: "checkbox",
+            required: false
+        },
+
+        /**
+         * Returns true for rows that cannot be selected. Select-all skips them.
+         */
+        rowDisabled: {
+            type: Function as PropType<(row: Record<string, unknown>, index: number) => boolean>,
+            required: false
+        },
+
+        /**
          * Per-row menu options, same shape as Dropdown `options`.
          * A function receives the row so the menu can depend on it.
          * Selecting an item emits `click:action` with `(value, row)`.
@@ -479,6 +600,7 @@ export default defineComponent({
             hoverField: "" as string,
             selectedRows: [] as number[],
             revealedToggleKeys: {} as Record<string, boolean>,
+            selectionId: `table-${(tableUid += 1)}`,
 
             sortedField: {} as { field: string; direction: "asc" | "desc" }
         };
@@ -522,18 +644,165 @@ export default defineComponent({
          * @returns {boolean} True if is all selected
          */
         isAllSelected() {
+            const indexes = this.selectableRowIndexes;
+
+            if (indexes.length === 0) {
+                return false;
+            }
+
+            return indexes.every((i) => this.selectedRows.includes(i));
+        },
+
+        selectableRowIndexes(): number[] {
+            return (this.data ?? [])
+                .map((_: unknown, index: number) => index)
+                .filter((index: number) => !this.isRowDisabled(index));
+        },
+
+        /**
+         * Columns in order: headers with `children` are only groups, their leaves are the columns.
+         * @returns {TableHeader[]} The leaf headers
+         */
+        leafHeaders(): TableHeader[] {
+            const leaves: TableHeader[] = [];
+            const walk = (nodes: TableHeader[]) => {
+                for (const node of nodes) {
+                    if (node.children && node.children.length > 0) {
+                        walk(node.children);
+                    } else {
+                        leaves.push(node);
+                    }
+                }
+            };
+
+            walk(this.headers);
+
+            return leaves;
+        },
+
+        /**
+         * Header rows for grouped headers. A group spans its visible leaves; a leaf that sits
+         * higher than the deepest level spans the remaining rows down.
+         * @returns {HeaderCell[][]} One array per `<tr>` in the head
+         */
+        headerRows(): HeaderCell[][] {
+            const visible = new Set(this.displayHeaders);
+            const visibleLeafCount = (node: TableHeader): number => {
+                if (!node.children || node.children.length === 0) {
+                    return visible.has(node) ? 1 : 0;
+                }
+
+                return node.children.reduce((sum, child) => sum + visibleLeafCount(child), 0);
+            };
+            const depthOf = (node: TableHeader): number => {
+                if (!node.children || node.children.length === 0) {
+                    return visible.has(node) ? 1 : 0;
+                }
+
+                const childDepth = Math.max(0, ...node.children.map(depthOf));
+
+                return childDepth > 0 ? childDepth + 1 : 0;
+            };
+            const depth = Math.max(1, ...this.headers.map(depthOf));
+            const rows: HeaderCell[][] = Array.from({ length: depth }, () => []);
+            const place = (nodes: TableHeader[], level: number, startCol: number) => {
+                let col = startCol;
+
+                for (const node of nodes) {
+                    const count = visibleLeafCount(node);
+
+                    if (count === 0) {
+                        continue;
+                    }
+
+                    const isGroup = Boolean(node.children && node.children.length > 0);
+
+                    rows[level]?.push({
+                        header: node,
+                        colSpan: count,
+                        rowSpan: isGroup ? 1 : depth - level,
+                        isGroup,
+                        startCol: col
+                    });
+
+                    if (isGroup && node.children) {
+                        place(node.children, level + 1, col);
+                    }
+
+                    col += count;
+                }
+            };
+
+            place(this.headers, 0, 0);
+
+            return rows;
+        },
+
+        /**
+         * Grouped heads get vertical lines between columns, in the head and in the body, so it
+         * is clear which columns a group covers. A flat head keeps no inner borders.
+         * @returns {boolean} True when the head has more than one row
+         */
+        isGroupedHead(): boolean {
+            return this.headerRows.length > 1;
+        },
+
+        /**
+         * Cells per row with spans resolved. Slots covered by an earlier colSpan or rowSpan
+         * are left out, so each `<tr>` only renders the cells it owns.
+         * @returns {BodyCell[][]} One array per data row
+         */
+        bodyCells(): BodyCell[][] {
             const rows = this.data ?? [];
-            const n = rows.length;
+            const columns = this.displayHeaders;
+            const covered = new Set<string>();
 
-            if (n === 0) {
-                return false;
-            }
+            return rows.map((item, rowIndex) => {
+                const cells: BodyCell[] = [];
+                let col = 0;
 
-            if (this.selectedRows.length !== n) {
-                return false;
-            }
+                while (col < columns.length) {
+                    const head = columns[col];
 
-            return rows.every((_: unknown, i: number) => this.selectedRows.includes(i));
+                    if (!head || covered.has(`${rowIndex}:${col}`)) {
+                        col += 1;
+                        continue;
+                    }
+
+                    const raw = this.getCellValueForHeader(item, head);
+                    const span = isTableSpanCell(raw) ? raw : undefined;
+                    const colSpan = Math.min(
+                        Math.max(1, Math.floor(span?.colSpan ?? 1)),
+                        columns.length - col
+                    );
+                    const rowSpan = Math.min(
+                        Math.max(1, Math.floor(span?.rowSpan ?? 1)),
+                        rows.length - rowIndex
+                    );
+
+                    for (let r = 0; r < rowSpan; r++) {
+                        for (let c = 0; c < colSpan; c++) {
+                            if (r > 0 || c > 0) {
+                                covered.add(`${rowIndex + r}:${col + c}`);
+                            }
+                        }
+                    }
+
+                    cells.push({
+                        head,
+                        value: span ? span.cell : raw,
+                        colSpan,
+                        rowSpan,
+                        position: span?.position ?? head.position,
+                        verticalPosition: span?.verticalPosition ?? head.verticalPosition,
+                        startCol: col
+                    });
+
+                    col += colSpan;
+                }
+
+                return cells;
+            });
         },
 
         /**
@@ -541,7 +810,7 @@ export default defineComponent({
          * @returns {unknown} The select table headers
          */
         selectTableHeaders() {
-            return this.headers.map((header) => ({
+            return this.leafHeaders.map((header) => ({
                 label: header.label,
                 value: header.label
             }));
@@ -553,16 +822,16 @@ export default defineComponent({
          */
         displayHeaders(): TableHeader[] {
             if (!this.selectCols) {
-                return [...this.headers];
+                return [...this.leafHeaders];
             }
 
             if (this.selectedHeaders.length === 0) {
-                return [...this.headers];
+                return [...this.leafHeaders];
             }
 
             const headersToDisplay: TableHeader[] = [];
 
-            for (const head of this.headers) {
+            for (const head of this.leafHeaders) {
                 if (this.selectedHeaders.includes(head.label)) {
                     headersToDisplay.push(head);
                 }
@@ -635,7 +904,7 @@ export default defineComponent({
             }
 
             // Legacy fallback: keeps compatibility with previous index-based behavior.
-            const colIndex = this.headers.indexOf(head);
+            const colIndex = this.leafHeaders.indexOf(head);
 
             if (colIndex < 0) {
                 return undefined;
@@ -647,33 +916,76 @@ export default defineComponent({
         },
 
         /**
-         * Gets the get row display cells
-         * @param {Record<string} item The item
-         * @param {unknown} unknown> The unknown>
-         * @returns {void}
-         */
-        getRowDisplayCells(item: Record<string, unknown>) {
-            return this.displayHeaders.map((head) => ({
-                head,
-                value: this.getCellValueForHeader(item, head)
-            }));
-        },
-
-        /**
          * Align class
-         * @param {TableHeader} head The head
-         * @returns {void}
+         * @param {{ position?: TableAlign }} target The header or cell
+         * @returns {string} The text alignment class
          */
-        alignClass(head: TableHeader): string {
-            if (head.position === "center") {
+        alignClass(target: { position?: TableAlign }): string {
+            if (target.position === "center") {
                 return "text-center";
             }
 
-            if (head.position === "end") {
+            if (target.position === "end") {
                 return "text-right";
             }
 
             return "text-left";
+        },
+
+        verticalAlignClass(target: { verticalPosition?: TableAlign }): string {
+            if (target.verticalPosition === "start") {
+                return "align-top";
+            }
+
+            if (target.verticalPosition === "end") {
+                return "align-bottom";
+            }
+
+            return "align-middle";
+        },
+
+        /**
+         * Name used by the `header-*` and `cell-*` slots.
+         * @param {TableHeader} head The header
+         * @returns {string} `field`, or `label` when there is no field
+         */
+        headerKey(head: TableHeader): string {
+            return head.field ?? head.label;
+        },
+
+        /**
+         * Grouped heads only: a line under each group and between columns.
+         * @param {HeaderCell} cell The header cell
+         * @returns {Record<string, boolean>} The border classes
+         */
+        headerBorderClass(cell: HeaderCell): Record<string, boolean> {
+            return {
+                "border-b/50": this.isGroupedHead && cell.isGroup,
+                "border-l/50": this.isGroupedHead && (cell.startCol > 0 || this.selectable)
+            };
+        },
+
+        sortArrowClass(head: TableHeader): Record<string, boolean> {
+            const isSorted = this.sortedField.field === head.field;
+            const isHovered = this.hoverField === head.field;
+
+            return {
+                "rotate-180": isSorted && this.sortedField.direction === "asc",
+                "opacity-100": isHovered && isSorted,
+                "opacity-60": isHovered && !isSorted,
+                "opacity-40": !isHovered && isSorted,
+                "opacity-0": !isHovered
+            };
+        },
+
+        isRowDisabled(index: number): boolean {
+            const row = this.data?.[index];
+
+            if (!row || !this.rowDisabled) {
+                return false;
+            }
+
+            return Boolean(this.rowDisabled(row, index));
         },
 
         /**
@@ -894,6 +1206,16 @@ export default defineComponent({
          * @returns {void}
          */
         selectRow(row: number) {
+            if (this.isRowDisabled(row)) {
+                return;
+            }
+
+            if (this.selectionMode === "radio") {
+                this.selectedRows = [row];
+
+                return;
+            }
+
             for (let n = 0; n < this.selectedRows.length; n++) {
                 if (this.selectedRows[n] === row) {
                     this.selectedRows.splice(n, 1);
@@ -914,8 +1236,8 @@ export default defineComponent({
                 // If all rows are selected, unselect all
                 this.selectedRows = [];
             } else {
-                // Otherwise, select all
-                this.selectedRows = (this.data ?? []).map((_: any, index: number) => index);
+                // Otherwise, select all rows that are not disabled
+                this.selectedRows = [...this.selectableRowIndexes];
             }
         },
 
@@ -959,7 +1281,7 @@ export default defineComponent({
          * @returns {void}
          */
         sortField(field: string) {
-            if (!this.headers.find((head) => head.field === field)?.canSort) {
+            if (!this.leafHeaders.find((head) => head.field === field)?.canSort) {
                 return;
             }
 

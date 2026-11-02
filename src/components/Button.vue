@@ -423,10 +423,25 @@ export default defineComponent({
                 return this.radiusStyle;
             }
 
+            const padding =
+                this.shape !== "rounded" &&
+                (this.leftIcon || this.rightIcon) &&
+                !this.label &&
+                !this.$slots.default
+                    ? {
+                          "p-1.5 text-xs": this.size === "small",
+                          "p-2 text-sm": this.size === "medium",
+                          "p-2.5 text-base": this.size === "large"
+                      }
+                    : {
+                          "p-1 px-2.5 text-xs": this.size === "small" && this.shape !== "rounded",
+                          "p-1.5 px-2.5 text-sm":
+                              this.size === "medium" && this.shape !== "rounded",
+                          "p-2 px-3.5 text-base": this.size === "large" && this.shape !== "rounded"
+                      };
+
             return {
-                "p-1 px-2.5 text-xs": this.size === "small" && this.shape !== "rounded",
-                "p-1.5 px-2.5 text-sm": this.size === "medium" && this.shape !== "rounded",
-                "p-2 px-3.5 text-base": this.size === "large" && this.shape !== "rounded",
+                ...padding,
                 rounded: this.shape === "square",
                 "flex aspect-square items-center justify-center justify-items-center rounded-full p-0":
                     this.shape === "rounded"
