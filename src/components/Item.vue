@@ -9,9 +9,9 @@
         <ItemIcon
             v-if="icon"
 
-            :variant="variant"
+            :variant="type === 'solid' ? 'default' : variant"
             :icon="icon"
-            :type="type === 'alert' ? 'icon' : 'card'"
+            :type="type === 'card' ? 'card' : 'icon'"
             :size="itemIconSize"
             :background-style="itemBackgroundStyle"
             :icon-style="itemIconStyle"
@@ -24,6 +24,7 @@
                     v-if="head"
 
                     class="mb-0.5 text-xs font-semibold text-muted-foreground"
+                    :class="{ 'text-inherit! opacity-80': type === 'solid' }"
                 >
                     {{ head }}
                 </span>
@@ -51,6 +52,7 @@
                     v-if="smallText"
 
                     class="text-muted-foreground!"
+                    :class="{ 'text-inherit! opacity-80': type === 'solid' }"
                 >
                     {{ smallText }}
                 </small>
@@ -65,7 +67,8 @@
 import { defineComponent, type PropType } from "vue";
 import ItemIcon from "./ItemIcon.vue";
 
-type ItemVariant = "primary" | "secondary" | "success" | "warning" | "destructive" | "info";
+type ItemVariant =
+    "default" | "primary" | "secondary" | "success" | "warning" | "destructive" | "info";
 
 export default defineComponent({
     name: "Item",
@@ -125,10 +128,11 @@ export default defineComponent({
         },
 
         /**
-         * The type of the item
+         * `card` puts the icon in a tinted well, `alert` leaves it loose, and `solid` uses the
+         * alert layout on a solid `variant` background, without border.
          */
         type: {
-            type: String as PropType<"card" | "alert">,
+            type: String as PropType<"card" | "alert" | "solid">,
             default: "card",
             required: false
         },
@@ -216,6 +220,20 @@ export default defineComponent({
                 };
             }
 
+            if (this.type === "solid") {
+                return (
+                    this.backgroundStyle || {
+                        "bg-card text-foreground": this.variant === "default",
+                        "bg-primary text-primary-foreground": this.variant === "primary",
+                        "bg-secondary text-secondary-foreground": this.variant === "secondary",
+                        "bg-success text-success-foreground": this.variant === "success",
+                        "bg-warning text-warning-foreground": this.variant === "warning",
+                        "bg-destructive text-destructive-foreground": this.variant === "destructive",
+                        "bg-info text-info-foreground": this.variant === "info"
+                    }
+                );
+            }
+
             const defaultBorder = {
                 "border-2-primary/40": this.variant === "primary",
                 "border-2-secondary": this.variant === "secondary",
@@ -259,11 +277,17 @@ export default defineComponent({
          * @returns {unknown} The title class
          */
         titleClass() {
+            // Solid inherits the foreground set on the card.
+            if (this.type === "solid") {
+                return "leading-normal";
+            }
+
             if (this.type === "alert") {
                 return [
                     "leading-normal",
                     {
-                        "text-foreground!": !this.disabled && !this.variant,
+                        "text-foreground!":
+                            !this.disabled && (!this.variant || this.variant === "default"),
                         "text-muted-foreground!": this.disabled,
                         "text-info!": this.variant === "info",
                         "text-success!": this.variant === "success",
@@ -283,6 +307,10 @@ export default defineComponent({
          * @returns {unknown} The description class
          */
         descriptionClass() {
+            if (this.type === "solid") {
+                return "leading-normal text-base";
+            }
+
             if (this.type === "alert") {
                 return [
                     "leading-normal text-base",
