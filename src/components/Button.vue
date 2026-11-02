@@ -1,7 +1,14 @@
 <template>
     <button
         class="w-fit cursor-pointer font-semibold shadow-sm transition-all select-none disabled:cursor-not-allowed disabled:opacity-60"
-        :class="[hoverClass, backgroundClass, borderClass, shapeClass, buttonClass]"
+        :class="[
+            hoverClass,
+            backgroundClass,
+            borderClass,
+            shapeClass,
+            buttonClass,
+            { 'cursor-wait opacity-60': loading }
+        ]"
         :disabled="disabled"
         :form="form"
         :type="type"
@@ -32,7 +39,7 @@
                 {
                     'translate-y-[0.08rem]': isPressed,
                     'items-center justify-center': shape === 'rounded',
-                    'flex items-center gap-2': leftIcon || rightIcon,
+                    'flex items-center gap-2': leftIcon || rightIcon || loading,
                     'justify-start': contentPosition === 'start',
                     'justify-center': contentPosition === 'center',
                     'justify-end': contentPosition === 'end'
@@ -44,6 +51,12 @@
                 v-if="leftIcon"
 
                 :class="`fa-solid ${leftIcon}`"
+            />
+
+            <span
+                v-if="loading"
+
+                :class="`fa-solid fa-spinner fa-spin`"
             />
 
             <span v-if="label">
@@ -178,6 +191,15 @@ export const ButtonProps = {
     },
 
     /**
+     * Whether the button is in a loading state
+     */
+    loading: {
+        type: Boolean,
+        default: false,
+        required: false
+    },
+
+    /**
      * The hover style of the button
      */
     hoverStyle: {
@@ -276,18 +298,45 @@ export default defineComponent({
             return {
                 "hover-ring":
                     this.hovered && (this.variant === "default" || this.variant === "secondary"),
+                "bg-secondary/40":
+                    this.hovered &&
+                    (this.variant === "transparent-secondary" ||
+                        this.variant === "outline-secondary"),
+
                 "hover-ring-primary": this.hovered && this.variant === "primary",
+                "bg-primary/40":
+                    this.hovered &&
+                    (this.variant === "transparent-primary" || this.variant === "outline-primary"),
+
                 "hover-ring-destructive": this.hovered && this.variant === "destructive",
+                "bg-destructive/40":
+                    this.hovered &&
+                    (this.variant === "transparent-destructive" ||
+                        this.variant === "destructive" ||
+                        this.variant === "outline-destructive"),
+
                 "hover-ring-success": this.hovered && this.variant === "success",
+                "bg-success/40":
+                    this.hovered &&
+                    (this.variant === "transparent-success" || this.variant === "outline-success"),
+
                 "hover-ring-info": this.hovered && this.variant === "info",
+                "bg-info/40":
+                    this.hovered &&
+                    (this.variant === "transparent-info" || this.variant === "outline-info"),
+
                 "hover-ring-warning": this.hovered && this.variant === "warning",
+                "bg-warning/40":
+                    this.hovered &&
+                    (this.variant === "transparent-warning" || this.variant === "outline-warning"),
 
                 "hover:shadow-md": !this.disabled,
-                "hover:bg-destructive/40":
-                    this.variant === "transparent-destructive" || this.variant === "destructive",
+
                 "hover:bg-input/50": this.variant === "default",
+
                 "hover:bg-accent": this.variant === "transparent",
-                "bg-accent! hover-ring":
+
+                "bg-accent!":
                     this.hovered && (this.variant === "outline" || this.variant === "bordered")
             };
         },
@@ -303,17 +352,35 @@ export default defineComponent({
 
             return {
                 "bg-primary/95 text-primary-foreground": this.variant === "primary",
+                "text-primary":
+                    this.variant === "transparent-primary" || this.variant === "outline-primary",
+
                 "bg-destructive/25 text-destructive": this.variant === "destructive",
-                "text-destructive": this.variant === "transparent-destructive",
+                "text-destructive":
+                    this.variant === "transparent-destructive" ||
+                    this.variant === "outline-destructive",
+
                 "bg-success/95 text-success-foreground": this.variant === "success",
+                "text-success":
+                    this.variant === "transparent-success" || this.variant === "outline-success",
+
                 "bg-info/95 text-info-foreground": this.variant === "info",
+                "text-info": this.variant === "transparent-info" || this.variant === "outline-info",
+
                 "bg-warning/95 text-warning-foreground": this.variant === "warning",
+                "text-warning":
+                    this.variant === "transparent-warning" || this.variant === "outline-warning",
+
                 "bg-secondary text-secondary-foreground": this.variant === "secondary",
+                "text-foreground":
+                    this.variant === "transparent-secondary" ||
+                    this.variant === "bordered" ||
+                    this.variant === "outline",
+
                 "bg-input/30 text-foreground/90": this.variant === "default",
+
                 "bg-transparent text-secondary-foreground shadow-none!":
-                    this.variant === "transparent",
-                "bg-transparent text-foreground": this.variant === "outline",
-                "background-transparent text-foreground": this.variant === "bordered"
+                    this.variant === "transparent"
             };
         },
 
@@ -331,12 +398,14 @@ export default defineComponent({
             }
 
             return {
-                "border-primary": this.variant === "primary",
-                "border-success": this.variant === "success",
-                "border-info": this.variant === "info",
-                "border-warning": this.variant === "warning",
+                "border-primary": this.variant === "primary" || this.variant === "outline-primary",
+                "border-success": this.variant === "success" || this.variant === "outline-success",
+                "border-info": this.variant === "info" || this.variant === "outline-info",
+                "border-warning": this.variant === "warning" || this.variant === "outline-warning",
+                "border-destructive": this.variant === "outline-destructive",
                 "border ":
                     this.variant === "secondary" ||
+                    this.variant === "outline-secondary" ||
                     this.variant === "default" ||
                     this.variant === "outline" ||
                     this.variant === "bordered",
