@@ -31,7 +31,12 @@
                         class="text-base"
                         :class="{ underline: inside && !$project.device.isMobile }"
                     >
-                        {{ header }}
+                        <slot
+                            name="header"
+                            :is-open="isOpen"
+                        >
+                            {{ header }}
+                        </slot>
                     </span>
 
                     <div class="flex gap-1">
@@ -49,11 +54,18 @@
                             @click.stop="pin"
                         />
 
-                        <!-- Chevron down icon -->
-                        <i
-                            class="fa-solid fa-chevron-down ml-2 text-sm text-muted-foreground transition-transform duration-300 ease-out"
+                        <!-- Arrow icon, rotates when open -->
+                        <span
+                            class="ml-2 inline-flex items-center text-sm text-muted-foreground transition-transform duration-300 ease-out"
                             :class="{ 'rotate-180': isOpen }"
-                        />
+                        >
+                            <slot
+                                name="icon"
+                                :is-open="isOpen"
+                            >
+                                <i class="fa-solid fa-chevron-down" />
+                            </slot>
+                        </span>
                     </div>
                 </span>
             </div>
@@ -137,6 +149,8 @@ export default defineComponent({
         }
     },
 
+    emits: ["update:open", "change"],
+
     data() {
         return {
             isOpen: false,
@@ -193,6 +207,9 @@ export default defineComponent({
          * @returns {void}
          */
         isOpen(open) {
+            this.$emit("update:open", open);
+            this.$emit("change", open);
+
             if (open) {
                 document.addEventListener("click", this.handleClickOutside);
             } else {
