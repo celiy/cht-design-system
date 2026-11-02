@@ -4,6 +4,14 @@
         :style="optionsScrollStyle"
     >
         <div
+            v-if="$slots.panelHeader"
+
+            class="shrink-0 border-b px-3 py-2"
+        >
+            <slot name="panelHeader" />
+        </div>
+
+        <div
             v-if="drillPath.length > 0"
 
             class="flex shrink-0 items-center gap-1 border-b px-2 py-1.5 text-sm"
@@ -516,7 +524,11 @@ export default defineComponent({
          * @returns {boolean} True if the item is selectable
          */
         isSelectable(item: OptionItem): boolean {
-            return !item.separator && (Boolean(item.value) || this.hasChildren(item));
+            return (
+                !item.separator &&
+                !item.disabled &&
+                (Boolean(item.value) || this.hasChildren(item))
+            );
         },
 
         /**

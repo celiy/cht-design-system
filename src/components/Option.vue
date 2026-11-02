@@ -14,13 +14,14 @@
             'hover:bg-accent': isSelectable && !isDestructive && !disabled && !isMobile,
 
             'mx-1 cursor-pointer px-2.5 py-1.5': isSelectable && !disabled,
-            'mx-1 cursor-not-allowed px-2.5 py-1.5 opacity-80': isSelectable && disabled,
+            'mx-1 cursor-not-allowed px-2.5 py-1.5 opacity-60': isSelectable && disabled,
             'm-1 p-1 px-2.5 text-sm font-semibold text-muted-foreground!': isHeading,
             'mt-1': first,
             'mb-1': last
         }"
+        :aria-disabled="disabled || undefined"
 
-        @click="$emit('click', $event)"
+        @click="!disabled && $emit('click', $event)"
         @mouseenter="$emit('mouseenter', $event)"
     >
         <div class="flex min-w-0 flex-nowrap items-center justify-between gap-2">
@@ -49,7 +50,7 @@
                 <span
                     v-if="label"
 
-                    class="flex min-w-0 w-full flex-col text-sm font-medium"
+                    class="flex w-full min-w-0 flex-col text-sm font-medium"
                 >
                     <template v-if="labelHelper && label && labelHelperPosition === 'left'">
                         <div class="flex min-w-0 gap-2">
