@@ -180,6 +180,7 @@ import Input from "../Input.vue";
 import Marker from "../Marker.vue";
 import Option from "../Option.vue";
 import tooltip from "@shared/frontend/tooltip";
+import { placeNestedPanel } from "./nestedPanelPosition";
 
 export type OptionIndicator = {
     color?: string;
@@ -752,19 +753,24 @@ export default defineComponent({
                 return;
             }
 
-            const rect = anchor.getBoundingClientRect();
-            const panelWidth = 176;
-            const gap = 4;
-            const spaceRight = window.innerWidth - rect.right;
-            const openLeft = spaceRight < panelWidth + gap;
+            const panelMinWidth = 176;
+            // The panel is rendered by now; measure it, its content can make it much wider.
+            const panel = this.$refs.nestedPanelRef as HTMLElement | undefined;
+            const placement = placeNestedPanel(
+                anchor.getBoundingClientRect(),
+                {
+                    width: Math.max(panel?.offsetWidth ?? 0, panelMinWidth),
+                    height: panel?.offsetHeight ?? 0
+                },
+                { width: window.innerWidth, height: window.innerHeight }
+            );
 
             this.nestedPanelStyle = {
                 position: "fixed",
-                top: `${Math.max(8, rect.top)}px`,
-                left: openLeft
-                    ? `${Math.max(8, rect.left - panelWidth - gap)}px`
-                    : `${rect.right - 4}px`,
-                minWidth: `${panelWidth}px`
+                top: `${placement.top}px`,
+                left: `${placement.left}px`,
+                minWidth: `${panelMinWidth}px`,
+                maxWidth: `${placement.maxWidth}px`
             };
         },
 

@@ -1,5 +1,5 @@
 <template>
-    <div class="relative h-fit w-full shadow-md">
+    <div class="relative h-fit w-full">
         <div
             v-if="loading && data"
 
@@ -13,7 +13,7 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto rounded border">
+        <div class="overflow-x-auto rounded border shadow-md">
             <div
                 v-if="selectCols"
 
