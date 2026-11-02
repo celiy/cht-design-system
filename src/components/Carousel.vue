@@ -1,22 +1,40 @@
 <template>
-    <div class="w-full">
+    <div
+        class="w-full"
+        :class="{ 'flex flex-col': isVertical }"
+
+        @mouseenter="isHovered = true"
+        @mouseleave="isHovered = false"
+    >
         <div
-            class="relative w-full touch-pan-y overflow-hidden"
+            class="relative w-full overflow-hidden"
+            :class="isVertical ? 'min-h-0 flex-1 touch-pan-x' : 'touch-pan-y'"
 
             @touchstart="onTouchStart"
             @touchmove="onTouchMove"
             @touchend="onTouchEnd"
         >
             <div
-                class="flex"
-                :class="{ 'transition-transform duration-500 ease-in-out': !isSwiping }"
-                :style="{ transform: `translateX(calc(-${pos * 100}% + ${swipeOffset}px))` }"
+                :class="{
+                    flex: !isFade,
+                    'flex-col': !isFade && isVertical,
+                    grid: isFade,
+                    'h-full': isVertical
+                }"
+                :style="trackStyle"
             >
                 <div
                     v-for="(_, index) in itemCount"
                     :key="index"
 
                     class="flex w-full shrink-0 items-center justify-center p-4"
+                    :class="{
+                        'h-full': isVertical,
+                        'col-start-1 row-start-1': isFade,
+                        'pointer-events-none opacity-0': isFade && index !== pos
+                    }"
+                    :style="fadeStyle"
+                    :inert="isFade && index !== pos"
 
                     @click.self="onOutsideClick"
                 >
@@ -30,7 +48,8 @@
                 v-if="edgeClick && itemCount > 1"
 
                 type="button"
-                class="absolute inset-y-0 left-0 z-5 w-[18%] cursor-pointer border-0 bg-transparent p-0"
+                class="absolute z-5 cursor-pointer border-0 bg-transparent p-0"
+                :class="isVertical ? 'inset-x-0 top-0 h-[18%]' : 'inset-y-0 left-0 w-[18%]'"
                 aria-label="Item anterior"
 
                 @click.stop="prev"
@@ -40,63 +59,94 @@
                 v-if="edgeClick && itemCount > 1"
 
                 type="button"
-                class="absolute inset-y-0 right-0 z-5 w-[18%] cursor-pointer border-0 bg-transparent p-0"
+                class="absolute z-5 cursor-pointer border-0 bg-transparent p-0"
+                :class="isVertical ? 'inset-x-0 bottom-0 h-[18%]' : 'inset-y-0 right-0 w-[18%]'"
                 aria-label="Item seguinte"
 
                 @click.stop="next"
             />
 
-            <Button
-                v-if="showArrows && itemCount > 1"
+            <slot
+                v-if="$slots.controls"
 
-                class="absolute top-1/2 left-2 z-10 h-10 w-10 -translate-y-1/2"
-                type="button"
-                variant="secondary"
-                size="medium"
-                shape="rounded"
-                :hover-effect="false"
+                name="controls"
+                :prev="prev"
+                :next="next"
+                :go-to="goTo"
+                :index="pos"
+                :count="itemCount"
+            />
 
-                @click="prev"
-            >
-                <i class="fa-solid fa-arrow-left" />
-            </Button>
+            <template v-else-if="showArrows && itemCount > 1">
+                <Button
+                    class="absolute z-10 h-10 w-10"
+                    :class="
+                        isVertical
+                            ? 'top-2 left-1/2 -translate-x-1/2'
+                            : 'top-1/2 left-2 -translate-y-1/2'
+                    "
+                    type="button"
+                    variant="secondary"
+                    size="medium"
+                    shape="rounded"
+                    aria-label="Item anterior"
+                    :hover-effect="false"
 
-            <Button
-                v-if="showArrows && itemCount > 1"
+                    @click="prev"
+                >
+                    <i
+                        class="fa-solid"
+                        :class="isVertical ? 'fa-arrow-up' : 'fa-arrow-left'"
+                    />
+                </Button>
 
-                class="absolute top-1/2 right-2 z-10 h-10 w-10 -translate-y-1/2"
-                type="button"
-                variant="secondary"
-                size="medium"
-                shape="rounded"
-                :hover-effect="false"
+                <Button
+                    class="absolute z-10 h-10 w-10"
+                    :class="
+                        isVertical
+                            ? 'bottom-2 left-1/2 -translate-x-1/2'
+                            : 'top-1/2 right-2 -translate-y-1/2'
+                    "
+                    type="button"
+                    variant="secondary"
+                    size="medium"
+                    shape="rounded"
+                    aria-label="Item seguinte"
+                    :hover-effect="false"
 
-                @click="next"
-            >
-                <i class="fa-solid fa-arrow-right" />
-            </Button>
+                    @click="next"
+                >
+                    <i
+                        class="fa-solid"
+                        :class="isVertical ? 'fa-arrow-down' : 'fa-arrow-right'"
+                    />
+                </Button>
+            </template>
 
             <div
-                v-if="stepsViewer === 'simplified' && itemCount > 1"
+                v-if="showSteps && stepsViewer === 'simplified' && itemCount > 1"
 
-                class="absolute bottom-6 z-10 flex w-full justify-center"
+                class="absolute z-10 flex"
+                :class="{
+                    'bottom-6 w-full justify-center': indicatorSide === 'bottom',
+                    'top-6 w-full justify-center': indicatorSide === 'top',
+                    'inset-y-0 left-6 items-center': indicatorSide === 'left',
+                    'inset-y-0 right-6 items-center': indicatorSide === 'right'
+                }"
 
                 @mouseenter="hoverSelector = true"
                 @mouseleave="hoverSelector = false"
             >
-                <div class="flex w-fit justify-center gap-1.5 rounded bg-black/20 p-1">
+                <div
+                    class="flex w-fit justify-center gap-1.5 rounded bg-black/20 p-1"
+                    :class="{ 'flex-col': isIndicatorStacked }"
+                >
                     <div
                         v-for="(_, index) in itemCount"
                         :key="index"
 
-                        class="h-2 cursor-pointer rounded-full transition-all"
-                        :class="{
-                            'w-2 bg-white/40 hover:bg-white/60': index !== pos && !hoverSelector,
-                            'w-4 bg-white/50 hover:bg-white/60': index !== pos && hoverSelector,
-                            'w-4 bg-white/60 hover:bg-white/80': index === pos && !hoverSelector,
-                            'w-8 bg-white/90 hover:bg-white/80': index === pos && hoverSelector,
-                            'h-4': hoverSelector
-                        }"
+                        class="cursor-pointer rounded-full transition-all"
+                        :class="dotClass(index)"
 
                         @click.stop="goTo(index)"
                     />
@@ -105,7 +155,7 @@
         </div>
 
         <div
-            v-if="stepsViewer === 'advanced' && itemCount > 1"
+            v-if="showSteps && stepsViewer === 'advanced' && itemCount > 1"
 
             class="mt-2 flex justify-center"
         >
@@ -148,6 +198,13 @@ import Button from "./Button.vue";
 
 const AXIS_LOCK_PX = 8;
 
+type IndicatorPosition = "top" | "bottom" | "left" | "right";
+
+const DOT_LENGTH = {
+    horizontal: { 2: "w-2", 4: "w-4", 8: "w-8" },
+    vertical: { 2: "h-2", 4: "h-4", 8: "h-8" }
+} as const;
+
 export default defineComponent({
     name: "Carousel",
 
@@ -173,7 +230,7 @@ export default defineComponent({
         },
 
         /**
-         * Left/right 18% of the viewport go to the previous/next slide.
+         * Left/right 18% of the viewport go to the previous/next slide (top/bottom when vertical).
          */
         edgeClick: {
             type: Boolean,
@@ -186,6 +243,78 @@ export default defineComponent({
         stepsViewer: {
             type: String as PropType<"simplified" | "advanced">,
             default: "simplified"
+        },
+
+        /**
+         * Whether to show the steps indicator
+         */
+        showSteps: {
+            type: Boolean,
+            default: true
+        },
+
+        /**
+         * Slide direction. Vertical needs a height on the carousel (e.g. `class="h-80"`).
+         */
+        orientation: {
+            type: String as PropType<"horizontal" | "vertical">,
+            default: "horizontal"
+        },
+
+        /**
+         * Side of the simplified dots. Defaults to `bottom`, or `right` when vertical.
+         */
+        indicatorPosition: {
+            type: String as PropType<IndicatorPosition>,
+            required: false
+        },
+
+        /**
+         * Advances to the next slide every `interval` ms, looping at the end.
+         */
+        autoplay: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * Autoplay delay in ms
+         */
+        interval: {
+            type: Number,
+            default: 5000
+        },
+
+        /**
+         * Pauses autoplay while the pointer is over the carousel.
+         */
+        pauseOnHover: {
+            type: Boolean,
+            default: true
+        },
+
+        /**
+         * How slides change: `slide` moves the track, `fade` cross-fades the opacity.
+         */
+        transition: {
+            type: String as PropType<"slide" | "fade">,
+            default: "slide"
+        },
+
+        /**
+         * Transition length in ms
+         */
+        transitionDuration: {
+            type: Number,
+            default: 500
+        },
+
+        /**
+         * CSS timing function of the transition (e.g. `linear`, `cubic-bezier(...)`)
+         */
+        transitionEasing: {
+            type: String,
+            default: "ease-in-out"
         }
     },
 
@@ -195,13 +324,64 @@ export default defineComponent({
         return {
             pos: this.startIndex as number,
             hoverSelector: false,
+            isHovered: false,
             touchStartX: 0,
             touchStartY: 0,
             swipeAxis: null as "x" | "y" | null,
             swipeOffset: 0,
             isSwiping: false,
-            itemCount: 0
+            itemCount: 0,
+            autoplayTimer: null as number | null
         };
+    },
+
+    computed: {
+        isVertical(): boolean {
+            return this.orientation === "vertical";
+        },
+
+        isFade(): boolean {
+            return this.transition === "fade";
+        },
+
+        indicatorSide(): IndicatorPosition {
+            return this.indicatorPosition ?? (this.isVertical ? "right" : "bottom");
+        },
+
+        isIndicatorStacked(): boolean {
+            return this.indicatorSide === "left" || this.indicatorSide === "right";
+        },
+
+        /**
+         * Moves the track along the main axis. Fade keeps it still.
+         * @returns {Record<string, string>} The track style
+         */
+        trackStyle(): Record<string, string> {
+            if (this.isFade) {
+                return {};
+            }
+
+            const axis = this.isVertical ? "Y" : "X";
+
+            return {
+                transform: `translate${axis}(calc(-${this.pos * 100}% + ${this.swipeOffset}px))`,
+                transition: this.isSwiping
+                    ? "none"
+                    : `transform ${this.transitionDuration}ms ${this.transitionEasing}`
+            };
+        },
+
+        fadeStyle(): Record<string, string> | undefined {
+            if (!this.isFade) {
+                return undefined;
+            }
+
+            return { transition: `opacity ${this.transitionDuration}ms ${this.transitionEasing}` };
+        },
+
+        isAutoplayRunning(): boolean {
+            return this.autoplay && this.itemCount > 1 && !(this.pauseOnHover && this.isHovered);
+        }
     },
 
     watch: {
@@ -212,6 +392,19 @@ export default defineComponent({
          */
         startIndex(value: number) {
             this.goTo(value);
+        },
+
+        // Restarting on every slide change gives a manual jump the full interval too.
+        pos() {
+            this.scheduleAutoplay();
+        },
+
+        isAutoplayRunning() {
+            this.scheduleAutoplay();
+        },
+
+        interval() {
+            this.scheduleAutoplay();
         }
     },
 
@@ -229,6 +422,10 @@ export default defineComponent({
      */
     updated() {
         this.refreshItemCount();
+    },
+
+    beforeUnmount() {
+        this.clearAutoplay();
     },
 
     methods: {
@@ -260,6 +457,53 @@ export default defineComponent({
             } else if (this.pos < 0) {
                 this.pos = start;
             }
+        },
+
+        clearAutoplay() {
+            if (this.autoplayTimer == null) {
+                return;
+            }
+
+            window.clearTimeout(this.autoplayTimer);
+            this.autoplayTimer = null;
+        },
+
+        scheduleAutoplay() {
+            this.clearAutoplay();
+
+            if (!this.isAutoplayRunning) {
+                return;
+            }
+
+            this.autoplayTimer = window.setTimeout(() => {
+                this.autoplayTimer = null;
+                this.next();
+            }, this.interval);
+        },
+
+        /**
+         * Size and color of one simplified dot; it grows along the indicator's axis.
+         * @param {number} index The dot index
+         * @returns {string[]} The dot classes
+         */
+        dotClass(index: number): string[] {
+            const active = index === this.pos;
+            const hover = this.hoverSelector;
+            const lengths = DOT_LENGTH[this.isIndicatorStacked ? "vertical" : "horizontal"];
+            const length = active ? (hover ? 8 : 4) : hover ? 4 : 2;
+            let thickness = hover ? "h-4" : "h-2";
+
+            if (this.isIndicatorStacked) {
+                thickness = hover ? "w-4" : "w-2";
+            }
+
+            let color = hover ? "bg-white/50 hover:bg-white/60" : "bg-white/40 hover:bg-white/60";
+
+            if (active) {
+                color = hover ? "bg-white/90 hover:bg-white/80" : "bg-white/60 hover:bg-white/80";
+            }
+
+            return [lengths[length], thickness, color];
         },
 
         /**
@@ -342,19 +586,20 @@ export default defineComponent({
 
             const dx = touch.clientX - this.touchStartX;
             const dy = touch.clientY - this.touchStartY;
+            const mainAxis = this.isVertical ? "y" : "x";
 
-            // Decide once per gesture: only a mostly horizontal drag moves the carousel.
+            // Decide once per gesture: only a drag along the carousel axis moves it.
             if (this.swipeAxis === null) {
                 if (Math.max(Math.abs(dx), Math.abs(dy)) < AXIS_LOCK_PX) {
                     return;
                 }
 
                 this.swipeAxis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
-                this.isSwiping = this.swipeAxis === "x";
+                this.isSwiping = this.swipeAxis === mainAxis;
             }
 
-            if (this.swipeAxis === "x") {
-                this.swipeOffset = dx;
+            if (this.swipeAxis === mainAxis) {
+                this.swipeOffset = mainAxis === "y" ? dy : dx;
             }
         },
 
