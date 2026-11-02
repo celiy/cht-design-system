@@ -187,6 +187,10 @@ export type OptionItem = {
     selected?: boolean;
     tooltip?: string;
     tooltipPlacement?: "top" | "bottom" | "left" | "right" | "center";
+    /**
+     * Tooltip on this option's chip in a multi-select trigger. `tooltip` stays on the list item.
+     */
+    chipTooltip?: string;
     variant?: "destructive";
     disabled?: boolean;
     indicator?: OptionIndicator;
@@ -785,14 +789,28 @@ export default defineComponent({
         },
 
         /**
-         * Scrolls the highlighted into view
+         * Scrolls only the options list to show the highlighted item. `scrollIntoView` would
+         * also scroll the page, and right after opening the teleported panel still sits at
+         * the end of `body`, so the page jumped to the bottom.
          * @returns {void}
          */
         scrollHighlightedIntoView() {
             this.$nextTick(() => {
                 const el = this.optionRefs[this.highlightedIndex];
+                const scroller = this.$refs.optionsScrollRef as HTMLElement | undefined;
 
-                el?.scrollIntoView({ block: "nearest" });
+                if (!el || !scroller) {
+                    return;
+                }
+
+                const box = scroller.getBoundingClientRect();
+                const item = el.getBoundingClientRect();
+
+                if (item.top < box.top) {
+                    scroller.scrollTop -= box.top - item.top;
+                } else if (item.bottom > box.bottom) {
+                    scroller.scrollTop += item.bottom - box.bottom;
+                }
             });
         },
 

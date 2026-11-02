@@ -85,7 +85,55 @@
                                         :style="selectTriggerIndicatorStyle"
                                     />
 
+                                    <div
+                                        v-if="showChipsOnTrigger"
+
+                                        class="flex min-w-0 flex-1 flex-wrap gap-1"
+                                    >
+                                        <span
+                                            v-for="item in separatedSelectedItems"
+                                            :key="item.value"
+
+                                            v-tooltip="
+                                                item.tooltip
+                                                    ? { content: item.tooltip, placement: 'top' }
+                                                    : undefined
+                                            "
+                                            class="py-0.5 inline-flex max-w-full min-w-0 items-center gap-1.5 rounded border pl-1.5 text-xs whitespace-normal"
+
+                                            @click.stop="emitClickChipOnTrigger(item)"
+                                        >
+                                            <span class="min-w-0 break-words">{{
+                                                item.label
+                                            }}</span>
+
+                                            <span
+                                                v-if="!disabled"
+
+                                                class="flex shrink-0 cursor-pointer items-center pr-1 opacity-60 transition-opacity hover:opacity-100"
+                                                role="button"
+                                                tabindex="0"
+                                                :aria-label="`Remover ${item.label}`"
+
+                                                @mousedown.prevent
+                                                @click.stop="
+                                                    onTriggerChipRemove($event, item.value)
+                                                "
+                                                @keydown.enter.stop.prevent="
+                                                    onTriggerChipRemove($event, item.value)
+                                                "
+                                                @keydown.space.stop.prevent="
+                                                    onTriggerChipRemove($event, item.value)
+                                                "
+                                            >
+                                                <i class="fa-solid fa-xmark text-[0.625rem]" />
+                                            </span>
+                                        </span>
+                                    </div>
+
                                     <span
+                                        v-else
+
                                         class="block min-w-0 truncate"
                                         :class="{
                                             'text-muted-foreground': selectTriggerMuted
@@ -362,8 +410,8 @@ export default defineComponent({
         },
 
         /**
-         * When true (default), multi-select shows selected labels on the trigger,
-         * truncated with an ellipsis if they overflow the button.
+         * When true (default), multi-select shows each selected option on the trigger as a
+         * bordered chip with a remove button; chips wrap to new lines instead of truncating.
          * When false, the trigger keeps the header/placeholder.
          */
         showSelectedLabels: {
@@ -510,6 +558,7 @@ export default defineComponent({
         "update:value",
         "update:query",
         "click:selected",
+        "click:inside-chip",
         "remove:selected",
         "search:external",
         "keydown"
@@ -598,6 +647,14 @@ export default defineComponent({
             return this.showSelectedLabels;
         },
 
+        showChipsOnTrigger(): boolean {
+            return (
+                this.isSelectMultiple &&
+                this.showLabelsOnTrigger &&
+                this.separatedSelectedItems.length > 0
+            );
+        },
+
         /**
          * Gets the show separated selected
          * @returns {unknown} The show separated selected
@@ -614,17 +671,20 @@ export default defineComponent({
          * Gets the separated selected items
          * @returns {unknown} The separated selected items
          */
-        separatedSelectedItems(): Array<{ label: string; value: string }> {
+        separatedSelectedItems(): Array<{ label: string; value: string; tooltip?: string }> {
             if (!this.isSelectMultiple) {
                 return [];
             }
 
-            const items: Array<{ label: string; value: string }> = [];
+            const items: Array<{ label: string; value: string; tooltip?: string }> = [];
 
             for (const value of this.selectedValues) {
+                const option = this.optionForValue(value);
+
                 items.push({
                     value,
-                    label: this.optionLabelForValue(value) || value
+                    label: option?.label || value,
+                    tooltip: option?.chipTooltip
                 });
             }
 
@@ -943,6 +1003,14 @@ export default defineComponent({
 
     methods: {
         /**
+         * Emits the click:selected event when a chip is clicked on the trigger.
+         * @param { label: string; value: string } item The item
+         */
+        emitClickChipOnTrigger(item: { label: string; value: string }) {
+            this.$emit("click:inside-chip", item);
+        },
+
+        /**
          * Labels for values
          * @param {OptionItem[]} options The options
          * @param {string[]} values The values
@@ -1009,15 +1077,25 @@ export default defineComponent({
          * @returns {void}
          */
         optionLabelForValue(value: string, options?: OptionItem[]): string | undefined {
+            return this.optionForValue(value, options)?.label;
+        },
+
+        /**
+         * Finds the option with the given value, including nested options.
+         * @param {string} value The value
+         * @param {OptionItem[]} options? The options to search, defaults to `options`
+         * @returns {OptionItem | undefined} The option
+         */
+        optionForValue(value: string, options?: OptionItem[]): OptionItem | undefined {
             const list = options ?? this.options ?? [];
 
             for (const option of list) {
                 if (option.value != null && String(option.value) === value) {
-                    return option.label;
+                    return option;
                 }
 
                 if (option.options && option.options.length > 0) {
-                    const nested = this.optionLabelForValue(value, option.options);
+                    const nested = this.optionForValue(value, option.options);
 
                     if (nested) {
                         return nested;
@@ -1459,6 +1537,20 @@ export default defineComponent({
          * @param {string} value The value
          * @returns {void}
          */
+        /**
+         * Removes a chip from the trigger. Focus moves to the trigger first: Firefox anchors
+         * scrolling on the focused node, so removing a focused chip made the page jump.
+         * @param {Event} event The click or keydown event
+         * @param {string} value The option value
+         * @returns {void}
+         */
+        onTriggerChipRemove(event: Event, value: string) {
+            const target = event.currentTarget as HTMLElement | null;
+
+            target?.closest("button")?.focus({ preventScroll: true });
+            this.onSeparatedRemoveClick(value);
+        },
+
         onSeparatedRemoveClick(value: string) {
             if (this.disabled) {
                 return;

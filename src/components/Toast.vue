@@ -67,10 +67,10 @@
 
                                 class="h-0.5 w-full bg-border/40"
                             >
-                                <div
+                                <ToastProgress
                                     class="h-full w-full origin-left"
                                     :class="progressBarClass(item.type)"
-                                    :style="{ transform: `scaleX(${toastProgress(item.id)})` }"
+                                    :toast-id="item.id"
                                 />
                             </div>
                         </div>
@@ -84,7 +84,8 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import Button from "./Button.vue";
-import { toast, useToastItems, getToastProgress, type ToastType } from "../toast/toast";
+import ToastProgress from "./internal/ToastProgress.vue";
+import { toast, useToastItems, type ToastType } from "../toast/toast";
 
 export type ToastPosition =
     "top" | "bottom" | "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right";
@@ -99,7 +100,8 @@ export default defineComponent({
     name: "Toast",
 
     components: {
-        Button
+        Button,
+        ToastProgress
     },
 
     props: {
@@ -339,15 +341,6 @@ export default defineComponent({
                 "bg-destructive": type === "error",
                 "bg-warning": type === "warning"
             };
-        },
-
-        /**
-         * Toast progress
-         * @param {number} id The id
-         * @returns {void}
-         */
-        toastProgress(id: number) {
-            return getToastProgress(id);
         },
 
         /**
