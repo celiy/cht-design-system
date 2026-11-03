@@ -4,6 +4,14 @@
         :style="optionsScrollStyle"
     >
         <div
+            v-if="$slots.panelHeader"
+
+            class="shrink-0 border-b px-3 py-2"
+        >
+            <slot name="panelHeader" />
+        </div>
+
+        <div
             v-if="drillPath.length > 0"
 
             class="flex shrink-0 items-center gap-1 border-b px-2 py-1.5 text-sm"
@@ -172,6 +180,7 @@ import Input from "../Input.vue";
 import Marker from "../Marker.vue";
 import Option from "../Option.vue";
 import tooltip from "@shared/frontend/tooltip";
+import { placeNestedPanel } from "./nestedPanelPosition";
 
 export type OptionIndicator = {
     color?: string;
@@ -187,6 +196,10 @@ export type OptionItem = {
     selected?: boolean;
     tooltip?: string;
     tooltipPlacement?: "top" | "bottom" | "left" | "right" | "center";
+    /**
+     * Tooltip on this option's chip in a multi-select trigger. `tooltip` stays on the list item.
+     */
+    chipTooltip?: string;
     variant?: "destructive";
     disabled?: boolean;
     indicator?: OptionIndicator;
@@ -512,7 +525,11 @@ export default defineComponent({
          * @returns {boolean} True if the item is selectable
          */
         isSelectable(item: OptionItem): boolean {
-            return !item.separator && (Boolean(item.value) || this.hasChildren(item));
+            return (
+                !item.separator &&
+                !item.disabled &&
+                (Boolean(item.value) || this.hasChildren(item))
+            );
         },
 
         /**
@@ -736,19 +753,24 @@ export default defineComponent({
                 return;
             }
 
-            const rect = anchor.getBoundingClientRect();
-            const panelWidth = 176;
-            const gap = 4;
-            const spaceRight = window.innerWidth - rect.right;
-            const openLeft = spaceRight < panelWidth + gap;
+            const panelMinWidth = 176;
+            // The panel is rendered by now; measure it, its content can make it much wider.
+            const panel = this.$refs.nestedPanelRef as HTMLElement | undefined;
+            const placement = placeNestedPanel(
+                anchor.getBoundingClientRect(),
+                {
+                    width: Math.max(panel?.offsetWidth ?? 0, panelMinWidth),
+                    height: panel?.offsetHeight ?? 0
+                },
+                { width: window.innerWidth, height: window.innerHeight }
+            );
 
             this.nestedPanelStyle = {
                 position: "fixed",
-                top: `${Math.max(8, rect.top)}px`,
-                left: openLeft
-                    ? `${Math.max(8, rect.left - panelWidth - gap)}px`
-                    : `${rect.right - 4}px`,
-                minWidth: `${panelWidth}px`
+                top: `${placement.top}px`,
+                left: `${placement.left}px`,
+                minWidth: `${panelMinWidth}px`,
+                maxWidth: `${placement.maxWidth}px`
             };
         },
 
@@ -785,14 +807,28 @@ export default defineComponent({
         },
 
         /**
-         * Scrolls the highlighted into view
+         * Scrolls only the options list to show the highlighted item. `scrollIntoView` would
+         * also scroll the page, and right after opening the teleported panel still sits at
+         * the end of `body`, so the page jumped to the bottom.
          * @returns {void}
          */
         scrollHighlightedIntoView() {
             this.$nextTick(() => {
                 const el = this.optionRefs[this.highlightedIndex];
+                const scroller = this.$refs.optionsScrollRef as HTMLElement | undefined;
 
-                el?.scrollIntoView({ block: "nearest" });
+                if (!el || !scroller) {
+                    return;
+                }
+
+                const box = scroller.getBoundingClientRect();
+                const item = el.getBoundingClientRect();
+
+                if (item.top < box.top) {
+                    scroller.scrollTop -= box.top - item.top;
+                } else if (item.bottom > box.bottom) {
+                    scroller.scrollTop += item.bottom - box.bottom;
+                }
             });
         },
 

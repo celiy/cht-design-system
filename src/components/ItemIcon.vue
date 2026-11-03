@@ -12,7 +12,9 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 
-type ItemVariant = "primary" | "secondary" | "success" | "warning" | "destructive" | "info";
+/** `default` sets no color, so the icon inherits the text color around it. */
+type ItemVariant =
+    "default" | "primary" | "secondary" | "success" | "warning" | "destructive" | "info";
 
 export default defineComponent({
     props: {
@@ -129,7 +131,7 @@ export default defineComponent({
          */
         backgroundClass() {
             if (this.type === "icon") {
-                return ["pt-1"];
+                return ["pt-0"];
             }
 
             if (this.type === "card" && this.backgroundStyle) {

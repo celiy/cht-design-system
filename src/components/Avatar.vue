@@ -1,5 +1,9 @@
 <template>
-    <div class="relative inline-flex w-fit shrink-0">
+    <div
+        ref="root"
+
+        class="relative inline-flex w-fit shrink-0"
+    >
         <Skeleton
             v-if="loading"
 
@@ -10,19 +14,20 @@
         <div
             v-else
 
-            class="overflow-hidden rounded-full"
+            class="relative overflow-hidden rounded-full"
             :class="{
                 'h-8 w-8': size === 'small',
                 'h-10 w-10': size === 'medium',
                 'h-12 w-12': size === 'large'
             }"
+            :style="customSizeStyle"
         >
             <Image
-                v-if="image"
+                v-if="displayImage"
 
                 class="h-full w-full"
                 image-class="h-full w-full object-cover"
-                :src="image"
+                :src="displayImage"
                 :draggable="false"
             />
 
@@ -72,6 +77,21 @@
                 'bg-gray-500': status === 'offline'
             }"
         />
+
+        <Badge
+            v-if="badge"
+
+            :class="[
+                'absolute',
+                {
+                    '-top-1 -right-2': badge.position === 'top-right',
+                    '-right-2 -bottom-1': badge.position === 'bottom-right',
+                    '-top-1 -left-2': badge.position === 'top-left',
+                    '-bottom-1 -left-2': badge.position === 'bottom-left'
+                }
+            ]"
+            v-bind="badge.attributes"
+        />
     </div>
 </template>
 
@@ -79,15 +99,20 @@
 import { defineComponent, type PropType } from "vue";
 import Skeleton from "./Skeleton.vue";
 import Image from "./Image.vue";
+import Badge from "./Badge.vue";
+import { onFirstAppearance } from "./custom/charts/chartMotion";
 
 type AvatarStatus = "online" | "away" | "do-not-disturb" | "offline";
+
+const PRESET_SIZES = ["small", "medium", "large"];
 
 export default defineComponent({
     name: "Avatar",
 
     components: {
         Skeleton,
-        Image
+        Image,
+        Badge
     },
 
     props: {
@@ -100,6 +125,17 @@ export default defineComponent({
         },
 
         /**
+         * The badge of the avatar
+         */
+        badge: {
+            type: Object as PropType<{
+                attributes: object;
+                position: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+            }>,
+            required: false
+        },
+
+        /**
          * The image of the avatar
          */
         image: {
@@ -108,10 +144,10 @@ export default defineComponent({
         },
 
         /**
-         * The size of the avatar
+         * The size of the avatar: "small", "medium", "large" or any CSS length (e.g. "20rem")
          */
         size: {
-            type: String as PropType<"small" | "medium" | "large">,
+            type: String as PropType<"small" | "medium" | "large" | (string & {})>,
             required: false,
             default: "medium"
         },
@@ -123,12 +159,52 @@ export default defineComponent({
             type: Boolean,
             required: false,
             default: false
+        },
+
+        /**
+         * Only sets the image once the avatar enters the viewport
+         */
+        lazy: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
 
     emits: ["click"],
 
+    data() {
+        return {
+            isVisible: !this.lazy,
+            stopObserving: null as (() => void) | null
+        };
+    },
+
     computed: {
+        /**
+         * The image to render, held back until the avatar is visible when `lazy`
+         * @returns {string | undefined} The image source
+         */
+        displayImage(): string | undefined {
+            if (!this.isVisible) {
+                return undefined;
+            }
+
+            return this.image;
+        },
+
+        /**
+         * Inline size for custom CSS lengths, since Tailwind cannot generate classes from runtime values
+         * @returns {Record<string, string>} The width and height, or an empty object for preset sizes
+         */
+        customSizeStyle(): Record<string, string> {
+            if (PRESET_SIZES.includes(this.size)) {
+                return {};
+            }
+
+            return { width: this.size, height: this.size };
+        },
+
         /**
          * Checks if the status badge is shown
          * @returns {boolean} True if the status badge is shown
@@ -145,6 +221,20 @@ export default defineComponent({
                 this.status === "offline"
             );
         }
+    },
+
+    mounted() {
+        if (!this.lazy) {
+            return;
+        }
+
+        this.stopObserving = onFirstAppearance(this.$refs.root as Element, () => {
+            this.isVisible = true;
+        });
+    },
+
+    beforeUnmount() {
+        this.stopObserving?.();
     }
 });
 </script>

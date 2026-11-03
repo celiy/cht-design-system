@@ -60,140 +60,119 @@
         </RouterLink>
 
         <!-- Group -->
-        <div
+        <Cascade
             v-if="link.type === 'group'"
 
-            class="w-full"
+            :open="isGroupOpen(link, idx)"
+
+            @update:open="toggleGroup(link, idx)"
         >
-            <!-- Group header -->
+            <template #header="{ isOpen }">
+                <Chip
+                    class="text-sidebar-foreground/80 hover:bg-accent hover:text-sidebar-foreground"
+                    :class="isOpen ? 'border-b-2-border' : 'border-b-2-transparent'"
+                    :label="link.label"
+                    :label-icon="link.leftIcon"
+                    variant="transparent"
+                >
+                    <template #right-side>
+                        <i
+                            class="fa-solid fa-chevron-down mr-4 text-xs transition-transform duration-300"
+                            :class="{ 'rotate-180': isOpen }"
+                        />
+                    </template>
+                </Chip>
+            </template>
+
             <div
-                class="flex w-full cursor-pointer items-center justify-between rounded bg-transparent px-4 py-2 text-sm font-medium text-sidebar-foreground/80 transition-all hover:bg-accent hover:text-sidebar-foreground"
-                :class="[isGroupOpen(link, idx) ? 'border-b-2-border' : 'border-b-2-transparent']"
+                ref="groupLists"
 
-                @click="toggleGroup(link, idx)"
+                class="relative flex flex-col"
+                :data-group-key="groupKey(link, idx)"
             >
-                <span class="flex min-w-0 items-center gap-2">
-                    <i
-                        v-if="link.leftIcon"
+                <!-- Sublink -->
+                <div
+                    v-for="(sublink, sublinkIdx) in link.links"
+                    :key="sublink.label"
 
-                        class="fa-solid shrink-0 text-xs"
-                        :class="link.leftIcon"
-                    />
-
-                    <span class="min-w-0 truncate">
-                        {{ link.label }}
-                    </span>
-                </span>
-
-                <i
-                    :class="[
-                        'fa-solid text-xs transition-transform duration-300',
-                        isGroupOpen(link, idx) ? 'fa-chevron-down rotate-180' : 'fa-chevron-down'
-                    ]"
-                />
-            </div>
-
-            <!-- Group content -->
-            <div
-                class="grid w-full transition-[grid-template-rows] duration-300 ease-out"
-                :class="isGroupOpen(link, idx) ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
-            >
-                <div class="min-h-0 overflow-hidden">
-                    <div
-                        ref="groupLists"
-
-                        class="relative flex flex-col"
-                        :data-group-key="groupKey(link, idx)"
-                    >
-                        <!-- Sublink -->
+                    class="flex"
+                >
+                    <div class="relative mr-2 ml-4 w-0.5 shrink-0 self-stretch">
                         <div
-                            v-for="(sublink, idx) in link.links"
-                            :key="sublink.label"
-
-                            class="flex"
-                        >
-                            <div class="relative mr-2 ml-4 w-0.5 shrink-0 self-stretch">
-                                <div
-                                    class="absolute inset-0 z-0"
-                                    :class="[
-                                        idx === link.links.length - 1 ? 'rounded-full' : '',
-                                        {
-                                            'bg-linear-to-b from-sidebar-border to-transparent':
-                                                $project.style.customTheme === 'hodiernus' &&
-                                                idx === link.links.length - 1,
-                                            'bg-sidebar-border':
-                                                $project.style.customTheme !== 'hodiernus' ||
-                                                idx !== link.links.length - 1 ||
-                                                ($project.style.customTheme === 'hodiernus' &&
-                                                    idx !== link.links.length - 1)
-                                        }
-                                    ]"
-                                />
-                            </div>
-
-                            <RouterLink
-                                :key="sublink.link"
-
-                                class="w-full cursor-pointer no-underline! hover:brightness-100!"
-                                :to="sublink.link"
-                                active-class=""
-                                exact-active-class=""
-
-                                @click="onLinkClick(sublink)"
-                                @mouseenter="hoverLink(sublink)"
-                                @mouseleave="unhoverLink()"
-                                @mouseup="onUp()"
-                                @mousedown="onDown()"
-                                @mouseout="onOut()"
-                                @touchstart="onDown()"
-                                @touchend="onUp()"
-                            >
-                                <Chip
-                                    :label="sublink.label"
-                                    :label-icon="sublink.leftIcon"
-                                    :variant="isActive(sublink.link) ? 'primary' : 'transparent'"
-                                >
-                                    <template
-                                        v-if="
-                                            !$project.device.isMobile &&
-                                            !$project.device.isTablet &&
-                                            !isActive(sublink.link)
-                                        "
-                                        #right-side
-                                    >
-                                        <i
-                                            class="fa-solid fa-chevron-right mr-4 inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
-                                            :class="[
-                                                isActive(sublink.link)
-                                                    ? 'text-primary!'
-                                                    : 'text-sidebar-foreground/80!',
-                                                hoveredLink === sublink.link &&
-                                                !isActive(sublink.link)
-                                                    ? 'translate-y-0 opacity-100'
-                                                    : 'translate-y-3 opacity-0',
-                                                isDown ? 'translate-x-1' : 'translate-x-0'
-                                            ]"
-                                        />
-                                    </template>
-                                </Chip>
-                            </RouterLink>
-                        </div>
-
-                        <!-- Active indicator, moves to the most recently clicked active sublink -->
-                        <div
-                            class="pointer-events-none absolute top-0 left-4 z-10 w-0.5 origin-center rounded-full bg-primary"
-                            :style="barStyle(link, idx)"
+                            class="absolute inset-0 z-0"
+                            :class="[
+                                sublinkIdx === link.links.length - 1 ? 'rounded-full' : '',
+                                {
+                                    'bg-linear-to-b from-sidebar-border to-transparent':
+                                        $project.style.customTheme === 'hodiernus' &&
+                                        sublinkIdx === link.links.length - 1,
+                                    'bg-sidebar-border':
+                                        $project.style.customTheme !== 'hodiernus' ||
+                                        sublinkIdx !== link.links.length - 1
+                                }
+                            ]"
                         />
                     </div>
+
+                    <RouterLink
+                        class="w-full cursor-pointer no-underline! hover:brightness-100!"
+                        :to="sublink.link"
+                        active-class=""
+                        exact-active-class=""
+
+                        @click="onLinkClick(sublink)"
+                        @mouseenter="hoverLink(sublink)"
+                        @mouseleave="unhoverLink()"
+                        @mouseup="onUp()"
+                        @mousedown="onDown()"
+                        @mouseout="onOut()"
+                        @touchstart="onDown()"
+                        @touchend="onUp()"
+                    >
+                        <Chip
+                            :label="sublink.label"
+                            :label-icon="sublink.leftIcon"
+                            :variant="isActive(sublink.link) ? 'primary' : 'transparent'"
+                        >
+                            <template
+                                v-if="
+                                    !$project.device.isMobile &&
+                                    !$project.device.isTablet &&
+                                    !isActive(sublink.link)
+                                "
+                                #right-side
+                            >
+                                <i
+                                    class="fa-solid fa-chevron-right mr-4 inline-flex items-center text-xs leading-none transition-all duration-100 ease-out"
+                                    :class="[
+                                        isActive(sublink.link)
+                                            ? 'text-primary!'
+                                            : 'text-sidebar-foreground/80!',
+                                        hoveredLink === sublink.link && !isActive(sublink.link)
+                                            ? 'translate-y-0 opacity-100'
+                                            : 'translate-y-3 opacity-0',
+                                        isDown ? 'translate-x-1' : 'translate-x-0'
+                                    ]"
+                                />
+                            </template>
+                        </Chip>
+                    </RouterLink>
                 </div>
+
+                <!-- Active indicator, moves to the most recently clicked active sublink -->
+                <div
+                    class="pointer-events-none absolute top-0 left-4 z-10 w-0.5 origin-center rounded-full bg-primary"
+                    :style="barStyle(link, idx)"
+                />
             </div>
-        </div>
+        </Cascade>
     </div>
 </template>
 
 <script lang="ts">
 import Button from "../Button.vue";
 import { defineComponent, type PropType } from "vue";
+import Cascade from "../Cascade.vue";
 import Chip from "../Chip.vue";
 
 type SidebarBar = {
@@ -208,6 +187,7 @@ export default defineComponent({
 
     components: {
         Button,
+        Cascade,
         Chip
     },
 

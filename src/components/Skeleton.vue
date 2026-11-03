@@ -23,6 +23,7 @@
                     'w-10 h-10': size === 'medium',
                     'w-12 h-12': size === 'large'
                 }"
+                :style="customSizeStyle"
             />
         </div>
     </div>
@@ -57,7 +58,7 @@ export default defineComponent({
          * The size of the skeleton
          */
         size: {
-            type: String as PropType<"small" | "medium" | "large">,
+            type: String as PropType<"small" | "medium" | "large" | (string & {})>,
             required: false,
             default: "medium"
         }
@@ -69,6 +70,20 @@ export default defineComponent({
         return {
             pulseDelay: "0ms"
         };
+    },
+
+    computed: {
+        /**
+         * Inline size for custom CSS lengths, since Tailwind cannot generate classes from runtime values
+         * @returns {Record<string, string>} The width and height, or an empty object for preset sizes
+         */
+        customSizeStyle(): Record<string, string> {
+            if (["small", "medium", "large"].includes(this.size)) {
+                return {};
+            }
+
+            return { width: this.size, height: this.size };
+        }
     },
 
     /**

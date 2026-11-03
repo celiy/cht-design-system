@@ -75,7 +75,21 @@
 
                 @select="onSelect"
                 @search:external="onSearchExternal"
-            />
+            >
+                <template
+                    v-if="$slots['panel-header']"
+                    #panelHeader
+                >
+                    <slot name="panel-header" />
+                </template>
+
+                <template
+                    v-if="$slots['panel-footer']"
+                    #panelFooter
+                >
+                    <slot name="panel-footer" />
+                </template>
+            </OptionsList>
         </FloatingPanel>
     </div>
 </template>

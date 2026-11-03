@@ -1,19 +1,20 @@
 <template>
     <div
-        v-if="separator" 
+        v-if="separator"
+
         :class="{
-            'flex items-center': (hasLabel || centerIcon) && orientation === 'horizontal',
-            'flex flex-col justify-center items-center': centerIcon && orientation === 'vertical'
+            'flex items-center': hasContent,
+            'flex-col justify-center': hasContent && orientation === 'vertical'
         }"
     >
-        <div       
-            :class="{
-                'w-full border-t': orientation === 'horizontal',
-                'h-full border-r w-fit': orientation === 'vertical'
-            }"
-        />
+        <div :class="lineClass('before')" />
 
-        <small v-if="hasLabel" class="px-4 text-muted-foreground!">
+        <small
+            v-if="hasLabel"
+
+            class="text-muted-foreground!"
+            :class="orientation === 'vertical' ? 'py-4' : 'px-4'"
+        >
             <slot name="label" />
 
             <template v-if="!$slots.label">
@@ -21,40 +22,42 @@
             </template>
         </small>
 
-        <span       
+        <span
             v-else-if="centerIcon"
+
             :class="[
                 `fa-solid ${centerIcon} text-muted-foreground!`,
                 {
                     'mx-4': orientation === 'horizontal',
                     'my-4': orientation === 'vertical'
                 }
-            ]" 
+            ]"
         />
 
-        <div       
-            v-if="centerIcon && orientation === 'vertical'"
-            class="h-full border-r w-fit': orientation === 'vertical"
-        />
+        <div
+            v-if="hasContent"
 
-        <div       
-            v-if="hasLabel || centerIcon"
-            :class="{
-                'w-full border-t': orientation === 'horizontal'
-            }"
+            :class="lineClass('after')"
         />
     </div>
 
-    <div v-else class="flex items-center">
-        <span 
-            v-if="leftIcon" 
-            :class="`fa-solid ${leftIcon} text-muted-foreground! mr-3`" 
+    <!-- Marker with label, left icon or left number -->
+    <div
+        v-else
+
+        class="flex items-center"
+    >
+        <span
+            v-if="leftIcon"
+
+            :class="`fa-solid ${leftIcon} mr-3 text-muted-foreground!`"
         />
-        
+
         <div
-            v-if="leftNumber" 
+            v-if="leftNumber"
+
             :class="[
-                `rounded-full flex items-center justify-center h-6 w-6 text-sm mr-3`,
+                `mr-3 flex h-6 w-6 items-center justify-center rounded-full text-sm`,
                 {
                     'bg-muted text-foreground': color === 'foreground',
                     'bg-muted text-muted-foreground': color === 'muted'
@@ -64,7 +67,7 @@
             {{ leftNumber }}
         </div>
 
-        <span 
+        <span
             class="font-medium"
             :class="{
                 'text-foreground': color === 'foreground',
@@ -131,8 +134,17 @@ export default defineComponent({
          * The orientation of the marker
          */
         orientation: {
-            type: String as PropType <"horizontal" | "vertical">,
+            type: String as PropType<"horizontal" | "vertical">,
             default: "horizontal",
+            required: false
+        },
+
+        /**
+         * Where the separator label or center icon sits along the line
+         */
+        contentPosition: {
+            type: String as PropType<"start" | "center" | "end">,
+            default: "center",
             required: false
         },
 
@@ -140,12 +152,12 @@ export default defineComponent({
          * The color of the marker
          */
         color: {
-            type: String as PropType <"foreground" | "muted">,
+            type: String as PropType<"foreground" | "muted">,
             default: "muted",
             required: false
         }
     },
-    
+
     computed: {
         /**
          * Checks if label
@@ -157,6 +169,36 @@ export default defineComponent({
             }
 
             return false;
+        },
+
+        hasContent(): boolean {
+            return this.hasLabel || Boolean(this.centerIcon);
+        }
+    },
+
+    methods: {
+        /**
+         * Line on one side of the separator content. The side next to `contentPosition` stays short.
+         * @param {"before" | "after"} side The line side
+         * @returns {string[]} The line classes
+         */
+        lineClass(side: "before" | "after"): string[] {
+            const isVertical = this.orientation === "vertical";
+            const border = isVertical ? "border-r" : "border-t";
+
+            if (!this.hasContent) {
+                return isVertical ? [border, "h-full w-fit"] : [border, "w-full"];
+            }
+
+            const isShort =
+                (side === "before" && this.contentPosition === "start") ||
+                (side === "after" && this.contentPosition === "end");
+
+            if (isShort) {
+                return [border, "shrink-0", isVertical ? "h-8" : "w-8"];
+            }
+
+            return [border, "min-h-0 min-w-0 flex-1"];
         }
     }
 });

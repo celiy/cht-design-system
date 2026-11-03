@@ -46,8 +46,17 @@ export default defineComponent({
         },
 
         variant: {
-            type: String as PropType<"primary" | "transparent">,
-            default: "transparent",
+            type: String as PropType<
+                | "default"
+                | "primary"
+                | "secondary"
+                | "success"
+                | "info"
+                | "warning"
+                | "destructive"
+                | "transparent"
+            >,
+            default: "default",
             required: false
         },
 
@@ -64,14 +73,27 @@ export default defineComponent({
             } else {
                 return {
                     "text-primary/80 hover:text-primary": this.variant === "primary",
-                    "text-foreground/80 hover:text-foreground": this.variant === "transparent"
+                    "text-success/80 hover:text-success": this.variant === "success",
+                    "text-info/80 hover:text-info": this.variant === "info",
+                    "text-warning/80 hover:text-warning": this.variant === "warning",
+                    "text-destructive/80 hover:text-destructive": this.variant === "destructive",
+                    "text-foreground/80 hover:text-foreground":
+                        this.variant === "transparent" ||
+                        this.variant === "default" ||
+                        this.variant === "secondary"
                 };
             }
         },
 
         chipClass(): object {
             return {
+                "bg-input/10 hover:bg-input/60 ": this.variant === "default",
                 "bg-primary/10 hover:bg-primary/20 ": this.variant === "primary",
+                "bg-secondary/10 hover:bg-secondary/60 ": this.variant === "secondary",
+                "bg-success/10 hover:bg-success/20 ": this.variant === "success",
+                "bg-info/10 hover:bg-info/20 ": this.variant === "info",
+                "bg-warning/10 hover:bg-warning/20 ": this.variant === "warning",
+                "bg-destructive/10 hover:bg-destructive/20 ": this.variant === "destructive",
                 "bg-transparent hover:bg-accent ": this.variant === "transparent",
                 ...this.chipTextColor
             };
