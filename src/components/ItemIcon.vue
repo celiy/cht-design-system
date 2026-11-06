@@ -5,7 +5,13 @@
         class="flex h-fit shrink-0 items-center justify-center"
         :class="backgroundClass"
     >
-        <span :class="iconClass" />
+        <slot></slot>
+
+        <span
+            v-if="!$slots.default"
+
+            :class="iconClass"
+        />
     </div>
 </template>
 

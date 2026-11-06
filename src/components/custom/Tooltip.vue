@@ -13,27 +13,34 @@
         <slot />
 
         <Teleport to="body">
-            <div
-                v-if="visible"
-                ref="tipRef"
-
-                role="tooltip"
-                class="tooltip-background pointer-events-none fixed top-0 left-0 z-100000 max-w-64 rounded border px-2.5 py-1.5 text-xs leading-snug text-secondary-foreground shadow-md"
-                :class="{ invisible: !ready }"
-                :style="tipStyle"
+            <Transition
+                :name="`tooltip-${animation}`"
+                :css="animation !== 'none'"
+                :duration="Math.max(0, animationDuration)"
             >
-                <slot name="tooltip" />
-            </div>
+                <div
+                    v-if="visible"
+                    ref="tipRef"
+
+                    role="tooltip"
+                    class="tooltip-background pointer-events-none fixed top-0 left-0 z-100000 max-w-64 rounded border px-2.5 py-1.5 text-xs leading-snug text-secondary-foreground shadow-md"
+                    :class="{ invisible: !ready }"
+                    :style="tipStyle"
+                >
+                    <slot name="tooltip" />
+                </div>
+            </Transition>
         </Teleport>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, type PropType } from "vue";
 import { followTooltipPosition, TOOLTIP_DEFAULT_OFFSET } from "../internal/tooltipFollow";
 
 const DEFAULT_SHOW_DELAY = 40;
 const DEFAULT_FOLLOW_MS = 60;
+const DEFAULT_ANIMATION_MS = 150;
 
 export default defineComponent({
     name: "Tooltip",
@@ -69,6 +76,22 @@ export default defineComponent({
         disabled: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * Show and hide animation. `none` swaps the tooltip in and out without motion.
+         */
+        animation: {
+            type: String as PropType<"none" | "fade" | "scale" | "slide-up" | "slide-down">,
+            default: "none"
+        },
+
+        /**
+         * Show and hide animation length in ms.
+         */
+        animationDuration: {
+            type: Number,
+            default: DEFAULT_ANIMATION_MS
         }
     },
 
@@ -104,7 +127,8 @@ export default defineComponent({
 
             return {
                 transform: `translate3d(${this.tipX}px, ${this.tipY}px, 0)`,
-                transition: this.skipFollow ? "none" : `transform ${follow}ms linear`
+                transition: this.skipFollow ? "none" : `transform ${follow}ms linear`,
+                "--tooltip-animation-duration": `${Math.max(0, this.animationDuration)}ms`
             };
         }
     },
@@ -427,7 +451,7 @@ export default defineComponent({
             this.pointerX = event.clientX;
             this.pointerY = event.clientY;
 
-            if (this.isPointerOverTrigger()) {
+            if (this.isPointerOverTrigger(event.target)) {
                 if (this.visible) {
                     this.scheduleFollow();
                 }
@@ -439,24 +463,17 @@ export default defineComponent({
         },
 
         /**
-         * Checks if the pointer is over the trigger
+         * Checks if the pointer is over the trigger. Uses the event target, not the trigger
+         * rect: a child can overflow the wrapper (an inline link taller than its line box),
+         * and `pointerenter` fires there, so a rect check would hide the tooltip and cancel
+         * the show with no new `pointerenter` to retry it
+         * @param {EventTarget | null} target The element under the pointer
          * @returns {boolean} True if the pointer is over the trigger
          */
-        isPointerOverTrigger() {
+        isPointerOverTrigger(target: EventTarget | null) {
             const trigger = this.$refs.triggerRef as HTMLElement | undefined;
 
-            if (!trigger) {
-                return false;
-            }
-
-            const rect = trigger.getBoundingClientRect();
-
-            return (
-                this.pointerX >= rect.left &&
-                this.pointerX <= rect.right &&
-                this.pointerY >= rect.top &&
-                this.pointerY <= rect.bottom
-            );
+            return Boolean(trigger && target instanceof Node && trigger.contains(target));
         },
 
         /**
@@ -508,3 +525,86 @@ export default defineComponent({
     }
 });
 </script>
+
+<style scoped>
+/*
+ * Keyframes animate `opacity`, `scale` and `translate`, never `transform` or `transition`:
+ * both are inline styles that place the tip and make it follow the pointer.
+ */
+.tooltip-fade-enter-active,
+.tooltip-scale-enter-active,
+.tooltip-slide-up-enter-active,
+.tooltip-slide-down-enter-active {
+    animation-duration: var(--tooltip-animation-duration);
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+}
+
+.tooltip-fade-leave-active,
+.tooltip-scale-leave-active,
+.tooltip-slide-up-leave-active,
+.tooltip-slide-down-leave-active {
+    animation-duration: var(--tooltip-animation-duration);
+    animation-timing-function: ease-in;
+    animation-direction: reverse;
+    animation-fill-mode: both;
+}
+
+.tooltip-fade-enter-active,
+.tooltip-fade-leave-active {
+    animation-name: tooltip-fade;
+}
+
+.tooltip-scale-enter-active,
+.tooltip-scale-leave-active {
+    animation-name: tooltip-scale;
+}
+
+.tooltip-slide-up-enter-active,
+.tooltip-slide-up-leave-active {
+    animation-name: tooltip-slide-up;
+}
+
+.tooltip-slide-down-enter-active,
+.tooltip-slide-down-leave-active {
+    animation-name: tooltip-slide-down;
+}
+
+@keyframes tooltip-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes tooltip-scale {
+    from {
+        opacity: 0;
+        scale: 0.9;
+    }
+}
+
+@keyframes tooltip-slide-up {
+    from {
+        opacity: 0;
+        translate: 0 0.375rem;
+    }
+}
+
+@keyframes tooltip-slide-down {
+    from {
+        opacity: 0;
+        translate: 0 -0.375rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tooltip-scale-enter-active,
+    .tooltip-scale-leave-active,
+    .tooltip-slide-up-enter-active,
+    .tooltip-slide-up-leave-active,
+    .tooltip-slide-down-enter-active,
+    .tooltip-slide-down-leave-active {
+        animation-name: tooltip-fade;
+    }
+}
+</style>
