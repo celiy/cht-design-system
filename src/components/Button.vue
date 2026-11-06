@@ -1,8 +1,7 @@
 <template>
     <NativeElement
         :tag="isLink ? 'a' : 'button'"
-
-        class="w-fit cursor-pointer font-semibold shadow-sm transition-all select-none disabled:cursor-not-allowed disabled:opacity-60"
+        class="w-fit cursor-pointer font-semibold transition-all select-none disabled:cursor-not-allowed disabled:opacity-60"
         :class="[
             hoverClass,
             backgroundClass,
@@ -10,6 +9,7 @@
             shapeClass,
             buttonClass,
             {
+                'shadow-sm': !variant.startsWith('transparent'),
                 'cursor-wait opacity-60': loading,
                 'cht-button inline-block no-underline': isLink,
                 'cursor-not-allowed opacity-60': isLink && disabled
@@ -365,8 +365,7 @@ export default defineComponent({
                 "hover-ring-destructive": this.hovered && this.variant === "destructive",
                 "bg-destructive/40":
                     this.hovered &&
-                    (this.variant === "transparent-destructive" ||
-                        this.variant === "destructive"),
+                    (this.variant === "transparent-destructive" || this.variant === "destructive"),
                 "bg-destructive! text-destructive-foreground!":
                     this.hovered && this.variant === "outline-destructive",
 
