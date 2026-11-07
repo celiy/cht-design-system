@@ -1,17 +1,27 @@
 <template>
-    <button
-        class="w-fit cursor-pointer font-semibold shadow-sm transition-all select-none disabled:cursor-not-allowed disabled:opacity-60"
+    <NativeElement
+        :tag="isLink ? 'a' : 'button'"
+        class="w-fit cursor-pointer font-semibold transition-all select-none disabled:cursor-not-allowed disabled:opacity-60"
         :class="[
             hoverClass,
             backgroundClass,
             borderClass,
             shapeClass,
             buttonClass,
-            { 'cursor-wait opacity-60': loading }
+            {
+                'shadow-sm': !variant.startsWith('transparent'),
+                'cursor-wait opacity-60': loading,
+                'cht-button inline-block no-underline': isLink,
+                'cursor-not-allowed opacity-60': isLink && disabled
+            }
         ]"
-        :disabled="disabled"
-        :form="form"
-        :type="type"
+        :disabled="isLink ? undefined : disabled"
+        :form="isLink ? undefined : form"
+        :type="isLink ? undefined : type"
+        :href="isLink && !disabled ? href : undefined"
+        :target="isLink ? target : undefined"
+        :rel="linkRel"
+        :aria-disabled="isLink && disabled ? 'true' : undefined"
         :style="
             shape === 'rounded'
                 ? {
@@ -71,11 +81,11 @@
                 :class="`fa-solid ${rightIcon}`"
             />
         </div>
-    </button>
+    </NativeElement>
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from "vue";
+import { defineComponent, h, type FunctionalComponent, type PropType } from "vue";
 import type { ButtonVariants } from "@shared/constants/ButtonTypes";
 
 export const ButtonProps = {
@@ -183,6 +193,22 @@ export const ButtonProps = {
     },
 
     /**
+     * Renders the button as a link (`<a>`) that navigates to this URL.
+     */
+    href: {
+        type: String,
+        required: false
+    },
+
+    /**
+     * Where the link opens. Only used with `href`; `_blank` also adds `rel="noopener noreferrer"`.
+     */
+    target: {
+        type: String as PropType<"_self" | "_blank" | "_parent" | "_top">,
+        required: false
+    },
+
+    /**
      * Associates the button with a form element (`id` of `<form>`).
      */
     form: {
@@ -232,8 +258,24 @@ export const ButtonProps = {
     }
 } as const;
 
+/**
+ * Renders a native element by tag name. `<component is="button">` would resolve to this
+ * globally registered Button and recurse forever, while `h("button")` always builds the element.
+ */
+const NativeElement: FunctionalComponent<{ tag: string } & Record<string, unknown>> = (
+    props,
+    { slots }
+) =>
+    h(props.tag, null, slots.default?.());
+
+NativeElement.props = ["tag"];
+
 export default defineComponent({
     name: "Button",
+
+    components: {
+        NativeElement
+    },
 
     props: {
         ...ButtonProps
@@ -249,6 +291,22 @@ export default defineComponent({
     },
 
     computed: {
+        /**
+         * Whether the button renders as a link
+         * @returns {boolean} True when `href` is set
+         */
+        isLink(): boolean {
+            return Boolean(this.href);
+        },
+
+        /**
+         * Gets the rel of the link
+         * @returns {string | undefined} The rel, only for links that open in a new tab
+         */
+        linkRel(): string | undefined {
+            return this.isLink && this.target === "_blank" ? "noopener noreferrer" : undefined;
+        },
+
         /**
          * Gets the circle button size
          * @returns {unknown} The circle button size
@@ -298,37 +356,35 @@ export default defineComponent({
             return {
                 "hover-ring":
                     this.hovered && (this.variant === "default" || this.variant === "secondary"),
-                "bg-secondary/40":
-                    this.hovered &&
-                    (this.variant === "transparent-secondary" ||
-                        this.variant === "outline-secondary"),
+                "bg-secondary/40": this.hovered && this.variant === "transparent-secondary",
+                "bg-secondary! text-secondary-foreground!":
+                    this.hovered && this.variant === "outline-secondary",
 
                 "hover-ring-primary": this.hovered && this.variant === "primary",
-                "bg-primary/40":
-                    this.hovered &&
-                    (this.variant === "transparent-primary" || this.variant === "outline-primary"),
+                "bg-primary/40": this.hovered && this.variant === "transparent-primary",
+                "bg-primary! text-primary-foreground!":
+                    this.hovered && this.variant === "outline-primary",
 
                 "hover-ring-destructive": this.hovered && this.variant === "destructive",
                 "bg-destructive/40":
                     this.hovered &&
-                    (this.variant === "transparent-destructive" ||
-                        this.variant === "destructive" ||
-                        this.variant === "outline-destructive"),
+                    (this.variant === "transparent-destructive" || this.variant === "destructive"),
+                "bg-destructive! text-destructive-foreground!":
+                    this.hovered && this.variant === "outline-destructive",
 
                 "hover-ring-success": this.hovered && this.variant === "success",
-                "bg-success/40":
-                    this.hovered &&
-                    (this.variant === "transparent-success" || this.variant === "outline-success"),
+                "bg-success/40": this.hovered && this.variant === "transparent-success",
+                "bg-success! text-success-foreground!":
+                    this.hovered && this.variant === "outline-success",
 
                 "hover-ring-info": this.hovered && this.variant === "info",
-                "bg-info/40":
-                    this.hovered &&
-                    (this.variant === "transparent-info" || this.variant === "outline-info"),
+                "bg-info/40": this.hovered && this.variant === "transparent-info",
+                "bg-info! text-info-foreground!": this.hovered && this.variant === "outline-info",
 
                 "hover-ring-warning": this.hovered && this.variant === "warning",
-                "bg-warning/40":
-                    this.hovered &&
-                    (this.variant === "transparent-warning" || this.variant === "outline-warning"),
+                "bg-warning/40": this.hovered && this.variant === "transparent-warning",
+                "bg-warning! text-warning-foreground!":
+                    this.hovered && this.variant === "outline-warning",
 
                 "hover:shadow-md": !this.disabled,
 

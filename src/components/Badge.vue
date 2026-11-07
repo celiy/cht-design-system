@@ -1,6 +1,6 @@
 <template>
     <div
-        class="flex items-center rounded px-2 py-0.5 text-xs font-semibold select-none"
+        class="flex items-center rounded px-2 py-0.5 text-xs font-semibold"
         :class="rootClass"
         :style="rootStyle"
 
@@ -62,6 +62,13 @@ function cssColorToken(token: string): string {
     return `var(--color-${token})`;
 }
 
+const CSS_COLOR_PATTERN = /^(#|rgb|hsl|hwb|lab|lch|oklab|oklch|color\(|var\()/i;
+
+/** Accepts a theme token (`primary`, `sky-500`) or a CSS color (`#61DAFB`, `oklch(...)`). */
+function cssColor(value: string): string {
+    return CSS_COLOR_PATTERN.test(value) ? value : cssColorToken(value);
+}
+
 export default defineComponent({
     name: "Badge",
 
@@ -93,7 +100,7 @@ export default defineComponent({
         },
 
         /**
-         * Tailwind color token (e.g. `sky-500`, `red-200`). Takes precedence over `variant`.
+         * Tailwind color token (e.g. `sky-500`, `red-200`) or CSS color (e.g. `#61DAFB`). Takes precedence over `variant`.
          */
         color: {
             type: String,
@@ -182,7 +189,7 @@ export default defineComponent({
             const style: Record<string, string> = {};
 
             if (this.color) {
-                const paint = cssColorToken(this.color);
+                const paint = cssColor(this.color);
 
                 if (this.isBordered) {
                     style.borderColor = paint;
@@ -192,9 +199,9 @@ export default defineComponent({
             }
 
             if (this.textColor && this.textColor !== "contrast") {
-                style.color = cssColorToken(this.textColor);
+                style.color = cssColor(this.textColor);
             } else if (this.color && this.isBordered && this.textColor !== "contrast") {
-                style.color = cssColorToken(this.color);
+                style.color = cssColor(this.color);
             }
 
             return style;

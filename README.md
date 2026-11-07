@@ -32,7 +32,7 @@ Os componentes são registrados globalmente pelo nome do componente. Nos templat
 
 ## Cores e temas
 
-Os tokens de cor (`success`, `info`, `warning`, `destructive`, cada um com `*-foreground`, além de `primary`, `background`, `foreground`, `border` e outros) são gerados pelo `cht-base` (`configs/theme`) a partir dos padrões e do `theme.config.json` do cliente, e trocados pelo tema ativo (claro ou escuro). O design system só os consome. A cor de um cliente específico entra pelo tema do cliente, nunca aqui.
+Os tokens de cor (`success`, `info`, `warning`, `destructive`, cada um com `*-foreground`, além de `primary`, `background`, `foreground`, `border` e outros) são gerados pelo `cht-base` (`configs/theme`) a partir dos padrões e do campo `theme` do `cht.config` do cliente, e trocados pelo tema ativo (claro ou escuro). O design system só os consome. A cor de um cliente específico entra pelo tema do cliente, nunca aqui.
 
 ## Estado dos componentes
 
