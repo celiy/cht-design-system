@@ -262,7 +262,10 @@ export const ButtonProps = {
  * Renders a native element by tag name. `<component is="button">` would resolve to this
  * globally registered Button and recurse forever, while `h("button")` always builds the element.
  */
-const NativeElement: FunctionalComponent<{ tag: string }> = (props, { slots }) =>
+const NativeElement: FunctionalComponent<{ tag: string } & Record<string, unknown>> = (
+    props,
+    { slots }
+) =>
     h(props.tag, null, slots.default?.());
 
 NativeElement.props = ["tag"];
