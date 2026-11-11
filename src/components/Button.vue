@@ -265,8 +265,7 @@ export const ButtonProps = {
 const NativeElement: FunctionalComponent<{ tag: string } & Record<string, unknown>> = (
     props,
     { slots }
-) =>
-    h(props.tag, null, slots.default?.());
+) => h(props.tag, null, slots.default?.());
 
 NativeElement.props = ["tag"];
 
