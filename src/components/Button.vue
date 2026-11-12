@@ -20,6 +20,7 @@
         :type="isLink ? undefined : type"
         :href="isLink && !disabled ? href : undefined"
         :target="isLink ? target : undefined"
+        :download="isLink && !disabled ? download : undefined"
         :rel="linkRel"
         :aria-disabled="isLink && disabled ? 'true' : undefined"
         :style="
@@ -205,6 +206,14 @@ export const ButtonProps = {
      */
     target: {
         type: String as PropType<"_self" | "_blank" | "_parent" | "_top">,
+        required: false
+    },
+
+    /**
+     * Downloads the `href` target instead of navigating. A string sets the file name. Only used with `href`.
+     */
+    download: {
+        type: [String, Boolean] as PropType<string | boolean>,
         required: false
     },
 
